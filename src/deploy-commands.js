@@ -47,3 +47,11 @@ const rest = new REST().setToken(token);
     console.error(error);
   }
 })();
+
+// Remove commands
+const commandsToRemove = [];
+for (const commandId of commandsToRemove) {
+  rest.delete(Routes.applicationGuildCommand(clientId, guildId, commandId)) // use Routes.applicationCommand for global
+    .then(() => console.log('Successfully deleted guild command'))
+    .catch(console.error);
+}
