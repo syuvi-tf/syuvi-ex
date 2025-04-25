@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const dotenv = require('dotenv');
+const sqlite = require('sqlite3');
 
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
@@ -57,3 +58,14 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // Log in to Discord with client token
 client.login(token);
+
+// sqlite testing
+const db = new sqlite.Database('jump.db');
+db.run(`CREATE TABLE IF NOT EXISTS player (
+  userId TEXT PRIMARY KEY NOT NULL,
+  userName TEXT NOT NULL,
+  soldierDiv TEXT NOT NULL,
+  demomanDiv TEXT NOT NULL,
+  tempusId TEXT NOT NULL)`);
+
+db.close();

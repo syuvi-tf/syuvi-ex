@@ -58,18 +58,20 @@ module.exports = {
     const playerclass = interaction.options.getString('class');
     const division = interaction.options.getString('division');
 
-    const addedRole = member.guild.roles.cache.get(divisionRoles.get(`${division} ${playerclass}`));
-    const removedRole = member.roles.cache.find((role) => role.name.includes(playerclass));
+    const roleToAdd = member.guild.roles.cache.get(divisionRoles.get(`${division} ${playerclass}`));
+    const roleToRemove = member.roles.cache.find((role) => role.name.includes(playerclass));
     let replyContent = '';
 
-    if (removedRole !== undefined) { //if an old role exists, remove it
-      member.roles.remove(removedRole);
-      replyContent += (`removed ${inlineCode(removedRole.name)} role from ${inlineCode(member.displayName)}.\n`);
+    if (roleToRemove !== undefined) { //if an old role exists, remove it
+      member.roles.remove(roleToRemove);
+      // TODO: remove from db
+      replyContent += (`removed ${inlineCode(roleToRemove.name)} role from ${inlineCode(member.displayName)}.\n`);
     }
 
     if (division !== 'None') {
-      member.roles.add(addedRole);
-      replyContent += (`added ${inlineCode(addedRole.name)} to ${inlineCode(member.displayName)}.`);
+      member.roles.add(roleToAdd);
+      // TODO: add to db
+      replyContent += (`added ${inlineCode(roleToAdd.name)} to ${inlineCode(member.displayName)}.`);
     }
 
     await interaction.editReply(replyContent);
