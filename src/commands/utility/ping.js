@@ -5,7 +5,7 @@ module.exports = {
     .setName('ping')
     .setDescription('latency test'),
   async execute(interaction) {
-    const sent = await interaction.reply({ content: 'ping...' });
+    await interaction.deferReply(); //thinking...
     interaction.editReply(`pong! (in ${sent.createdTimestamp - interaction.createdTimestamp}ms)`);
   },
 };

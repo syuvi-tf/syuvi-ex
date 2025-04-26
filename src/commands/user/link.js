@@ -1,18 +1,21 @@
 const { SlashCommandBuilder, inlineCode } = require('discord.js');
 const sqlite = require('sqlite3');
 
-function setTempusId_DB(tempusId, userId) {
+function setIds_DB(userId, tempusId, steamId32) {
+  const W = parseInt(steamId32.substring(steamId32.lastIndexOf(':') + 1)) * 2 + 1;
+  const steamUrl = `https://steamcommunity.com/profiles/[U:1:${W}]`;
   const db = new sqlite.Database('jump.db');
   db.run(`UPDATE players
-    SET tempusId = '${tempusId}'
-    WHERE userId = '${userId}'`);
+    SET tempusId = ?,
+        steamUrl = ?
+    WHERE userId = ?`, tempusId, steamUrl, userId);
   db.close();
 }
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('link')
-    .setDescription('sets your Tempus ID')
+    .setDescription('sets your Tempus ID and Steam profile')
     .addIntegerOption(option =>
       option.setName('tempus_id')
         .setDescription('from your tempus2.xyz url')
@@ -24,10 +27,12 @@ module.exports = {
     const tempusId = interaction.options.getInteger('tempus_id');
     const userId = interaction.user.id;
 
-    setTempusId_DB(tempusId, userId);
     const response = await (await fetch(`https://tempus2.xyz/api/v0/players/id/${tempusId}/info`)).json();
     const tempusName = response.name;
-    await interaction.editReply(`set your Tempus ID.\n
-       last known Tempus alias: ${inlineCode(tempusName)}`);
+    const steamId32 = response.steamid;
+
+    setIds_DB(userId, tempusId, steamId32);
+    await interaction.editReply(`set your Tempus ID\n` +
+      `your last known tempus alias is ${inlineCode(tempusName)}`);
   },
 };

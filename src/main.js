@@ -7,9 +7,6 @@ const sqlite = require('sqlite3');
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
-// Open connection to sqlite3 db
-const db = new sqlite.Database('jump.db');
-
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -34,14 +31,19 @@ for (const folder of commandFolders) {
 
 // When the client is ready, run this code (only once).
 client.once(Events.ClientReady, readyClient => {
-  console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  console.log(`ready! logged in as ${readyClient.user.tag}`);
+
+  // Open connection to sqlite3 db
+  const db = new sqlite.Database('jump.db');
 
   db.run(`CREATE TABLE IF NOT EXISTS players (
     userId TEXT PRIMARY KEY NOT NULL,
-    userName TEXT NOT NULL,
+    userDisplayName TEXT NOT NULL,
     soldierDiv TEXT,
     demoDiv TEXT,
-    tempusId TEXT)`);
+    tempusId TEXT,
+    steamUrl)`);
+  db.close();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -59,16 +61,12 @@ client.on(Events.InteractionCreate, async interaction => {
   } catch (error) {
     console.error(error);
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+      await interaction.followUp({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
     } else {
-      await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
     }
   }
 });
 
 // Log in to Discord with client token
 client.login(token);
-
-process.on('beforeExit', () => {
-  db.close();
-});
