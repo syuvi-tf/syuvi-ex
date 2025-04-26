@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits, inlineCode, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const sqlite = require('sqlite3');
-const divisionRoles = require('../../imports/divisions');
 
 function update_DB(members) {
   const db = new sqlite.Database('jump.db');

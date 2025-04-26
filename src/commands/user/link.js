@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, inlineCode } = require('discord.js');
 const sqlite = require('sqlite3');
 
-function setIds_DB(userId, tempusId, steamId32) {
+function updateIds_DB(userId, tempusId, steamId32) {
   const W = parseInt(steamId32.substring(steamId32.lastIndexOf(':') + 1)) * 2 + 1;
   const steamUrl = `https://steamcommunity.com/profiles/[U:1:${W}]`;
   const db = new sqlite.Database('jump.db');
@@ -31,7 +31,7 @@ module.exports = {
     const tempusName = response.name;
     const steamId32 = response.steamid;
 
-    setIds_DB(userId, tempusId, steamId32);
+    updateIds_DB(userId, tempusId, steamId32);
     await interaction.editReply(`set your Tempus ID\n` +
       `your last known tempus alias is ${inlineCode(tempusName)}`);
   },
