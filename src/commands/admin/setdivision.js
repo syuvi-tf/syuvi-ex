@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
 const sqlite = require('sqlite3');
-const divisionRoles = require('../../imports/divisions');
+const divisionRoles = require('../../exports/divisions');
 
 module.exports = {
   data: new SlashCommandBuilder()
