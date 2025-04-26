@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
+const sqlite = require('sqlite3');
 
 // setdivision
 // requires ManageRoles
@@ -54,6 +55,7 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
+    const db = new sqlite.Database('jump.db');
     const member = interaction.options.getMember('player');
     const playerclass = interaction.options.getString('class');
     const division = interaction.options.getString('division');
@@ -61,19 +63,26 @@ module.exports = {
     const roleToAdd = member.guild.roles.cache.get(divisionRoles.get(`${division} ${playerclass}`));
     const roleToRemove = member.roles.cache.find((role) => role.name.includes(playerclass));
     let replyContent = '';
+    db.run(`INSERT OR IGNORE INTO players(userId, userName)
+      VALUES ('${member.id}','${member.user.username}')`);
 
     if (roleToRemove !== undefined) { //if an old role exists, remove it
       member.roles.remove(roleToRemove);
-      // TODO: remove from db
-      replyContent += (`removed ${inlineCode(roleToRemove.name)} role from ${inlineCode(member.displayName)}.\n`);
+      db.run(`UPDATE players
+        SET ${playerclass === 'Soldier' ? 'soldierDiv' : 'demoDiv'} = NULL
+        WHERE userId = '${member.id}'`);
+      replyContent += (`removed ${inlineCode(roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
     }
 
     if (division !== 'None') {
       member.roles.add(roleToAdd);
-      // TODO: add to db
-      replyContent += (`added ${inlineCode(roleToAdd.name)} to ${inlineCode(member.displayName)}.`);
+      db.run(`UPDATE players
+        SET ${playerclass === 'Soldier' ? 'soldierDiv' : 'demoDiv'} = '${division}'
+        WHERE userId = '${member.id}'`);
+      replyContent += (`added ${inlineCode(roleToAdd.name)} to ${inlineCode(member.displayName)}`);
     }
 
     await interaction.editReply(replyContent);
+    db.close();
   },
 };

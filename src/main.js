@@ -7,6 +7,9 @@ const sqlite = require('sqlite3');
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
+// Open connection to sqlite3 db
+const db = new sqlite.Database('jump.db');
+
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
@@ -32,6 +35,13 @@ for (const folder of commandFolders) {
 // When the client is ready, run this code (only once).
 client.once(Events.ClientReady, readyClient => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS players (
+    userId TEXT PRIMARY KEY NOT NULL,
+    userName TEXT NOT NULL,
+    soldierDiv TEXT,
+    demoDiv TEXT,
+    tempusId TEXT)`);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -59,13 +69,6 @@ client.on(Events.InteractionCreate, async interaction => {
 // Log in to Discord with client token
 client.login(token);
 
-// sqlite testing
-const db = new sqlite.Database('jump.db');
-db.run(`CREATE TABLE IF NOT EXISTS player (
-  userId TEXT PRIMARY KEY NOT NULL,
-  userName TEXT NOT NULL,
-  soldierDiv TEXT NOT NULL,
-  demomanDiv TEXT NOT NULL,
-  tempusId TEXT NOT NULL)`);
-
-db.close();
+process.on('beforeExit', () => {
+  db.close();
+});
