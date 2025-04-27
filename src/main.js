@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const dotenv = require('dotenv');
-const sqlite = require('sqlite3');
+const { createTable, closeDB } = require('./lib/database.js');
 
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
@@ -32,18 +32,7 @@ for (const folder of commandFolders) {
 // When the client is ready, run this code (only once).
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
-
-  // Open connection to sqlite3 db
-  const db = new sqlite.Database('jump.db');
-
-  db.run(`CREATE TABLE IF NOT EXISTS players (
-    userId TEXT PRIMARY KEY NOT NULL,
-    userDisplayName TEXT NOT NULL,
-    soldierDiv TEXT,
-    demoDiv TEXT,
-    tempusId TEXT,
-    steamUrl)`);
-  db.close();
+  createTable();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -70,3 +59,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // Log in to Discord with client token
 client.login(token);
+
+process.on('beforeExit', () => {
+  closeDB();
+});

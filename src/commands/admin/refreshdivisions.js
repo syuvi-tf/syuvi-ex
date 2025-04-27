@@ -1,23 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
-const sqlite = require('sqlite3');
-
-function update_DB(members) {
-  const db = new sqlite.Database('jump.db');
-
-  members.forEach(member => {
-    const soldierRole = member.roles.cache.find((role) => role.name.includes('Soldier'));
-    const soldierDiv = soldierRole === undefined ? null : `${soldierRole.name.substring(0, soldierRole.name.indexOf(' '))}`;
-    const demoRole = member.roles.cache.find((role) => role.name.includes('Demo'));
-    const demoDiv = demoRole === undefined ? null : `${demoRole.name.substring(0, demoRole.name.indexOf(' '))}`;
-
-    db.run(`UPDATE players
-      SET userDisplayName = ?,
-          soldierDiv = ?,
-          demoDiv = ?
-      WHERE userId = ?`, member.displayName, soldierDiv, demoDiv, member.id);
-  });
-  db.close();
-}
+const { updateAllDivisions } = require('../../lib/database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -37,7 +19,8 @@ module.exports = {
       .addComponents(confirm, cancel);
 
     const response = await interaction.reply({
-      content: `this will update the divisions and display names for every player according to their discord roles. this command may be expensive, so please only use it when necessary!`,
+      content: 'this will update the divisions and display name for every player according to their discord roles. ' +
+        'this command may be expensive, so please only use it when necessary!',
       components: [confirmRow],
       withResponse: true,
     });
@@ -46,9 +29,8 @@ module.exports = {
 
     try {
       const confirmResponse = await response.resource.message.awaitMessageComponent({ filter: collectorFilter, time: 30_000 });
-
       if (confirmResponse.customId === 'confirm') {
-        update_DB(interaction.guild.members.cache);
+        updateAllDivisions(interaction.guild.members.cache);
         await confirmResponse.update({
           content: `updated divisions and display names`,
           components: []

@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const sqlite = require('sqlite3');
 
 // submits a time if
 // - a tournament is underway (time > start time)

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const sqlite = require('sqlite3');
-const divisionRoles = require('../../exports/divisions');
+const { createPlayer, updateDivision } = require('../../lib/database.js');
+const divisionRoles = require('../../lib/divisions.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -29,13 +29,12 @@ module.exports = {
           { name: 'Bronze', value: 'Bronze' },
           { name: 'Steel', value: 'Steel' },
           { name: 'Wood', value: 'Wood' },
-          { name: 'None', value: 'None' },)
+          { name: 'None', value: null },)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
 
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const db = new sqlite.Database('jump.db');
     const member = interaction.options.getMember('player');
     const playerclass = interaction.options.getString('class');
     const division = interaction.options.getString('division');
@@ -43,23 +42,19 @@ module.exports = {
     const roleToAdd = member.guild.roles.cache.get(divisionRoles.get(`${division} ${playerclass}`));
     const roleToRemove = member.roles.cache.find((role) => role.name.includes(playerclass));
     let replyContent = '';
-    db.run(`INSERT OR IGNORE INTO players(userId, userDisplayName)
-      VALUES (?, ?)`, member.id, member.displayName);
+    createPlayer(member.id, member.displayName);
 
     if (roleToRemove !== undefined) { //if an old role exists, remove it
       member.roles.remove(roleToRemove);
       replyContent += (`removed ${inlineCode(roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
     }
 
-    if (division !== 'None') {
+    if (division !== null) {
       member.roles.add(roleToAdd);
-      db.run(`UPDATE players
-        SET ${playerclass === 'Soldier' ? 'soldierDiv' : 'demoDiv'} = ?
-        WHERE userId = ?`, division, member.id);
       replyContent += (`added ${inlineCode(roleToAdd.name)} to ${inlineCode(member.displayName)}`);
     }
+    updateDivision(member.id, playerclass, division);
 
     await interaction.editReply(replyContent);
-    db.close();
   },
 };
