@@ -14,13 +14,12 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const tempusId = interaction.options.getInteger('tempus_id');
-    const userId = interaction.user.id;
 
     const response = await (await fetch(`https://tempus2.xyz/api/v0/players/id/${tempusId}/info`)).json();
     const tempusName = response.name;
     const steamId32 = response.steamid;
 
-    updateIds(userId, tempusId, steamId32);
+    updateIds(interaction.user.id, tempusId, steamId32);
     await interaction.editReply(`set your Tempus ID\n` +
       `your last known tempus alias is ${inlineCode(tempusName)}`);
   },

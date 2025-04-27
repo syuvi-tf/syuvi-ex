@@ -29,7 +29,7 @@ module.exports = {
           { name: 'Bronze', value: 'Bronze' },
           { name: 'Steel', value: 'Steel' },
           { name: 'Wood', value: 'Wood' },
-          { name: 'None', value: null },)
+          { name: 'None', value: 'None' },)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
 
@@ -38,7 +38,6 @@ module.exports = {
     const member = interaction.options.getMember('player');
     const playerclass = interaction.options.getString('class');
     const division = interaction.options.getString('division');
-
     const roleToAdd = member.guild.roles.cache.get(divisionRoles.get(`${division} ${playerclass}`));
     const roleToRemove = member.roles.cache.find((role) => role.name.includes(playerclass));
     let replyContent = '';
@@ -49,11 +48,11 @@ module.exports = {
       replyContent += (`removed ${inlineCode(roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
     }
 
-    if (division !== null) {
+    if (division !== 'None') {
       member.roles.add(roleToAdd);
       replyContent += (`added ${inlineCode(roleToAdd.name)} to ${inlineCode(member.displayName)}`);
     }
-    updateDivision(member.id, playerclass, division);
+    updateDivision(member.id, playerclass, division === 'None' ? null : division);
 
     await interaction.editReply(replyContent);
   },

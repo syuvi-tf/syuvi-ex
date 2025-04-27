@@ -46,7 +46,7 @@ function updateIds(id, tempusId, steamId32) {
   db.run(`UPDATE players
     SET tempusId = ?,
         steamUrl = ?
-    WHERE userId = ?`, tempusId, steamUrl, id);
+    WHERE id = ?`, tempusId, steamUrl, id);
 }
 
 function updateDisplayName(id, displayName) {
