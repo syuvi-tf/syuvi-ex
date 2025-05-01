@@ -6,6 +6,6 @@ module.exports = {
     .setDescription('latency test'),
   async execute(interaction) {
     const sent = await interaction.deferReply(); //thinking...
-    interaction.reply(`pong! ${inlineCode(sent.createdTimestamp - interaction.createdTimestamp + 'ms')}`);
+    interaction.editReply(`pong! ${inlineCode(sent.createdTimestamp - interaction.createdTimestamp + 'ms')}`);
   },
 };
