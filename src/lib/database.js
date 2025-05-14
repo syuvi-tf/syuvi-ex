@@ -37,13 +37,13 @@ function openDB() {
     FOREIGN KEY (player_id) REFERENCES player (id))`);
 
   db.run(`CREATE TABLE IF NOT EXISTS tournament_time (
-      id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-      tournament_id INTEGER NOT NULL,
-      player_id     INTEGER NOT NULL,
-      run_time      TIME NOT NULL,
-      created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (tournament_id) REFERENCES tournament (id),
-      FOREIGN KEY (player_id) REFERENCES player (id))`);
+    id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER NOT NULL,
+    player_id     INTEGER NOT NULL,
+    run_time      TIME NOT NULL,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tournament_id) REFERENCES tournament (id),
+    FOREIGN KEY (player_id) REFERENCES player (id))`);
 }
 
 // inserts a new player in the db, if they don't exist
