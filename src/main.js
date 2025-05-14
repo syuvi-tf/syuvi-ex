@@ -2,12 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const dotenv = require('dotenv');
-const { createTable, closeDB } = require('./lib/database.js');
+const { openDB, closeDB } = require('./lib/database.js');
 
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
-// Create a new client instance
+// create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 
@@ -20,7 +20,7 @@ for (const folder of commandFolders) {
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     const command = require(filePath);
-    // Set a new item in the Collection with the key as the command name and the value as the exported module
+    // set a new item in the Collection with the key as the command name and the value as the exported module
     if ('data' in command && 'execute' in command) {
       client.commands.set(command.data.name, command);
     } else {
@@ -29,10 +29,10 @@ for (const folder of commandFolders) {
   }
 }
 
-// When the client is ready, run this code (only once).
+// when the client is ready, run this code (only once)
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
-  createTable();
+  openDB();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -57,7 +57,7 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-// Log in to Discord with client token
+// log in to discord with client token
 client.login(token);
 
 process.on('beforeExit', () => {

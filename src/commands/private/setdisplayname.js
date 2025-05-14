@@ -1,19 +1,19 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { updateDisplayName } = require('../../lib/database.js');
+const { setDisplayName } = require('../../lib/database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('updatename')
-    .setDescription('updates a player\'s display name')
+    .setName('setdisplayname')
+    .setDescription('sets a player\'s display name')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addUserOption(option =>
       option.setName('player')
         .setDescription('@mention')
-        .setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
+        .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const member = interaction.options.getMember('player');
-    updateDisplayName(member.id, member.displayName);
-    interaction.editReply(`updated ${inlineCode(member.displayName)}'s display name`);
+    setDisplayName(member.id, member.displayName);
+    interaction.editReply(`set ${inlineCode(member.displayName)}'s display name`);
   },
 };

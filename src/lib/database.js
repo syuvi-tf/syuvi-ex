@@ -2,57 +2,94 @@ const sqlite = require('sqlite3');
 const db = new sqlite.Database('jump.db');
 
 // open connection to sqlite3 db
-function createTable() {
-  db.run(`CREATE TABLE IF NOT EXISTS players (
-    id TEXT PRIMARY KEY NOT NULL,
-    displayName TEXT NOT NULL,
-    soldierDiv TEXT,
-    demoDiv TEXT,
-    tempusId TEXT,
-    steamUrl TEXT)`);
+function openDB() {
+  // reset db for testing
+  //
+  // db.run(`DROP TABLE IF EXISTS player,
+  //         DROP TABLE IF EXISTS tournament,
+  //         DROP TABLE IF EXISTS tournament_player,
+  //         DROP TABLE IF EXISTS tournament_time`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS player (
+    id               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    discord_id       TEXT NOT NULL UNIQUE,
+    display_name     TEXT NOT NULL,
+    soldier_division TEXT,
+    demo_division    TEXT,
+    tempus_id        TEXT,
+    steam_url        TEXT,
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS tournament (
+    id        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    class     TEXT NOT NULL,
+    starts_at DATETIME NOT NULL,
+    ends_at   DATETIME NOT NULL)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS tournament_player (
+    tournament_id INTEGER NOT NULL,
+    player_id     INTEGER NOT NULL,
+    division      TEXT NOT NULL,
+    PRIMARY KEY (tournament_id, player_id),
+    FOREIGN KEY (tournament_id) REFERENCES tournament (id),
+    FOREIGN KEY (player_id) REFERENCES player (id))`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS tournament_time (
+      id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      tournament_id INTEGER NOT NULL,
+      player_id     INTEGER NOT NULL,
+      run_time      TIME NOT NULL,
+      created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (tournament_id) REFERENCES tournament (id),
+      FOREIGN KEY (player_id) REFERENCES player (id))`);
 }
 
 // inserts a new player in the db, if they don't exist
-function createPlayer(id, displayName) {
-  db.run(`INSERT OR IGNORE INTO players(id, displayName)
-      VALUES (?, ?)`, id, displayName);
+function createPlayer(discord_id, display_name) {
+  db.run(`INSERT OR IGNORE INTO player (discord_id, display_name)
+        VALUES (?, ?)`,
+    discord_id, display_name);
 }
 
-function updateDivision(id, playerclass, division) {
-  db.run(`UPDATE players
-    SET ${playerclass === 'Soldier' ? 'soldierDiv' : 'demoDiv'} = ?
-    WHERE id = ?`, division, id);
+function setDisplayName(discord_id, display_name) {
+  db.run(`UPDATE player
+          SET display_name = ?
+          WHERE discord_id = ?`,
+    display_name, discord_id);
 }
 
-// updates from discord role, additionally updates displayName
-function updateAllDivisions(members) {
+// sets divison of an existing player
+function setDivision(discord_id, player_class, division) {
+  db.run(`UPDATE player
+    SET ${player_class === 'Soldier' ? 'soldier_division' : 'demo_division'} = ?
+    WHERE discord_id = ?`,
+    division, discord_id);
+}
+
+// updates all player divisions from their discord role(s)
+function setDivisionsFromRoles(members) {
   members.forEach(member => {
-    const soldierRole = member.roles.cache.find((role) => role.name.includes('Soldier'));
-    const soldierDiv = soldierRole === undefined ? null : `${soldierRole.name.substring(0, soldierRole.name.indexOf(' '))}`;
-    const demoRole = member.roles.cache.find((role) => role.name.includes('Demo'));
-    const demoDiv = demoRole === undefined ? null : `${demoRole.name.substring(0, demoRole.name.indexOf(' '))}`;
+    const soldier_role = member.roles.cache.find((role) => role.name.includes('Soldier'));
+    const soldier_div = soldier_role === undefined ? null : `${soldier_role.name.substring(0, soldier_role.name.indexOf(' '))}`;
+    const demo_role = member.roles.cache.find((role) => role.name.includes('Demo'));
+    const demo_div = demo_role === undefined ? null : `${demo_role.name.substring(0, demo_role.name.indexOf(' '))}`;
 
-    db.run(`UPDATE players
-      SET displayName = ?,
-          soldierDiv = ?,
-          demoDiv = ?
-      WHERE id = ?`, member.displayName, soldierDiv, demoDiv, member.id);
+    db.run(`UPDATE player
+      SET soldier_division = ?,
+          demo_division = ?
+      WHERE discord_id = ?`,
+      soldier_div, demo_div, member.id);
   });
 }
 
-function updateIds(id, tempusId, steamId32) {
-  const W = parseInt(steamId32.substring(steamId32.lastIndexOf(':') + 1)) * 2 + 1;
-  const steamUrl = `https://steamcommunity.com/profiles/[U:1:${W}]`;
-  db.run(`UPDATE players
-    SET tempusId = ?,
-        steamUrl = ?
-    WHERE id = ?`, tempusId, steamUrl, id);
-}
-
-function updateDisplayName(id, displayName) {
-  db.run(`UPDATE players
-    SET displayName = ?
-    WHERE id = ?`, displayName, id);
+function setIds(discord_id, tempus_id, steam_id32) {
+  const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + 1;
+  const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
+  db.run(`UPDATE player
+    SET tempus_id = ?,
+        steam_url = ?
+    WHERE discord_id = ?`,
+    tempus_id, steam_url, discord_id);
 }
 
 function closeDB() {
@@ -60,11 +97,11 @@ function closeDB() {
 }
 
 module.exports = {
-  createTable,
+  openDB,
   createPlayer,
-  updateDivision,
-  updateAllDivisions,
-  updateIds,
-  updateDisplayName,
+  setDisplayName,
+  setDivision,
+  setDivisionsFromRoles,
+  setIds,
   closeDB
 };

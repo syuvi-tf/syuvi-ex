@@ -1,18 +1,19 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { createPlayer, updateDivision } = require('../../lib/database.js');
+const { createPlayer, setDivision } = require('../../lib/database.js');
 const divisionRoles = require('../../lib/divisions.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setdivision')
-    .setDescription('updates a player\'s division')
+    .setDescription('set a player\'s division')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addUserOption(option =>
       option.setName('player')
         .setDescription('@mention')
         .setRequired(true))
     .addStringOption(option =>
       option.setName('class')
-        .setDescription('player class')
+        .setDescription('division class')
         .setRequired(true)
         .addChoices(
           { name: 'Soldier', value: 'Soldier' },
@@ -20,7 +21,7 @@ module.exports = {
     )
     .addStringOption(option =>
       option.setName('division')
-        .setDescription('player division')
+        .setDescription('division name')
         .setRequired(true)
         .addChoices(
           { name: 'Platinum', value: 'Platinum' },
@@ -30,9 +31,7 @@ module.exports = {
           { name: 'Steel', value: 'Steel' },
           { name: 'Wood', value: 'Wood' },
           { name: 'None', value: 'None' },)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
-
+    ),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const member = interaction.options.getMember('player');
@@ -45,14 +44,14 @@ module.exports = {
 
     if (roleToRemove !== undefined) { //if an old role exists, remove it
       member.roles.remove(roleToRemove);
-      replyContent += (`removed ${inlineCode(roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
+      replyContent += (`${inlineCode('- ' + roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
     }
 
     if (division !== 'None') {
       member.roles.add(roleToAdd);
-      replyContent += (`added ${inlineCode(roleToAdd.name)} to ${inlineCode(member.displayName)}`);
+      replyContent += (`${inlineCode('+ ' + roleToAdd.name)} to ${inlineCode(member.displayName)}`);
     }
-    updateDivision(member.id, playerclass, division === 'None' ? null : division);
+    setDivision(member.id, playerclass, division === 'None' ? null : division);
 
     await interaction.editReply(replyContent);
   },
