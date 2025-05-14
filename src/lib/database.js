@@ -4,11 +4,11 @@ const db = new sqlite.Database('jump.db');
 // open connection to sqlite3 db
 function openDB() {
   // reset db for testing
-  //
-  // db.run(`DROP TABLE IF EXISTS player,
-  //         DROP TABLE IF EXISTS tournament,
-  //         DROP TABLE IF EXISTS tournament_player,
-  //         DROP TABLE IF EXISTS tournament_time`);
+
+  db.run(`DROP TABLE IF EXISTS player`);
+  db.run(`DROP TABLE IF EXISTS tournament`);
+  db.run(`DROP TABLE IF EXISTS tournament_player`);
+  db.run(`DROP TABLE IF EXISTS tournament_time`);
 
   db.run(`CREATE TABLE IF NOT EXISTS player (
     id               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -21,15 +21,17 @@ function openDB() {
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
 
   db.run(`CREATE TABLE IF NOT EXISTS tournament (
-    id        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    class     TEXT NOT NULL,
-    starts_at DATETIME NOT NULL,
-    ends_at   DATETIME NOT NULL)`);
+    id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    class      TEXT NOT NULL,
+    starts_at  DATETIME NOT NULL,
+    ends_at    DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
 
   db.run(`CREATE TABLE IF NOT EXISTS tournament_player (
     tournament_id INTEGER NOT NULL,
     player_id     INTEGER NOT NULL,
     division      TEXT NOT NULL,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tournament_id, player_id),
     FOREIGN KEY (tournament_id) REFERENCES tournament (id),
     FOREIGN KEY (player_id) REFERENCES player (id))`);
@@ -66,7 +68,7 @@ function setDivision(discord_id, player_class, division) {
     division, discord_id);
 }
 
-// updates all player divisions from their discord role(s)
+// sets all player divisions from their discord role(s)
 function setDivisionsFromRoles(members) {
   members.forEach(member => {
     const soldier_role = member.roles.cache.find((role) => role.name.includes('Soldier'));
@@ -82,6 +84,7 @@ function setDivisionsFromRoles(members) {
   });
 }
 
+// sets Tempus ID and Steam URL
 function setIds(discord_id, tempus_id, steam_id32) {
   const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + 1;
   const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
