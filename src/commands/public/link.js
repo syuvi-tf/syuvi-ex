@@ -21,11 +21,12 @@ module.exports = {
 
     try {
       setIds(interaction.user.id, tempus_id, steam_id32);
-      await interaction.editReply(`set your Tempus ID\n` +
+      await interaction.editReply(`✅ set your Tempus ID\n` +
         `your last online tempus alias is ${inlineCode(tempusName)}`);
     }
-    catch {
-      await interaction.editReply(`couldn't set your Tempus ID. do you have a division?`);
+    catch (error) {
+      console.log(error);
+      await interaction.editReply(`❌ couldn't set your Tempus ID. do you have a division?`);
     }
   },
 };

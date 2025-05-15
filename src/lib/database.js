@@ -23,8 +23,7 @@ function openDB() {
   db.run(`CREATE TABLE IF NOT EXISTS tournament (
     id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     class      TEXT NOT NULL,
-    plat_map   TEXT NOT NULL,
-    gold_map   TEXT NOT NULL,
+    plat_gold_map   TEXT NOT NULL,
     silver_map TEXT NOT NULL,
     bronze_map TEXT NOT NULL,
     steel_map  TEXT NOT NULL,

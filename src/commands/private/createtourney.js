@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, time, TextInputBuilder, TextInputStyle, ModalBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, inlineCode, time } = require('discord.js');
 const { createStartJob, createEndJob } = require('../../lib/tourney-schedule.js');
+const { signupsChannelId } = require('../../lib/guild-specific.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -56,15 +57,11 @@ module.exports = {
 
     const modal = new ModalBuilder()
       .setCustomId('mapSelect')
-      .setTitle(`${tourneyclass === 'Soldier' ? 'Soldier' : 'Demo'} Tourney Maps`);
+      .setTitle(`${tourneyclass} Tourney Maps`);
 
-    const platMap = new TextInputBuilder()
-      .setCustomId('plat_map')
-      .setLabel('Platinum Map')
-      .setStyle(TextInputStyle.Short);
-    const goldMap = new TextInputBuilder()
-      .setCustomId('gold_map')
-      .setLabel('Gold Map')
+    const platGoldMap = new TextInputBuilder()
+      .setCustomId('plat_gold_map')
+      .setLabel('Platinum / Gold Map')
       .setStyle(TextInputStyle.Short);
     const silverMap = new TextInputBuilder()
       .setCustomId('silver_map')
@@ -83,32 +80,86 @@ module.exports = {
       .setLabel('Wood Map')
       .setStyle(TextInputStyle.Short);
 
-    const platMapRow = new ActionRowBuilder().addComponents(platMap);
-    const goldMapRow = new ActionRowBuilder().addComponents(goldMap);
+    const platGoldMapRow = new ActionRowBuilder().addComponents(platGoldMap);
     const silverMapRow = new ActionRowBuilder().addComponents(silverMap);
     const bronzeMapRow = new ActionRowBuilder().addComponents(bronzeMap);
     const steelMapRow = new ActionRowBuilder().addComponents(steelMap);
-    // const woodMapRow = new ActionRowBuilder().addComponents(woodMap);
+    const woodMapRow = new ActionRowBuilder().addComponents(woodMap);
 
-    modal.addComponents(platMapRow, goldMapRow, silverMapRow, bronzeMapRow, steelMapRow);
+    modal.addComponents(platGoldMapRow, silverMapRow, bronzeMapRow, steelMapRow);
     if (tourneyclass === 'Soldier') {
-      // modal.addComponents(woodMapRow);
+      modal.addComponents(woodMapRow);
     }
 
     const channel = await interaction.channel;
-    const response = await channel.send(`waiting for ${interaction.user.displayName} to select maps..`);
+    const waitResponse = await channel.send(`⌛ waiting for ${interaction.user.displayName} to select maps..`);
 
     await interaction.showModal(modal);
     try {
-      const filter = (interaction) => interaction.customId === 'mapSelect';
-      const submittedMaps = await interaction.awaitModalSubmit({ filter, time: 120_000 });
-      console.log(submittedMaps.fields);
-      response.delete();
-      submittedMaps.reply(`submission successful. tournament start date set to ${discord_timestamp}`);
+      const modalFilter = (i) => i.customId === 'mapSelect';
+      const submittedMaps = await interaction.awaitModalSubmit({ filter: modalFilter, time: 10_000 });
+      const submittedMapFields = submittedMaps.fields;
+      const plat_gold_map = submittedMapFields.getTextInputValue('plat_gold_map');
+      const silver_map = submittedMapFields.getTextInputValue('silver_map');
+      const bronze_map = submittedMapFields.getTextInputValue('bronze_map');
+      const steel_map = submittedMapFields.getTextInputValue('steel_map');
+      let wood_map = undefined;
+      if (tourneyclass === 'Soldier') {
+        wood_map = submittedMapFields.getTextInputValue('wood_map');
+      }
+
+      waitResponse.delete();
+
+      const confirm = new ButtonBuilder()
+        .setCustomId('confirm')
+        .setLabel('confirm')
+        .setStyle(ButtonStyle.Success);
+      const cancel = new ButtonBuilder()
+        .setCustomId('cancel')
+        .setLabel('cancel')
+        .setStyle(ButtonStyle.Secondary);
+      const confirmRow = new ActionRowBuilder().addComponents(confirm, cancel);
+      const tourneyResponse = await submittedMaps.reply({
+        content: (`maps selected. ${tourneyclass} tournament start date set to ${discord_timestamp}
+🟦 Platinum / Gold Map: ${inlineCode(plat_gold_map)}
+⬜ Silver Map: ${inlineCode(silver_map)}
+🟧 Bronze Map: ${inlineCode(bronze_map)}
+⬛ Steel Map: ${inlineCode(steel_map)}
+${tourneyclass === 'Soldier' ? `🟫 Wood Map: ${inlineCode(wood_map)}` : ``}`),
+        components: [confirmRow],
+        withResponse: true,
+      });
+
+      const collectorFilter = (i) => i.user.id === interaction.user.id;
+      try {
+        const confirmResponse = await tourneyResponse.resource.message.awaitMessageComponent({ filter: collectorFilter, time: 30_000 });
+        if (confirmResponse.customId === 'confirm') {
+          const signupsChannel = interaction.guild.channels.cache.get('1365091870341857310');
+          signupsChannel.send('signup stuff'); //signup channel thing
+          await confirmResponse.update({
+            components: []
+          });
+          await channel.send(`✅ tournament confirmed.`);
+        }
+        else if (confirmResponse.customId === 'cancel') {
+          await confirmResponse.update({
+            components: []
+          });
+          await channel.send(`❌ canceled command.`);
+        }
+      }
+      catch (error) {
+        console.log(error);
+        await tourneyResponse.resource.message.edit({
+          content: `❌ timed out after 30 seconds or ran into an error..canceled command.`,
+          components: []
+        });
+      }
     }
-    catch {
-      await response.edit(`timed out after 120 seconds or ran into an error.. canceled command.`);
-      setTimeout(() => response.delete(), 10_000);
+    catch (error) {
+      console.log(error);
+      const timeoutResponse = await channel.send(`❌ timed out after 120 seconds or ran into an error..canceled command.`);
+      setTimeout(() => { timeoutResponse.delete(), waitResponse.delete() }, 10_000);
     }
   },
 };

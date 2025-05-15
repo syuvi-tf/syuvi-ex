@@ -24,27 +24,28 @@ module.exports = {
       withResponse: true,
     });
 
-    const collectorFilter = i => i.user.id === interaction.user.id;
+    const collectorFilter = (i) => i.user.id === interaction.user.id;
 
     try {
       const confirmResponse = await response.resource.message.awaitMessageComponent({ filter: collectorFilter, time: 30_000 });
       if (confirmResponse.customId === 'confirm') {
         setDivisionsFromRoles(interaction.guild.members.cache);
         await confirmResponse.update({
-          content: `updated divisions.`,
+          content: `✅ updated divisions.`,
           components: []
         });
       }
       else if (confirmResponse.customId === 'cancel') {
         await confirmResponse.update({
-          content: `canceled command.`,
+          content: `❌ canceled command.`,
           components: []
         });
       }
     }
-    catch {
+    catch (error) {
+      console.log(error);
       await interaction.editReply({
-        content: `timed out after 30 seconds or ran into an error.. canceled command.`,
+        content: `❌ timed out after 30 seconds or ran into an error.. canceled command.`,
         components: []
       });
     }
