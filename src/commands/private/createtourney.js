@@ -105,8 +105,10 @@ module.exports = {
       console.log(submittedMaps.fields);
       response.delete();
       submittedMaps.reply(`submission successful. tournament start date set to ${discord_timestamp}`);
-    } catch {
+    }
+    catch {
       await response.edit(`timed out after 120 seconds or ran into an error.. canceled command.`);
+      setTimeout(() => response.delete(), 10_000);
     }
   },
 };

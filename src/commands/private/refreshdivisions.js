@@ -41,7 +41,8 @@ module.exports = {
           components: []
         });
       }
-    } catch {
+    }
+    catch {
       await interaction.editReply({
         content: `timed out after 30 seconds or ran into an error.. canceled command.`,
         components: []
