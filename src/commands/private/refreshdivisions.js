@@ -15,11 +15,10 @@ module.exports = {
       .setCustomId('cancel')
       .setLabel('cancel')
       .setStyle(ButtonStyle.Secondary);
-    const confirmRow = new ActionRowBuilder()
-      .addComponents(confirm, cancel);
+    const confirmRow = new ActionRowBuilder().addComponents(confirm, cancel);
 
     const response = await interaction.reply({
-      content: 'this will update the divisions of every player according to their discord roles,  ' +
+      content: 'this will update the divisions of every player according to their discord roles.\n' +
         'this command may be expensive, so please only use it when necessary!',
       components: [confirmRow],
       withResponse: true,
@@ -32,7 +31,7 @@ module.exports = {
       if (confirmResponse.customId === 'confirm') {
         setDivisionsFromRoles(interaction.guild.members.cache);
         await confirmResponse.update({
-          content: `updated divisions`,
+          content: `updated divisions.`,
           components: []
         });
       }
@@ -44,7 +43,7 @@ module.exports = {
       }
     } catch {
       await interaction.editReply({
-        content: `timed out or ran into an error.. canceled command.`,
+        content: `timed out after 30 seconds or ran into an error.. canceled command.`,
         components: []
       });
     }

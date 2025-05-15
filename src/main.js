@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const dotenv = require('dotenv');
-const { openDB, closeDB } = require('./lib/database.js');
+const { openDB, getTourneyTimes, closeDB } = require('./lib/database.js');
 
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
@@ -33,6 +33,7 @@ for (const folder of commandFolders) {
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
+  getTourneyTimes();
 });
 
 client.on(Events.InteractionCreate, async interaction => {

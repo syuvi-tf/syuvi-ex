@@ -1,10 +1,10 @@
 const sqlite = require('sqlite3');
 const db = new sqlite.Database('jump.db');
+const { createStartJob, createEndJob } = require('./tourney-schedule.js');
 
 // open connection to sqlite3 db
 function openDB() {
   // reset db for testing
-
   db.run(`DROP TABLE IF EXISTS player`);
   db.run(`DROP TABLE IF EXISTS tournament`);
   db.run(`DROP TABLE IF EXISTS tournament_player`);
@@ -23,6 +23,12 @@ function openDB() {
   db.run(`CREATE TABLE IF NOT EXISTS tournament (
     id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     class      TEXT NOT NULL,
+    plat_map   TEXT NOT NULL,
+    gold_map   TEXT NOT NULL,
+    silver_map TEXT NOT NULL,
+    bronze_map TEXT NOT NULL,
+    steel_map  TEXT NOT NULL,
+    wood_map   TEXT,
     starts_at  DATETIME NOT NULL,
     ends_at    DATETIME NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
@@ -44,6 +50,22 @@ function openDB() {
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tournament_id) REFERENCES tournament (id),
     FOREIGN KEY (player_id) REFERENCES player (id))`);
+}
+
+function getTourneyTimes() {
+  db.each(`SELECT starts_at FROM tournament`, (err, starts_at) => {
+    if (starts_at !== undefined) {
+      console.log(`starts at: ${starts_at}`);
+      createStartJob(starts_at);
+    }
+  });
+
+  db.each(`SELECT ends_at FROM tournament`, (err, ends_at) => {
+    if (ends_at !== undefined) {
+      console.log(`ends at: ${ends_at}`);
+      createStartJob(ends_at);
+    }
+  })
 }
 
 // inserts a new player in the db, if they don't exist
@@ -70,12 +92,17 @@ function setDivision(discord_id, player_class, division) {
 
 // sets all player divisions from their discord role(s)
 function setDivisionsFromRoles(members) {
+  let numUpdatedRoles = 0;
   members.forEach(member => {
     const soldier_role = member.roles.cache.find((role) => role.name.includes('Soldier'));
     const soldier_div = soldier_role === undefined ? null : `${soldier_role.name.substring(0, soldier_role.name.indexOf(' '))}`;
     const demo_role = member.roles.cache.find((role) => role.name.includes('Demo'));
     const demo_div = demo_role === undefined ? null : `${demo_role.name.substring(0, demo_role.name.indexOf(' '))}`;
 
+    // if a member has a role, insert them in the database if they don't exist
+    if (demo_div !== null && soldier_div !== null) {
+      createPlayer(member.id, member.displayName);
+    }
     db.run(`UPDATE player
       SET soldier_division = ?,
           demo_division = ?
@@ -101,6 +128,7 @@ function closeDB() {
 
 module.exports = {
   openDB,
+  getTourneyTimes,
   createPlayer,
   setDisplayName,
   setDivision,
