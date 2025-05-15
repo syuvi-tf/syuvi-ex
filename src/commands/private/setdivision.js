@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
 const { createPlayer, setDivision } = require('../../lib/database.js');
-const divisionRoles = require('../../lib/divisions.js');
+const { divisionRoleIds } = require('../../lib/guild-specific.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -37,7 +37,7 @@ module.exports = {
     const member = interaction.options.getMember('player');
     const playerclass = interaction.options.getString('class');
     const division = interaction.options.getString('division');
-    const roleToAdd = member.guild.roles.cache.get(divisionRoles.get(`${division} ${playerclass}`));
+    const roleToAdd = member.guild.roles.cache.get(divisionRoleIds.get(`${division} ${playerclass}`));
     const roleToRemove = member.roles.cache.find((role) => role.name.includes(playerclass));
     let replyContent = '';
     createPlayer(member.id, member.displayName);

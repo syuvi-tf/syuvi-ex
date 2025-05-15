@@ -1,5 +1,5 @@
-// update for prod
-const divisionRoles = new Map([
+// update these for prod
+const divisionRoleIds = new Map([
   ['Platinum Soldier', '1365102656040734761'],
   ['Gold Soldier', '1365102716283650151'],
   ['Silver Soldier', '1365102762832171171'],
@@ -14,4 +14,10 @@ const divisionRoles = new Map([
   ['Wood Demo', '1365116741847613590'],
 ]);
 
-module.exports = divisionRoles;
+const signupsChannelId = '1365091870341857310';
+
+module.exports =
+{
+  divisionRoleIds,
+  signupsChannelId
+}
