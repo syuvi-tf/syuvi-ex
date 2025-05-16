@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const { setDivisionsFromRoles } = require('../../lib/database.js');
+const { confirmRow } = require('../../lib/components.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,19 +8,9 @@ module.exports = {
     .setDescription('refresh divisions for every player')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
   async execute(interaction) {
-    const confirm = new ButtonBuilder()
-      .setCustomId('confirm')
-      .setLabel('confirm')
-      .setStyle(ButtonStyle.Success);
-    const cancel = new ButtonBuilder()
-      .setCustomId('cancel')
-      .setLabel('cancel')
-      .setStyle(ButtonStyle.Secondary);
-    const confirmRow = new ActionRowBuilder().addComponents(confirm, cancel);
-
     const response = await interaction.reply({
-      content: 'this will update the divisions of every player according to their discord roles.\n' +
-        'this command may be expensive, so please only use it when necessary!',
+      content: `this will update the divisions of every player according to their discord roles.
+this command may be expensive, so please only use it when necessary!`,
       components: [confirmRow],
       withResponse: true,
     });

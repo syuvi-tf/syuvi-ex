@@ -21,8 +21,8 @@ module.exports = {
 
     try {
       setIds(interaction.user.id, tempus_id, steam_id32);
-      await interaction.editReply(`✅ set your Tempus ID\n` +
-        `your last online tempus alias is ${inlineCode(tempusName)}`);
+      await interaction.editReply(`✅ set your Tempus ID
+your last online tempus alias is ${inlineCode(tempusName)}`);
     }
     catch (error) {
       console.log(error);

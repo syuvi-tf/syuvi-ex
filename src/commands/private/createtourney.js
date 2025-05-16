@@ -1,6 +1,36 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, inlineCode, time } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, inlineCode, time } = require('discord.js');
 const { createStartJob, createEndJob } = require('../../lib/tourney-schedule.js');
 const { signupsChannelId } = require('../../lib/guild-specific.js');
+const { confirmRow } = require('../../lib/components.js');
+
+async function tryConfirm(tourneyResponse, interaction) {
+  const channel = interaction.channel;
+  const signupsChannel = interaction.guild.channels.cache.get(signupsChannelId);
+  const filter = (i) => i.user.id === interaction.user.id;
+  try {
+    const response = await tourneyResponse.resource.message.awaitMessageComponent({ filter, time: 30_000 });
+    if (response.customId === 'confirm') {
+      signupsChannel.send('signup stuff'); // send in #signups
+      await response.update({
+        components: []
+      });
+      await channel.send(`✅ tournament confirmed.`);
+    }
+    else if (response.customId === 'cancel') {
+      await response.update({
+        components: []
+      });
+      await channel.send(`❌ canceled command.`);
+    }
+  }
+  catch (error) {
+    console.log(error);
+    await tourneyResponse.resource.message.edit({
+      content: `❌ timed out after 30 seconds or ran into an error..canceled command.`,
+      components: []
+    });
+  }
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -54,11 +84,9 @@ module.exports = {
     const datetime = `${year}-${month}-${day} 00:00:00`;
     const date = new Date(datetime);
     const discord_timestamp = time(date);
-
     const modal = new ModalBuilder()
       .setCustomId('mapSelect')
       .setTitle(`${tourneyclass} Tourney Maps`);
-
     const platGoldMap = new TextInputBuilder()
       .setCustomId('plat_gold_map')
       .setLabel('Platinum / Gold Map')
@@ -79,20 +107,19 @@ module.exports = {
       .setCustomId('wood_map')
       .setLabel('Wood Map')
       .setStyle(TextInputStyle.Short);
-
     const platGoldMapRow = new ActionRowBuilder().addComponents(platGoldMap);
     const silverMapRow = new ActionRowBuilder().addComponents(silverMap);
     const bronzeMapRow = new ActionRowBuilder().addComponents(bronzeMap);
     const steelMapRow = new ActionRowBuilder().addComponents(steelMap);
     const woodMapRow = new ActionRowBuilder().addComponents(woodMap);
-
     modal.addComponents(platGoldMapRow, silverMapRow, bronzeMapRow, steelMapRow);
     if (tourneyclass === 'Soldier') {
       modal.addComponents(woodMapRow);
     }
 
+    // waiting...
     const channel = await interaction.channel;
-    const waitResponse = await channel.send(`⌛ waiting for ${interaction.user.displayName} to select maps..`);
+    const waitMessage = await channel.send(`⌛ waiting for ${interaction.user.displayName} to select maps..`);
 
     await interaction.showModal(modal);
     try {
@@ -107,20 +134,12 @@ module.exports = {
       if (tourneyclass === 'Soldier') {
         wood_map = submittedMapFields.getTextInputValue('wood_map');
       }
+      // delete the "waiting for user" message after receiving the modal submission
+      waitMessage.delete();
 
-      waitResponse.delete();
-
-      const confirm = new ButtonBuilder()
-        .setCustomId('confirm')
-        .setLabel('confirm')
-        .setStyle(ButtonStyle.Success);
-      const cancel = new ButtonBuilder()
-        .setCustomId('cancel')
-        .setLabel('cancel')
-        .setStyle(ButtonStyle.Secondary);
-      const confirmRow = new ActionRowBuilder().addComponents(confirm, cancel);
+      // ask for tourney confirmation
       const tourneyResponse = await submittedMaps.reply({
-        content: (`maps selected. ${tourneyclass} tournament start date set to ${discord_timestamp}
+        content: (`${tourneyclass} tournament start date set to ${discord_timestamp}
 🟦 Platinum / Gold Map: ${inlineCode(plat_gold_map)}
 ⬜ Silver Map: ${inlineCode(silver_map)}
 🟧 Bronze Map: ${inlineCode(bronze_map)}
@@ -129,37 +148,12 @@ ${tourneyclass === 'Soldier' ? `🟫 Wood Map: ${inlineCode(wood_map)}` : ``}`),
         components: [confirmRow],
         withResponse: true,
       });
-
-      const collectorFilter = (i) => i.user.id === interaction.user.id;
-      try {
-        const confirmResponse = await tourneyResponse.resource.message.awaitMessageComponent({ filter: collectorFilter, time: 30_000 });
-        if (confirmResponse.customId === 'confirm') {
-          const signupsChannel = interaction.guild.channels.cache.get('1365091870341857310');
-          signupsChannel.send('signup stuff'); //signup channel thing
-          await confirmResponse.update({
-            components: []
-          });
-          await channel.send(`✅ tournament confirmed.`);
-        }
-        else if (confirmResponse.customId === 'cancel') {
-          await confirmResponse.update({
-            components: []
-          });
-          await channel.send(`❌ canceled command.`);
-        }
-      }
-      catch (error) {
-        console.log(error);
-        await tourneyResponse.resource.message.edit({
-          content: `❌ timed out after 30 seconds or ran into an error..canceled command.`,
-          components: []
-        });
-      }
+      tryConfirm(tourneyResponse, interaction);
     }
     catch (error) {
       console.log(error);
-      const timeoutResponse = await channel.send(`❌ timed out after 120 seconds or ran into an error..canceled command.`);
-      setTimeout(() => { timeoutResponse.delete(), waitResponse.delete() }, 10_000);
+      const timeoutMessage = await channel.send(`❌ timed out after 120 seconds or ran into an error..canceled command.`);
+      setTimeout(() => { timeoutMessage.delete(), waitMessage.delete() }, 10_000);
     }
   },
 };
