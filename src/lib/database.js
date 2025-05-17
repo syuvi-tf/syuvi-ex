@@ -1,6 +1,6 @@
 const sqlite = require('sqlite3');
 const db = new sqlite.Database('jump.db');
-const { createStartJob, createEndJob } = require('./tourney-schedule.js');
+const { createStartJob, createEndJob } = require('./schedules.js');
 
 // open connection to sqlite3 db
 function openDB() {

@@ -3,7 +3,7 @@ const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags, EmbedBuilder, userMention } = require('discord.js');
 const dotenv = require('dotenv');
 const { openDB, getTourneyTimes, getPlayerId, getDivision, getLatestTournament, createTournamentPlayer, removeTournamentPlayer, closeDB } = require('./lib/database.js');
-const { signupsChannelId } = require('./lib/guild-specific.js');
+const { signupsChannelId } = require('./lib/guild-ids.js');
 let signupsMessageId;
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;

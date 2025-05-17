@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
 const { createPlayer, setDivision } = require('../../lib/database.js');
-const { divisionRoleIds } = require('../../lib/guild-specific.js');
+const { divisionRoleIds } = require('../../lib/guild-ids.js');
 
 module.exports = {
   data: new SlashCommandBuilder()

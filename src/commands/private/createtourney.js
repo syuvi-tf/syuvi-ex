@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ModalBuilder, EmbedBuilder, TextInputBuilder, TextInputStyle, channelMention, inlineCode, time, TimestampStyles } = require('discord.js');
-const { createStartJob, createEndJob } = require('../../lib/tourney-schedule.js');
+const { createStartJob, createEndJob } = require('../../lib/schedules.js');
 const { createTournament } = require('../../lib/database.js');
-const { signupsChannelId, faqChannelId } = require('../../lib/guild-specific.js');
+const { signupsChannelId, faqChannelId } = require('../../lib/guild-ids.js');
 const { confirmRow } = require('../../lib/components.js');
 
 // returns the initial signup embed
