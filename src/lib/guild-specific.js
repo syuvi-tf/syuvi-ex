@@ -15,9 +15,10 @@ const divisionRoleIds = new Map([
 ]);
 
 const signupsChannelId = '1365091870341857310';
-
+const faqChannelId = '1373060351414894593';
 module.exports =
 {
   divisionRoleIds,
-  signupsChannelId
+  signupsChannelId,
+  faqChannelId
 }
