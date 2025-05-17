@@ -1,14 +1,19 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags, EmbedBuilder, userMention } = require('discord.js');
 const dotenv = require('dotenv');
-const { openDB, getTourneyTimes, closeDB } = require('./lib/database.js');
-
+const { openDB, getTourneyTimes, getPlayerId, getDivision, getLatestTournament, createTournamentPlayer, removeTournamentPlayer, closeDB } = require('./lib/database.js');
+const { signupsChannelId } = require('./lib/guild-specific.js');
+let signupsMessageId;
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
 // create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client(
+  {
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+    partials: [Partials.Message, Partials.Reaction]
+  });
 client.commands = new Collection();
 
 const foldersPath = path.join(__dirname, 'commands');
@@ -29,11 +34,16 @@ for (const folder of commandFolders) {
   }
 }
 
+async function setSignupsMessageId() {
+  signupsMessageId = (await getLatestTournament()).message_id;
+}
+
 // when the client is ready, run this code (only once)
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
   getTourneyTimes();
+  setSignupsMessageId();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -55,6 +65,37 @@ client.on(Events.InteractionCreate, async interaction => {
     } else {
       await interaction.reply({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
     }
+  }
+});
+
+// add player to tourney on signup reaction
+// TODO: this should query the database to update signed up users (and update the entire embed, not just the one field).
+//       otherwise, what happens when a user's division is changed and they un-sign up? (etc)
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+  const message = reaction.message;
+  if (message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+    const trny = await getLatestTournament();
+    const player_id = await getPlayerId(user.id);
+    const playerDivision = await getDivision(player_id, trny.class);
+    createTournamentPlayer(trny.id, player_id, playerDivision, true);
+    const fullMessage = message.partial ? await message.fetch() : message;
+    const messageEmbed = fullMessage.embeds[0];
+    const divFieldIndex = messageEmbed.fields.findIndex((field) => field.name === playerDivision);
+    const newEmbed = EmbedBuilder.from(messageEmbed).spliceFields(divFieldIndex !== -1 ? divFieldIndex : messageEmbed.fields.length - 1, 1,
+      {
+        name: messageEmbed.fields[divFieldIndex].name,
+        value: messageEmbed.fields[divFieldIndex].value += userMention(user.id)
+      });
+    fullMessage.edit({ embeds: [newEmbed] });
+  }
+});
+
+// remove user from tourney on signup reaction
+client.on(Events.MessageReactionRemove, async (reaction, user) => {
+  if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+    const trny = await getLatestTournament();
+    const player_id = getPlayerId(user.id);
+    removeTournamentPlayer(trny.id, player_id);
   }
 });
 
