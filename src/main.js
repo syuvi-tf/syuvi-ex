@@ -2,9 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags, EmbedBuilder, userMention } = require('discord.js');
 const dotenv = require('dotenv');
-const { openDB, getTourneyTimes, getPlayerId, getDivision, getLatestTournament, createTournamentPlayer, removeTournamentPlayer, closeDB } = require('./lib/database.js');
+const { openDB, getActiveTourney, getPlayerId, getDivision, getLatestTournament, createTournamentPlayer, removeTournamentPlayer, closeDB } = require('./lib/database.js');
 const { signupsChannelId } = require('./lib/guild-ids.js');
-let signupsMessageId;
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
@@ -34,31 +33,24 @@ for (const folder of commandFolders) {
   }
 }
 
-async function setSignupsMessageId() {
-  signupsMessageId = (await getLatestTournament()).message_id;
-}
-
 // when the client is ready, run this code (only once)
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
-  getTourneyTimes();
-  setSignupsMessageId();
+  getActiveTourney();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
   const command = interaction.client.commands.get(interaction.commandName);
-
   if (!command) {
     console.error(`No command matching ${interaction.commandName} was found.`);
     return;
   }
-
   try {
     await command.execute(interaction);
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error);
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
@@ -69,15 +61,21 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 // add player to tourney on signup reaction
+// there should only ever be signups message in #signups, so checking just the channel id should be fine.
+// call a function here instead of having all the code in main.js
 // TODO: this should query the database to update signed up users (and update the entire embed, not just the one field).
 //       otherwise, what happens when a user's division is changed and they un-sign up? (etc)
+//       and database can update every 5 minutes or so
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const message = reaction.message;
   if (message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+    /*
+
     const trny = await getLatestTournament();
     const player_id = await getPlayerId(user.id);
     const playerDivision = await getDivision(player_id, trny.class);
     createTournamentPlayer(trny.id, player_id, playerDivision, true);
+    // try fetching every time instead
     const fullMessage = message.partial ? await message.fetch() : message;
     const messageEmbed = fullMessage.embeds[0];
     const divFieldIndex = messageEmbed.fields.findIndex((field) => field.name === playerDivision);
@@ -87,15 +85,21 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
         value: messageEmbed.fields[divFieldIndex].value += userMention(user.id)
       });
     fullMessage.edit({ embeds: [newEmbed] });
+    
+    */
   }
 });
 
 // remove user from tourney on signup reaction
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+    /*
+    
     const trny = await getLatestTournament();
     const player_id = getPlayerId(user.id);
     removeTournamentPlayer(trny.id, player_id);
+
+    */
   }
 });
 
