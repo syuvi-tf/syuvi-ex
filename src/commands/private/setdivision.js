@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { createPlayer, setDivision } = require('../../lib/database.js');
+const { createPlayer, updatePlayerDivision } = require('../../lib/database.js');
 const { divisionRoleIds } = require('../../lib/guild-ids.js');
 
 module.exports = {
@@ -35,10 +35,14 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const member = interaction.options.getMember('player');
-    const playerclass = interaction.options.getString('class');
-    const division = interaction.options.getString('division');
-    const roleToAdd = member.guild.roles.cache.get(divisionRoleIds.get(`${division} ${playerclass}`));
-    const roleToRemove = member.roles.cache.find((role) => role.name.includes(playerclass));
+    const divisionClass = interaction.options.getString('class');
+    const divisionName = interaction.options.getString('division');
+    const division = {
+      class: divisionClass,
+      name: divisionName === 'None' ? null : divisionName
+    };
+    const roleToAdd = member.guild.roles.cache.get(divisionRoleIds.get(`${division.name} ${division.class}`));
+    const roleToRemove = member.roles.cache.find((role) => role.name.includes(division.class));
     let replyContent = '';
     createPlayer(member.id, member.displayName);
 
@@ -51,8 +55,7 @@ module.exports = {
       member.roles.add(roleToAdd);
       replyContent += (`${inlineCode('+ ' + roleToAdd.name)} to ${inlineCode(member.displayName)}`);
     }
-    setDivision(member.id, playerclass, division === 'None' ? null : division);
-
+    updatePlayerDivision(member.id, division);
     await interaction.editReply(replyContent);
   },
 };

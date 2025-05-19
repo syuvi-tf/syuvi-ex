@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, inlineCode } = require('discord.js');
-const { setIds } = require('../../lib/database.js');
+const { updatePlayerIds } = require('../../lib/database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,19 +13,18 @@ module.exports = {
         .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const tempus_id = interaction.options.getInteger('tempus_id');
-
-    const response = await (await fetch(`https://tempus2.xyz/api/v0/players/id/${tempus_id}/info`)).json();
+    const tempusId = interaction.options.getInteger('tempus_id');
+    const response = await (await fetch(`https://tempus2.xyz/api/v0/players/id/${tempusId}/info`)).json();
     const tempusName = response.name;
-    const steam_id32 = response.steamid;
+    const steamId = response.steamid;
 
     try {
-      setIds(interaction.user.id, tempus_id, steam_id32);
-      await interaction.editReply(`✅ set your Tempus ID
-your last online tempus alias is ${inlineCode(tempusName)}`);
+      updatePlayerIds(interaction.user.id, tempusId, steamId);
+      await interaction.editReply(`✅ Set your Tempus ID. Your last known Tempus alias is ${inlineCode(tempusName)}`);
     }
     catch (error) {
-      console.log(error);
+      console.error;
+      console.log('/link command error');
       await interaction.editReply(`❌ couldn't set your Tempus ID. do you have a division?`);
     }
   },
