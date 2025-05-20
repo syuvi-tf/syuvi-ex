@@ -1,11 +1,13 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, channelMention, inlineCode, time, TimestampStyles } = require('discord.js');
-const { createTourney } = require('../../lib/database.js');
+const { createTourney, getActiveTourney } = require('../../lib/database.js');
 const { createStartJob, createEndJob } = require('../../lib/schedules.js');
 const { signupsChannelId, faqChannelId } = require('../../lib/guild-ids.js');
 const { confirmRow, getMapSelectModal } = require('../../lib/components.js');
 
 // get the initial signup embed
-async function getSignupsEmbed(trny) {
+async function getSignupsEmbed() {
+  // get tourney we just wrote to the database
+  const trny = getActiveTourney();
   const starts_at = time(new Date(trny.starts_at), TimestampStyles.LongDateTime);
   const ends_at = time(new Date(trny.ends_at), TimestampStyles.ShortDateTime);
   const relative_starts_at = time(new Date(trny.starts_at), TimestampStyles.RelativeTime);
@@ -32,7 +34,7 @@ ${relative_starts_at}
 }
 
 // wait for tourney confirmation
-async function tryConfirm(tourneyResponse, trny, interaction) {
+async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
   const channel = interaction.channel;
   const signupsChannel = interaction.guild.channels.cache.get(signupsChannelId);
   const filter = (i) => i.user.id === interaction.user.id;
@@ -44,10 +46,10 @@ async function tryConfirm(tourneyResponse, trny, interaction) {
         components: []
       });
       // create tourney in the database if there are none active
-      const tourneyCreated = createTourney(trny);
+      const tourneyCreated = createTourney(submitted_trny);
       if (tourneyCreated) {
         // then send #signups message
-        const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed(trny)] });
+        const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed()] });
         signupsMessage.react(`✅`);
         await channel.send(`✅ Tournament confirmed.`);
       }
@@ -105,15 +107,9 @@ module.exports = {
     )
     .addIntegerOption(option =>
       option.setName('day')
-        .setDescription('tourney start day')
+        .setDescription('tourney start day (midnight UTC)')
         .setMinValue(1)
         .setMaxValue(31)
-        .setRequired(true))
-    .addIntegerOption(option =>
-      option.setName('year')
-        .setDescription('tourney start year')
-        .setMinValue(2025)
-        .setMaxValue(2050)
         .setRequired(true)),
   async execute(interaction) {
     const tourneyClass = interaction.options.getString('class');
@@ -121,11 +117,15 @@ module.exports = {
     const dayOption = interaction.options.getInteger('day');
     const day = dayOption < 10 ? '0' + dayOption : dayOption;
     const endDay = dayOption + 2 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
-    const year = interaction.options.getInteger('year');
-    const datetime = `${year}-${month}-${day} 00:00:00`;
-    const endDatetime = `${year}-${month}-${endDay} 00:00:00`;
+    let year = new Date().getUTCFullYear();
+    const currentDate = new Date(new Date().toUTCString());
+    // if the current date is ahead of the set tourney date, add a year
+    if (currentDate > new Date(`${year}-${month}-${day}T00:00:00Z`)) {
+      year += 1;
+    }
+    const datetime = `${year}-${month}-${day}T00:00:00Z`;
+    const endDatetime = `${year}-${month}-${endDay}T00:00:00Z`;
     const discordTimestamp = time(new Date(datetime));
-
     // waiting...
     const channel = await interaction.channel;
     const waitMessage = await channel.send(`⌛ Waiting for ${interaction.user.displayName} to select maps..`);
