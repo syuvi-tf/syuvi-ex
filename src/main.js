@@ -1,11 +1,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags, EmbedBuilder, userMention } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } = require('discord.js');
 const dotenv = require('dotenv');
-const { openDB, getActiveTourney, getPlayerId, getDivision, getLatestTournament, createTournamentPlayer, removeTournamentPlayer, closeDB } = require('./lib/database.js');
+const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
 const { signupsChannelId } = require('./lib/guild-ids.js');
+const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
+const { updateSignupsJob } = require('./lib/schedules.js');
 dotenv.config();
-const token = process.env.DISCORD_TOKEN;
 
 // create a new client instance
 const client = new Client(
@@ -13,11 +14,10 @@ const client = new Client(
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
     partials: [Partials.Message, Partials.Reaction]
   });
-client.commands = new Collection();
 
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
-
+client.commands = new Collection();
 for (const folder of commandFolders) {
   const commandsPath = path.join(foldersPath, folder);
   const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -37,7 +37,10 @@ for (const folder of commandFolders) {
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
-  getActiveTourney();
+  // if there is an active tourney, we can run the update job
+  if (getActiveTourney() !== undefined) {
+    updateSignupsJob(client.channels.cache.get(signupsChannelId));
+  }
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -60,51 +63,22 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-// add player to tourney on signup reaction
-// there should only ever be signups message in #signups, so checking just the channel id should be fine.
-// call a function here instead of having all the code in main.js
-// TODO: this should query the database to update signed up users (and update the entire embed, not just the one field).
-//       otherwise, what happens when a user's division is changed and they un-sign up? (etc)
-//       and database can update every 5 minutes or so
+// there should only ever be one signups message in #signups, so checking just the channel id should be fine
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
-  const message = reaction.message;
-  if (message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
-    /*
-
-    const trny = await getLatestTournament();
-    const player_id = await getPlayerId(user.id);
-    const playerDivision = await getDivision(player_id, trny.class);
-    createTournamentPlayer(trny.id, player_id, playerDivision, true);
-    // try fetching every time instead
-    const fullMessage = message.partial ? await message.fetch() : message;
-    const messageEmbed = fullMessage.embeds[0];
-    const divFieldIndex = messageEmbed.fields.findIndex((field) => field.name === playerDivision);
-    const newEmbed = EmbedBuilder.from(messageEmbed).spliceFields(divFieldIndex !== -1 ? divFieldIndex : messageEmbed.fields.length - 1, 1,
-      {
-        name: messageEmbed.fields[divFieldIndex].name,
-        value: messageEmbed.fields[divFieldIndex].value += userMention(user.id)
-      });
-    fullMessage.edit({ embeds: [newEmbed] });
-    
-    */
+  if (!user.bot && reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+    signupsReactionAdd(reaction.message, user);
   }
 });
 
 // remove user from tourney on signup reaction
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
-    /*
-    
-    const trny = await getLatestTournament();
-    const player_id = getPlayerId(user.id);
-    removeTournamentPlayer(trny.id, player_id);
-
-    */
+    signupsReactionRemove(reaction.message, user);
   }
 });
 
 // log in to discord with client token
-client.login(token);
+client.login(process.env.DISCORD_TOKEN);
 
 process.on('beforeExit', () => {
   closeDB();

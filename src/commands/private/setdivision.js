@@ -51,11 +51,12 @@ module.exports = {
       replyContent += (`${inlineCode('- ' + roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
     }
 
-    if (division !== 'None') {
+    if (divisionName !== 'None') {
       member.roles.add(roleToAdd);
       replyContent += (`${inlineCode('+ ' + roleToAdd.name)} to ${inlineCode(member.displayName)}`);
     }
     updatePlayerDivision(member.id, division);
+
     await interaction.editReply(replyContent);
   },
 };

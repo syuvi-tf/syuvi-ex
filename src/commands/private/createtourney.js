@@ -1,6 +1,8 @@
+//TODO: create start and end jobs when a tourney is created
+
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, channelMention, inlineCode, time, TimestampStyles } = require('discord.js');
 const { createTourney, getActiveTourney } = require('../../lib/database.js');
-const { createStartJob, createEndJob } = require('../../lib/schedules.js');
+const { startTourneyJob, endTourneyJob, updateSignupsJob } = require('../../lib/schedules.js');
 const { signupsChannelId, faqChannelId } = require('../../lib/guild-ids.js');
 const { confirmRow, getMapSelectModal } = require('../../lib/components.js');
 
@@ -25,7 +27,8 @@ ${relative_starts_at}
       { name: 'Silver', value: '\u200b' },
       { name: 'Bronze', value: '\u200b' },
       { name: 'Steel', value: '\u200b' },
-    );
+    )
+    .setFooter({ text: 'signups update every 5 minutes' });
   if (trny.class === 'Soldier') {
     signupsEmbed.addFields({ name: 'Wood', value: '\u200b' });
   }
@@ -51,6 +54,7 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
         // then send #signups message
         const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed()] });
         signupsMessage.react(`✅`);
+        updateSignupsJob(signupsChannel);
         await channel.send(`✅ Tournament confirmed.`);
       }
       else {

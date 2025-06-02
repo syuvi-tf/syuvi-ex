@@ -2,9 +2,9 @@ const Database = require('better-sqlite3');
 const db = new Database('jump.db'
   //  , { verbose: console.log }
 );
-const { createStartJob, createEndJob } = require('./schedules.js');
+// const { createStartJob, createEndJob } = require('./schedules.js');
 
-// open connection to database
+// open connection to db
 function openDB() {
   db.prepare(`CREATE TABLE IF NOT EXISTS player (
     id               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -72,12 +72,15 @@ function updatePlayerDisplayName(discord_id, display_name) {
 }
 
 // update a player's division
-// TODO: account for updating tournament_player as well
+// TODO: if a tourney is active, also update tournament_player division
 function updatePlayerDivision(discord_id, division) {
   const update = db.prepare(`UPDATE player
     SET ${division.class === 'Soldier' ? 'soldier_division' : 'demo_division'} = ?
     WHERE discord_id = ?`);
   update.run(division.name, discord_id);
+
+  const trny = getActiveTourney();
+  if (trny !== undefined) updateTourneyPlayerDivision(trny.id, getPlayer(discord_id).id, division.name);
 }
 
 // sets all player divisions from their discord role(s)
@@ -137,7 +140,7 @@ function createTourney(trny) {
   return false;
 }
 
-// get an upcoming tourney, there should only be one
+// get an upcoming or active tourney, there should only be one
 function getActiveTourney() {
   const select = db.prepare(`SELECT * FROM tournament
     WHERE active = TRUE`);
@@ -154,14 +157,30 @@ function createTourneyPlayer(tournament_id, player_id, division) {
 }
 
 // set signed_up to false, removing a player from the tourney
-function removeTourneyPlayer(tournament_id, discord_id) {
+function removeTourneyPlayer(tournament_id, player_id) {
   const update = db.prepare(`UPDATE tournament_player
     SET signed_up = FALSE
-    WHERE tournament_id = ? AND discord_id = ?`);
-  update.run(tournament_id, discord_id);
+    WHERE tournament_id = ? AND player_id = ?`);
+  update.run(tournament_id, player_id);
 }
 
-// close connection to database
+// get all tourney players and associated discord ids
+function getTourneyPlayers(tournament_id) {
+  const select = db.prepare(`SELECT tournament_player.*, player.discord_id FROM tournament_player
+    JOIN player ON player_id = id
+    WHERE tournament_id = ? AND signed_up = TRUE`);
+  return select.all(tournament_id);
+}
+
+// update the division of a tourney player
+function updateTourneyPlayerDivision(tournament_id, player_id, division) {
+  const update = db.prepare(`UPDATE tournament_player
+    SET division = ?
+    WHERE tournament_id = ? AND player_id = ?`);
+  update.run(division, tournament_id, player_id);
+}
+
+// close connection to db
 function closeDB() {
   db.close();
 }
@@ -178,5 +197,6 @@ module.exports = {
   getActiveTourney,
   createTourneyPlayer,
   removeTourneyPlayer,
+  getTourneyPlayers,
   closeDB,
 };
