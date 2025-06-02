@@ -133,26 +133,25 @@ function updatePlayerIds(discord_id, tempus_id, steam_id) {
 // only create a tourney if none are upcoming / active
 function createTourney(trny) {
   const select = db.prepare(`SELECT * FROM tournament
-    ORDER BY starts_at DESC`);
+    WHERE ends_at > datetime('now')
+    ORDER BY starts_at ASC`);
   const activeTrny = select.get();
-  const currentDate = new Date(new Date().toUTCString());
-  if (activeTrny === undefined || !(new Date(activeTrny.ends_at)) > currentDate) {
+  if (!activeTrny) {
     const insert = db.prepare(`INSERT OR IGNORE INTO tournament (class, plat_gold_map, silver_map, bronze_map, steel_map, wood_map, starts_at, ends_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+
     insert.run(trny.class, trny.plat_gold, trny.silver, trny.bronze, trny.steel, trny.wood, trny.starts_at, trny.ends_at);
     return true;
   }
   return false;
 }
 
-// get an upcoming / active tourney, there should only be one
+// returns the nearest tourney in the future, and undefined otherwise 
 function getActiveTourney() {
   const select = db.prepare(`SELECT * FROM tournament
-    ORDER BY starts_at DESC`);
-  const trny = select.get();
-  const currentDate = new Date(new Date().toUTCString());
-  if (trny === undefined) return undefined;
-  return (new Date(trny.ends_at)) > currentDate ? trny : undefined;
+    WHERE ends_at > datetime('now')
+    ORDER BY starts_at ASC`);
+  return select.get();
 }
 
 // insert a new player in the tourney, update them otherwise
