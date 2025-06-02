@@ -1,6 +1,7 @@
 const schedule = require('node-schedule');
-const { EmbedBuilder, userMention } = require('discord.js');
+const { EmbedBuilder, userMention, inlineCode } = require('discord.js');
 const { getActiveTourney, getTourneyPlayers } = require('./database.js');
+const { timesChannelIds, signupsChannelId } = require('./guild-ids.js');
 
 function resetFields(newEmbed, tourneyclass) {
   newEmbed.setFields(
@@ -17,20 +18,40 @@ function resetFields(newEmbed, tourneyclass) {
   return newEmbed;
 }
 
-// rename these
-function startTourneyJob(datetime) {
+function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
-  const job = schedule.scheduleJob(date, function () {
-    console.log('tourney started');
+  const job = schedule.scheduleJob(date, async function () {
+    const trny = getActiveTourney();
+    // send all times channels their division's map name
+    channels.get(timesChannelIds.get('Platinum')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.plat_gold_map)}`);
+    channels.get(timesChannelIds.get('Gold')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.plat_gold_map)}`);
+    channels.get(timesChannelIds.get('Silver')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.silver_map)}`);
+    channels.get(timesChannelIds.get('Bronze')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.bronze_map)}`);
+    channels.get(timesChannelIds.get('Steel')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.wood_map)}`);
+    if (trny.class === 'Soldier') {
+      channels.get(timesChannelIds.get('Wood')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.wood_map)}`);
+    }
   });
 }
 
-function endTourneyJob(datetime) {
+function endTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
-  const job = schedule.scheduleJob(date, function () {
-    console.log('tourney ended');
+  const job = schedule.scheduleJob(date, async function () {
+    // delete signups message
+    const signupMessage = await (await channels.get(signupsChannelId).fetch({ limit: 1, cache: false })).values().next().value;
+    signupMessage.delete();
+    // send all times channels an end message. include fastest times in the future?
+    const endMessageContent = '🏁 Tourney has ended! If you have a valid time to submit, please do so manually.';
+    channels.get(timesChannelIds.get('Platinum')).send(endMessageContent);
+    channels.get(timesChannelIds.get('Gold')).send(endMessageContent);
+    channels.get(timesChannelIds.get('Silver')).send(endMessageContent);
+    channels.get(timesChannelIds.get('Bronze')).send(endMessageContent);
+    channels.get(timesChannelIds.get('Steel')).send(endMessageContent);
+    if (trny.class === 'Soldier') {
+      channels.get(timesChannelIds.get('Wood')).send(endMessageContent);
+    }
   });
-}
+};
 
 // should only be called when there is an active tourney (and therefore an active signups message)
 async function updateSignupsJob(channel) {

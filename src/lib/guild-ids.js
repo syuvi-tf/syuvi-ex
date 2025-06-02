@@ -16,6 +16,14 @@ const divisionRoleIds = new Map([
 
 const signupsChannelId = '1365091870341857310';
 const faqChannelId = '1373060351414894593';
+const timesChannelIds = new Map([
+  ['Platinum', '1365091916982652978'],
+  ['Gold', '1365091938201636865'],
+  ['Silver', '1365091952697282591'],
+  ['Bronze', '1365091965833576520'],
+  ['Steel', '1379226390976790608'],
+  ['Wood', '1379226402708263042'],
+]);
 
 module.exports =
 {
