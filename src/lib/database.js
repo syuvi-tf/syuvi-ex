@@ -18,7 +18,6 @@ function openDB() {
 
   db.prepare(`CREATE TABLE IF NOT EXISTS tournament (
     id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    active          BOOLEAN NOT NULL DEFAULT TRUE,
     class           TEXT NOT NULL,
     plat_gold_map   TEXT NOT NULL,
     silver_map      TEXT NOT NULL,
@@ -72,7 +71,6 @@ function updatePlayerDisplayName(discord_id, display_name) {
 }
 
 // update a player's division
-// TODO: if a tourney is active, also update tournament_player division
 function updatePlayerDivision(discord_id, division) {
   const update = db.prepare(`UPDATE player
     SET ${division.class === 'Soldier' ? 'soldier_division' : 'demo_division'} = ?
@@ -80,11 +78,14 @@ function updatePlayerDivision(discord_id, division) {
   update.run(division.name, discord_id);
 
   const trny = getActiveTourney();
-  if (trny !== undefined) updateTourneyPlayerDivision(trny.id, getPlayer(discord_id).id, division.name);
+  if (trny !== undefined && getPlayer(discord_id) !== undefined) {
+    updateTourneyPlayerDivision(trny.id, getPlayer(discord_id).id, division.name);
+  }
 }
 
 // sets all player divisions from their discord role(s)
 function updateAllPlayerDivisions(members) {
+  const trny = getActiveTourney();
   const update = db.prepare(`UPDATE player
       SET soldier_division = :soldier_division,
           demo_division = :demo_division
@@ -92,6 +93,9 @@ function updateAllPlayerDivisions(members) {
   const updateEach = db.transaction((players) => {
     for (const player of players) {
       update.run(player);
+      if (trny !== undefined && getPlayer(player.discord_id) !== undefined) {
+        updateTourneyPlayerDivision(trny.id, getPlayer(player.discord_id).id, trny.class === 'Soldier' ? player.soldier_division : player.demo_division);
+      }
     }
   });
 
@@ -104,7 +108,6 @@ function updateAllPlayerDivisions(members) {
     // if a member has a division role, try inserting them into the database
     if (demoDivision !== null || soldierDivision !== null) {
       createPlayer(member.id, member.displayName);
-      console.log('tried to create player');
     }
     playersToUpdate.add({
       soldier_division: soldierDivision,
@@ -127,11 +130,13 @@ function updatePlayerIds(discord_id, tempus_id, steam_id) {
   update.run(tempus_id, steam_id, discord_id);
 }
 
-// only create a tourney if none are active
+// only create a tourney if none are upcoming / active
 function createTourney(trny) {
-  const select = db.prepare(`SELECT * FROM tournament WHERE active = TRUE`);
-  const activeTourney = select.all().length > 0;
-  if (!activeTourney) {
+  const select = db.prepare(`SELECT * FROM tournament
+    ORDER BY starts_at DESC`);
+  const activeTrny = select.get();
+  const currentDate = new Date(new Date().toUTCString());
+  if (activeTrny === undefined || !(new Date(activeTrny.ends_at)) > currentDate) {
     const insert = db.prepare(`INSERT OR IGNORE INTO tournament (class, plat_gold_map, silver_map, bronze_map, steel_map, wood_map, starts_at, ends_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
     insert.run(trny.class, trny.plat_gold, trny.silver, trny.bronze, trny.steel, trny.wood, trny.starts_at, trny.ends_at);
@@ -140,11 +145,14 @@ function createTourney(trny) {
   return false;
 }
 
-// get an upcoming or active tourney, there should only be one
+// get an upcoming / active tourney, there should only be one
 function getActiveTourney() {
   const select = db.prepare(`SELECT * FROM tournament
-    WHERE active = TRUE`);
-  return select.get();
+    ORDER BY starts_at DESC`);
+  const trny = select.get();
+  const currentDate = new Date(new Date().toUTCString());
+  if (trny === undefined) return undefined;
+  return (new Date(trny.ends_at)) > currentDate ? trny : undefined;
 }
 
 // insert a new player in the tourney, update them otherwise

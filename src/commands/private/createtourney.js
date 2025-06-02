@@ -28,7 +28,7 @@ ${relative_starts_at}
       { name: 'Bronze', value: '\u200b' },
       { name: 'Steel', value: '\u200b' },
     )
-    .setFooter({ text: 'signups update every 5 minutes' });
+    .setFooter({ text: 'signups update every minute' });
   if (trny.class === 'Soldier') {
     signupsEmbed.addFields({ name: 'Wood', value: '\u200b' });
   }

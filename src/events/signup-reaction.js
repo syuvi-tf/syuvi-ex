@@ -15,7 +15,6 @@ function signupsReactionAdd(message, user) {
 function signupsReactionRemove(message, user) {
   const trny = getActiveTourney();
   const player = getPlayer(user.id);
-  console.log("removing signup for trny.id:" + trny.id + " player.id:" + player.id);
   removeTourneyPlayer(trny.id, player.id)
 }
 
