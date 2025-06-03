@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, userMention, inlineCode, hyperlink } = require('discord.js');
 const { getPlayer, getActiveTourney, createTourneyTime } = require('../../lib/database.js');
 
 function isValidTime(time) {
@@ -34,6 +34,15 @@ function getTourneyMap(trny, division) {
   }
 }
 
+async function invalidFormatOrTourney(interaction, time) {
+  if (!isValidTime(time)) {
+    await interaction.editReply({ content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your time in the right format?`, flags: MessageFlags.Ephemeral });
+  }
+  else {
+    await interaction.editReply({ content: `Couldn't submit your time, as there doesn't seem to be a tourney active.` })
+  }
+}
+
 function getSubmitEmbed(user, time, timeId, trnyclass, map) {
   const embed = new EmbedBuilder()
     .setColor('A69ED7')
@@ -44,6 +53,18 @@ function getSubmitEmbed(user, time, timeId, trnyclass, map) {
   return embed;
 }
 
+function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
+  const minutes = Math.floor(tempusPRTime) / 60;
+  const seconds = Math.floor(tempusPRTime % 60);
+  const ms = tempusPRTime % 1;
+  const embed = new EmbedBuilder()
+    .setColor('F97583')
+    .setThumbnail(user.avatarURL())
+    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
+    on ${map}`)
+    .setFooter({ text: `unverified: tempus PR is ${minutes}:${seconds}.${ms}` });
+  return embed;
+}
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('submit')
@@ -53,7 +74,7 @@ module.exports = {
         .setDescription('format: MM:SS.SS')
         .setRequired(true)),
   async execute(interaction) {
-    const sentMessage = await interaction.deferReply(); //thinking...
+    await interaction.deferReply(); //thinking...
     const time = interaction.options.getString('time');
     const player = getPlayer(interaction.user.id);
     const trny = getActiveTourney(); // returns undefined if no tourney is active
@@ -62,30 +83,35 @@ module.exports = {
     const map = getTourneyMap(trny, division);
     const now = new Date(new Date().toUTCString());
 
-    // test
-    // if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now) {
-    const parts = getTimeParts(time);
-    const timeSeconds = parts.length === 2 ? parseFloat(time) //SS.SS
-      : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]}`);
-    const response = await getTempusTime(player, map, trnyclass);
-    const tempusPRTime = response.result.duration;
-    const tempusPRDate = new Date(parseInt(response.result.date * 1000));
-    const tempusPRId = response.result.id;
+    if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
+      const parts = getTimeParts(time);
+      const timeSeconds = parts.length === 2 ? parseFloat(time) //SS.SS
+        : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]}`);
+      const response = await getTempusTime(player, map, trnyclass);
+      const tempusPRTime = response.result.duration;
+      const tempusPRDate = new Date(parseInt(response.result.date * 1000));
+      const tempusPRId = response.result.id;
 
-    //test
-    // submit time
-    //if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
-    createTourneyTime(trny.id, player.id, tempusPRTime);
-    const embed = getSubmitEmbed(interaction.user, time, tempusPRId, trny.class, map);
-    await interaction.editReply({ embeds: [embed] });
-    //}
-    //else {
-    //  // PR date is before the tourney started, or PR time isn't the submitted time
-    //}
+      // not possible for tempus PR Date to be in the future 
+      if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
+        // submit time
+        createTourneyTime(trny.id, player.id, tempusPRTime);
+        const embed = getSubmitEmbed(interaction.user, time, tempusPRId, trny.class, map);
+        await interaction.editReply({ embeds: [embed] });
+      }
+      else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
+        if (tempusPRTime < timeSeconds) { // unverified submit
+          const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
+          await interaction.editReply({ embeds: [embed] });
+        }
+        else { // tempus PR slower than submitted time
+          await interaction.editReply({ content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your submitted time slower than your Tempus PR?`, flags: MessageFlags.Ephemeral });
+        }
+      }
 
-    //}
-    //else {
-    //  // invalid time format, or no tourney active
-    //}
+    }
+    else { // invalid time format, or no tourney active
+      await invalidFormatOrTourney(interaction, time);
+    }
   },
 };
