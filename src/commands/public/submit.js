@@ -2,13 +2,13 @@ const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink } 
 const { getPlayer, getActiveTourney, createTourneyTime } = require('../../lib/database.js');
 
 function isValidTime(time) {
-  const validRegex = /(\d+)*:\d+.\d+/g;
+  const validRegex = /^(\d+)*:\d+.\d+$/g;
   return validRegex.test(time);
 }
 
 function getTimeParts(time) {
   const partRegex = /\d+/g;
-  return partRegex.exec(time);
+  return time.match(partRegex);
 }
 
 async function getTempusTime(player, map, trnyclass) {
@@ -35,15 +35,11 @@ function getTourneyMap(trny, division) {
 }
 
 async function invalidFormatOrTourney(interaction, time) {
-  if (!isValidTime(time)) {
-    await interaction.editReply({
-      content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your time in the right format?`,
-    });
+  if (isValidTime(time)) {
+    await interaction.editReply(`Couldn't submit your time, as there doesn't seem to be a tourney active.`);
   }
   else {
-    await interaction.editReply({
-      content: `Couldn't submit your time, as there doesn't seem to be a tourney active.`,
-    })
+    await interaction.editReply(`Couldn't submit ${inlineCode(time)}. Is your time in the right format?`);
   }
 }
 
@@ -58,9 +54,9 @@ function getSubmitEmbed(user, time, timeId, trnyclass, map) {
 }
 
 function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
-  const minutes = Math.floor(tempusPRTime) / 60;
-  const seconds = Math.floor(tempusPRTime % 60);
-  const ms = tempusPRTime % 1;
+  const minutes = String(Math.floor(tempusPRTime / 60)).padStart(2, '0');
+  const seconds = String(Math.floor(tempusPRTime % 60)).padStart(2, '0');
+  const ms = String(Math.floor((tempusPRTime % 1) * 100)).padStart(2, '0');
   const embed = new EmbedBuilder()
     .setColor('F97583')
     .setThumbnail(user.avatarURL())
@@ -69,6 +65,7 @@ function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
     .setFooter({ text: `unverified: tempus PR is ${minutes}:${seconds}.${ms}` });
   return embed;
 }
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('submit')
@@ -109,14 +106,12 @@ module.exports = {
         await interaction.editReply({ embeds: [embed] });
       }
       else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
-        if (tempusPRTime < timeSeconds) { // unverified submit
+        if (tempusPRTime < timeSeconds) { // submitted run is slower than PR, unverified submit
           const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
           await interaction.editReply({ embeds: [embed] });
         }
-        else { // tempus PR slower than submitted time
-          await interaction.editReply({
-            content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your submitted time slower than your Tempus PR?`,
-          });
+        else { // tempus PR slower than submitted time, or tried to submit an old PR
+          await interaction.editReply(`Couldn't submit ${inlineCode(time)}. An old PR was submitted, or your Tempus PR is slower than the submitted time.`);
         }
       }
 
