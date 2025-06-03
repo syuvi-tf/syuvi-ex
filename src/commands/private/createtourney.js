@@ -7,9 +7,8 @@ const { signupsChannelId, faqChannelId } = require('../../lib/guild-ids.js');
 const { confirmRow, getMapSelectModal } = require('../../lib/components.js');
 
 // get the initial signup embed
-async function getSignupsEmbed() {
+async function getSignupsEmbed(trny) {
   // get tourney we just wrote to the database
-  const trny = getActiveTourney();
   const starts_at = time(new Date(trny.starts_at), TimestampStyles.LongDateTime);
   const ends_at = time(new Date(trny.ends_at), TimestampStyles.ShortDateTime);
   const relative_starts_at = time(new Date(trny.starts_at), TimestampStyles.RelativeTime);
@@ -28,7 +27,7 @@ starts ${relative_starts_at}
       { name: 'Bronze', value: '\u200b' },
       { name: 'Steel', value: '\u200b' },
     )
-    .setFooter({ text: 'signups update every minute' });
+    .setFooter({ text: 'updates every minute' });
   if (trny.class === 'Soldier') {
     signupsEmbed.addFields({ name: 'Wood', value: '\u200b' });
   }
@@ -51,10 +50,15 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
       // create tourney in the database if there are none active
       const tourneyCreated = createTourney(submitted_trny);
       if (tourneyCreated) {
-        // then send #signups message
-        const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed()] });
-        signupsMessage.react(`✅`);
+        // get the tourney we just created
+        const trny = getActiveTourney();
+        // start jobs for it
         updateSignupsJob(signupsChannel);
+        startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
+        endTourneyJob(trny.starts_at, interaction.guild.channels.cache);
+        // then send #signups message
+        const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed(trny)] });
+        signupsMessage.react(`✅`);
         await channel.send(`✅ Tournament confirmed.`);
       }
       else {

@@ -106,7 +106,8 @@ module.exports = {
         await interaction.editReply({ embeds: [embed] });
       }
       else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
-        if (tempusPRTime < timeSeconds) { // submitted run is slower than PR, unverified submit
+        if (tempusPRTime < timeSeconds) { // submitted run slower than PR, say the submit is unverified
+          createTourneyTime(trny.id, player.id, timeSeconds);
           const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
           await interaction.editReply({ embeds: [embed] });
         }
