@@ -49,7 +49,7 @@ function getSubmitEmbed(user, time, timeId, trnyclass, map) {
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
     on ${map}`)
-    .addFields({ name: '\u200b', value: hyperlink('view run page', `https://tempus2.xyz/records/${timeId}`) });
+    .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${timeId}`) });
   return embed;
 }
 
