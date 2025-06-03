@@ -62,7 +62,7 @@ function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
     on ${map}`)
-    .setFooter({ text: `unverified: tempus PR is ${minutes}:${seconds}.${ms}` });
+    .setFooter({ text: `Unverified: Tempus PR is ${minutes}:${seconds}.${ms}` });
   return embed;
 }
 

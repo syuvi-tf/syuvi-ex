@@ -19,7 +19,7 @@ async function getSignupsEmbed() {
     .setDescription(`Signups are open for a tournament! See ${channelMention(faqChannelId)} for more info.
     
 ⌛ ${starts_at} - ${ends_at}
-${relative_starts_at}
+starts ${relative_starts_at}
 \u200b`)
     .addFields(
       { name: 'Platinum', value: '\u200b' },
