@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, userMention, inlineCode, hyperlink } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink } = require('discord.js');
 const { getPlayer, getActiveTourney, createTourneyTime } = require('../../lib/database.js');
 
 function isValidTime(time) {
@@ -36,10 +36,14 @@ function getTourneyMap(trny, division) {
 
 async function invalidFormatOrTourney(interaction, time) {
   if (!isValidTime(time)) {
-    await interaction.editReply({ content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your time in the right format?`, flags: MessageFlags.Ephemeral });
+    await interaction.editReply({
+      content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your time in the right format?`,
+    });
   }
   else {
-    await interaction.editReply({ content: `Couldn't submit your time, as there doesn't seem to be a tourney active.` })
+    await interaction.editReply({
+      content: `Couldn't submit your time, as there doesn't seem to be a tourney active.`,
+    })
   }
 }
 
@@ -83,11 +87,16 @@ module.exports = {
     const map = getTourneyMap(trny, division);
     const now = new Date(new Date().toUTCString());
 
-    if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
+    if (player.tempus_id === null || division === null) { //missing tempus_id or division
+      await interaction.editReply({
+        content: `Couldn't submit your time, as you're missing a Tempus ID or division.`,
+      });
+    }
+    else if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
       const parts = getTimeParts(time);
       const timeSeconds = parts.length === 2 ? parseFloat(time) //SS.SS
         : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]}`);
-      const response = await getTempusTime(player, map, trnyclass);
+      const response = await getTempusTime(player, map, trnyclass); // may fail if there is no tempus PR?
       const tempusPRTime = response.result.duration;
       const tempusPRDate = new Date(parseInt(response.result.date * 1000));
       const tempusPRId = response.result.id;
@@ -105,7 +114,9 @@ module.exports = {
           await interaction.editReply({ embeds: [embed] });
         }
         else { // tempus PR slower than submitted time
-          await interaction.editReply({ content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your submitted time slower than your Tempus PR?`, flags: MessageFlags.Ephemeral });
+          await interaction.editReply({
+            content: `Couldn't submit ${inlineCode(isValidTime(time))}. Is your submitted time slower than your Tempus PR?`,
+          });
         }
       }
 
