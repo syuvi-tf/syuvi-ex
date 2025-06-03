@@ -122,9 +122,9 @@ module.exports = {
     const day = dayOption < 10 ? '0' + dayOption : dayOption;
     const endDay = dayOption + 2 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
     let year = new Date().getUTCFullYear();
-    const currentDate = new Date(new Date().toUTCString());
+    const now = new Date(new Date().toUTCString());
     // if the current date is ahead of the set tourney date, add a year
-    if (currentDate > new Date(`${year}-${month}-${day}T00:00:00Z`)) {
+    if (now > new Date(`${year}-${month}-${day}T00:00:00Z`)) {
       year += 1;
     }
     const datetime = `${year}-${month}-${day}T00:00:00Z`;

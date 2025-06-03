@@ -12,7 +12,7 @@ function openDB() {
     display_name     TEXT NOT NULL,
     soldier_division TEXT,
     demo_division    TEXT,
-    tempus_id        TEXT,
+    tempus_id        INTEGER,
     steam_id         TEXT,
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`).run();
 
@@ -42,7 +42,7 @@ function openDB() {
     id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER NOT NULL,
     player_id     INTEGER NOT NULL,
-    run_time      TIME NOT NULL,
+    run_time      FLOAT NOT NULL,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tournament_id) REFERENCES tournament (id),
     FOREIGN KEY (player_id) REFERENCES player (id))`).run();
@@ -55,10 +55,12 @@ function createPlayer(discord_id, display_name) {
   insert.run(discord_id, display_name);
 }
 
-// get a player
+// get a player, creates a player if they don't exist
 function getPlayer(discord_id) {
   const select = db.prepare(`SELECT * FROM player
     WHERE discord_id = ?`);
+  const player = select.get(discord_id);
+  if (player === undefined) createPlayer();
   return select.get(discord_id);
 }
 
@@ -187,6 +189,12 @@ function updateTourneyPlayerDivision(tournament_id, player_id, division) {
   update.run(division, tournament_id, player_id);
 }
 
+function createTourneyTime(tournament_id, player_id, run_time) {
+  const insert = db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time)
+        VALUES (?, ?, ?)`);
+  insert.run(tournament_id, player_id, run_time);
+}
+
 // close connection to db
 function closeDB() {
   db.close();
@@ -205,5 +213,6 @@ module.exports = {
   createTourneyPlayer,
   removeTourneyPlayer,
   getTourneyPlayers,
+  createTourneyTime,
   closeDB,
 };

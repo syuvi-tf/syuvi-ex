@@ -4,7 +4,7 @@ const { updatePlayerIds } = require('../../lib/database.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('link')
-    .setDescription('links your Tempus ID to verify run times')
+    .setDescription('links your Tempus ID to verify PR times')
     .addIntegerOption(option =>
       option.setName('tempus_id')
         .setDescription('from your tempus2.xyz url')
@@ -23,8 +23,7 @@ module.exports = {
       await interaction.editReply(`✅ Set your Tempus ID. Your last known Tempus alias is ${inlineCode(tempusName)}`);
     }
     catch (error) {
-      console.error;
-      console.log('/link command error');
+      console.error('/link command error');
       await interaction.editReply(`❌ couldn't set your Tempus ID. do you have a division?`);
     }
   },
