@@ -98,6 +98,12 @@ module.exports = {
       const tempusPRDate = new Date(parseInt(response.result.date * 1000));
       const tempusPRId = response.result.id;
 
+      if (!tempusPRTime || !tempusPRDate || !tempusPRId) {
+        await interaction.editReply({
+          content: `Couldn't find any Tempus PR. Is your Tempus ID correct? (${inlineCode(player.tempus.id)})`,
+        });
+      }
+
       // not possible for tempus PR Date to be in the future 
       if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
         // submit time
@@ -122,3 +128,15 @@ module.exports = {
     }
   },
 };
+
+// old submit embed style
+//
+// function getSubmitEmbed(user, time, timeId, trnyclass, map) {
+//   const embed = new EmbedBuilder()
+//     .setColor('A69ED7')
+//     .setThumbnail(user.avatarURL())
+//     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
+//     on ${map}`)
+//     .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${timeId}`) });
+//   return embed;
+// }

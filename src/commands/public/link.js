@@ -14,17 +14,26 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const tempusId = interaction.options.getInteger('tempus_id');
-    const response = await (await fetch(`https://tempus2.xyz/api/v0/players/id/${tempusId}/info`)).json();
-    const tempusName = response.name;
-    const steamId = response.steamid;
+    const response = await (await fetch(`https://tempus2.xyz/api/v0/players/id/${tempusId}/stats`)).json();
+    const tempusName = response.player_info.name;
+    const steamId = response.player_info.steamid;
+    const tempusSoldierRank = response.class_rank_info['3'].rank;
+    const tempusDemoRank = response.class_rank_info['4'].rank;
 
-    try {
-      updatePlayerIds(interaction.user.id, tempusId, steamId);
-      await interaction.editReply(`✅ Set your Tempus ID. Your last known Tempus alias is ${inlineCode(tempusName)}`);
+    if (!tempusName || !steamId) {
+      await interaction.editReply(`❌ Couldn't set your Tempus ID. Is the ID correct?`);
     }
-    catch (error) {
-      console.error('/link command error');
-      await interaction.editReply(`❌ couldn't set your Tempus ID. do you have a division?`);
+    else {
+      try {
+        updatePlayerIds(interaction.user.id, tempusId, steamId);
+        await interaction.editReply(`✅ Set your Tempus ID. Your last known Tempus alias is ${inlineCode(tempusName)}
+${inlineCode('Rank ' + tempusSoldierRank + ' Soldier')}
+${inlineCode('Rank ' + tempusDemoRank + ' Demo')}`);
+      }
+      catch (error) {
+        console.error('/link command error');
+        await interaction.editReply(`❌ Couldn't set your Tempus ID. Do you have a division?`);
+      }
     }
   },
 };
