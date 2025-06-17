@@ -195,6 +195,13 @@ function createTourneyTime(tournament_id, player_id, run_time, verified) {
         VALUES (?, ?, ?, ?)`);
   insert.run(tournament_id, player_id, run_time, verified);
 }
+
+function getBestTourneyTimes(tournament_id) {
+  const select = db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, player.display_name, tournament_player.division FROM tournament_time
+    JOIN player ON tournament_time.player_id = player.id
+    JOIN tournament_player ON tournament_time.player_id = tournament_player.player_id
+    WHERE tournament_time.tournament_id = ?`);
+  return select.all(tournament_id);
 }
 
 // close connection to db
@@ -216,5 +223,6 @@ module.exports = {
   removeTourneyPlayer,
   getTourneyPlayers,
   createTourneyTime,
+  getBestTourneyTimes,
   closeDB,
 };
