@@ -107,13 +107,13 @@ module.exports = {
       // not possible for tempus PR Date to be in the future 
       if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
         // submit time
-        createTourneyTime(trny.id, player.id, tempusPRTime);
+        createTourneyTime(trny.id, player.id, tempusPRTime, true);
         const embed = getSubmitEmbed(interaction.user, time, tempusPRId, trny.class, map);
         await interaction.editReply({ embeds: [embed] });
       }
       else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
         if (tempusPRTime < timeSeconds) { // submitted run slower than PR, say the submit is unverified
-          createTourneyTime(trny.id, player.id, timeSeconds);
+          createTourneyTime(trny.id, player.id, timeSeconds, false);
           const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
           await interaction.editReply({ embeds: [embed] });
         }

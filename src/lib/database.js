@@ -43,6 +43,7 @@ function openDB() {
     tournament_id INTEGER NOT NULL,
     player_id     INTEGER NOT NULL,
     run_time      FLOAT NOT NULL,
+    verified      BOOLEAN NOT NULL,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tournament_id) REFERENCES tournament (id),
     FOREIGN KEY (player_id) REFERENCES player (id))`).run();
@@ -189,10 +190,11 @@ function updateTourneyPlayerDivision(tournament_id, player_id, division) {
   update.run(division, tournament_id, player_id);
 }
 
-function createTourneyTime(tournament_id, player_id, run_time) {
-  const insert = db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time)
-        VALUES (?, ?, ?)`);
-  insert.run(tournament_id, player_id, run_time);
+function createTourneyTime(tournament_id, player_id, run_time, verified) {
+  const insert = db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time, verified)
+        VALUES (?, ?, ?, ?)`);
+  insert.run(tournament_id, player_id, run_time, verified);
+}
 }
 
 // close connection to db
