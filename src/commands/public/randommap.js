@@ -30,7 +30,7 @@ function getRandomMap(maps, tier, rating) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('randommap')
-    .setDescription('get a random map from Tempus')
+    .setDescription('get a random map from Tempus!')
     .addStringOption(option =>
       option.setName('tier')
         .setDescription('tier')
@@ -78,6 +78,10 @@ module.exports = {
     const maps = await (await fetch(`https://tempus2.xyz/api/v0/maps/detailedList`)).json();
 
     const randomMap = getRandomMap(maps, tier, rating);
-    interaction.editReply(`${randomMap}`);
+
+    const response = await interaction.editReply(`${randomMap}`);
+    if (randomMap === 'jump_escape_rc4') { // easter egg
+      response.react('🗻');
+    }
   },
 };
