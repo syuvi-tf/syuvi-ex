@@ -5,7 +5,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('setdisplayname')
     .setDescription('sets a player\'s display name')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addUserOption(option =>
       option.setName('player')
         .setDescription('@mention')
@@ -14,6 +14,6 @@ module.exports = {
     await interaction.deferReply(); //thinking...
     const member = interaction.options.getMember('player');
     updatePlayerDisplayName(member.id, member.displayName);
-    interaction.editReply(`✅ Set ${inlineCode(member.displayName)}'s display name`);
+    interaction.editReply(`✅ Set ${inlineCode(member.displayName)}'s tourney display name`);
   },
 };

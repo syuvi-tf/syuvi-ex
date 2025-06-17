@@ -204,6 +204,13 @@ function getBestTourneyTimes(tournament_id) {
   return select.all(tournament_id);
 }
 
+function verifyTourneyTimes(tournament_id, discord_id) {
+  const player = getPlayer(discord_id);
+  const update = db.prepare(`UPDATE tournament_time
+    SET verified = TRUE,
+    WHERE tournament_id = ? AND player_id = ?`);
+  update.run(tournament_id, player.id);
+}
 // close connection to db
 function closeDB() {
   db.close();
@@ -224,5 +231,6 @@ module.exports = {
   getTourneyPlayers,
   createTourneyTime,
   getBestTourneyTimes,
+  verifyTourneyTimes,
   closeDB,
 };
