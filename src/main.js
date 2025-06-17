@@ -6,8 +6,6 @@ const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
 const { signupsChannelId } = require('./lib/guild-ids.js');
 const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
 const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = require('./lib/schedules.js');
-
-const { createTourneySheet } = require('./lib/sheet.js');
 dotenv.config();
 
 function getCommands(client) {
@@ -78,10 +76,6 @@ client.once(Events.ClientReady, readyClient => {
     endTourneyJob(trny.ends_at, client.channels.cache);
     updateSignupsJob(client.channels.cache.get(signupsChannelId));
   }
-
-  // testing
-  createTourneySheet(trny);
-  updateSheetsJob();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
