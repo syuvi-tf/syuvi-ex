@@ -81,6 +81,7 @@ client.once(Events.ClientReady, readyClient => {
 
   // testing
   createTourneySheet(trny);
+  updateSheetsJob();
 });
 
 client.on(Events.InteractionCreate, async interaction => {

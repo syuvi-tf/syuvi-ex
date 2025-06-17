@@ -30,11 +30,11 @@ async function getSheets() {
   return sheets;
 }
 
-function formatRunTime(time) {
+function formatRunTime(time, verified) {
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time) - (minutes * 60);
   const ms = parseInt((time % 1).toFixed(2) * 100);
-  return `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}.${ms}`;
+  return `${verified ? '' : '❔ '}${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}.${ms}`;
 }
 
 async function updateRows(rows, times) {
@@ -86,7 +86,7 @@ async function createTourneySheet(trny) {
   await sheet.loadCells('B3:M3');
   await sheet.loadCells('B1:M1');
   const titleCell = sheet.getCellByA1('B1');
-  titleCell.value = `${trny.class} Tournament Standings(${trny_date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})`;
+  titleCell.value = `${trny.class} Tournament Standings (${trny_date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})`;
   const mapCells = {
     platinum: sheet.getCellByA1('B3'),
     gold: sheet.getCellByA1('D3'),
@@ -119,22 +119,22 @@ async function updateSheetTimes(trny) {
   const times = {
     platinum: dbTimes.filter((time) => time.division === 'Platinum')
       .sort((a, b) => a.run_time - b.run_time)
-      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
+      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time, time.verified) })),
     gold: dbTimes.filter((time) => time.division === 'Gold')
       .sort((a, b) => a.run_time - b.run_time)
-      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
+      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time, time.verified) })),
     silver: dbTimes.filter((time) => time.division === 'Silver')
       .sort((a, b) => a.run_time - b.run_time)
-      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
+      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time, time.verified) })),
     bronze: dbTimes.filter((time) => time.division === 'Bronze')
       .sort((a, b) => a.run_time - b.run_time)
-      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
+      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time, time.verified) })),
     steel: dbTimes.filter((time) => time.division === 'Steel')
       .sort((a, b) => a.run_time - b.run_time)
-      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
+      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time, time.verified) })),
     wood: dbTimes.filter((time) => time.division === 'Wood')
       .sort((a, b) => a.run_time - b.run_time)
-      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
+      .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time, time.verified) })),
   }
   await updateRows(rows, times);
 }

@@ -91,7 +91,7 @@ async function updateSignupsJob(channel) {
 }
 
 async function updateSheetsJob() {
-  const job = schedule.scheduleJob('*/5 * * * *', async function () {
+  const job = schedule.scheduleJob('*/1 * * * *', async function () {
     const trny = getActiveTourney();
     if (trny === undefined) {
       job.cancel(false);

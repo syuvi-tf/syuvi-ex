@@ -21,7 +21,7 @@ module.exports = {
     const tempusDemoRank = response.class_rank_info['4'].rank;
 
     if (!tempusName || !steamId) {
-      await interaction.editReply(`❌ Couldn't set your Tempus ID. Is the ID correct?`);
+      await interaction.editReply(`❌ Couldn't set your Tempus ID. Is the ID correct, or is the Tempus API down?`);
     }
     else {
       try {

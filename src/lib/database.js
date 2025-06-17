@@ -193,7 +193,7 @@ function updateTourneyPlayerDivision(tournament_id, player_id, division) {
 function createTourneyTime(tournament_id, player_id, run_time, verified) {
   const insert = db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time, verified)
         VALUES (?, ?, ?, ?)`);
-  insert.run(tournament_id, player_id, run_time, verified);
+  insert.run(tournament_id, player_id, run_time, verified ? '1' : '0');
 }
 
 function getBestTourneyTimes(tournament_id) {
