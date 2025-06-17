@@ -11,17 +11,19 @@ const jwt = new JWT({
 });
 const doc = new GoogleSpreadsheet(process.env.SHEETS_SPREADSHEET_ID, jwt);
 
+// relies on sheets named 'Soldier Template' and 'Demo Template' to exist
 async function getTemplate(trny_class) {
   await doc.loadInfo();
   return doc.sheetsByTitle[`${trny_class} Template`];
 }
 
+// used to get a 'Month' 'Year' tournament
 async function getSheetByName(name) {
   await doc.loadInfo();
   return doc.sheetsByTitle[name];
 }
 
-// unused
+// not used
 async function getSheets() {
   await doc.loadInfo(); // loads document properties and worksheets
   const sheets = doc.sheetsByIndex; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
@@ -35,44 +37,40 @@ function formatRunTime(time) {
   return `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}.${ms}`;
 }
 
-// todo: row.save() after all times are gone through
 async function updateRows(rows, times) {
-  // if(times.platinum.length>10||times.gold.length>10||times.silver.length>10||times.bronze.length>10||times.steel.length>10||times.wood.length>10)
+  let maxRows = Math.max(...[times.platinum.length, times.gold.length, times.silver.length, times.bronze.length, times.steel.length, times.wood.length]);
   for (let i = 0; i < times.platinum.length; i++) {
     const time = times.platinum[i];
     const row = rows[i];
     row.assign({ plat_player: time.display_name, plat_time: time.run_time });
-    await row.save();
   }
   for (let i = 0; i < times.gold.length; i++) {
     const time = times.gold[i];
     const row = rows[i];
     row.assign({ gold_player: time.display_name, gold_time: time.run_time });
-    await row.save();
   }
   for (let i = 0; i < times.silver.length; i++) {
     const time = times.silver[i];
     const row = rows[i];
     row.assign({ silver_player: time.display_name, silver_time: time.run_time });
-    await row.save();
   }
   for (let i = 0; i < times.bronze.length; i++) {
     const time = times.bronze[i];
     const row = rows[i];
     row.assign({ bronze_player: time.display_name, bronze_time: time.run_time });
-    await row.save();
   }
   for (let i = 0; i < times.steel.length; i++) {
     const time = times.steel[i];
     const row = rows[i];
     row.assign({ steel_player: time.display_name, steel_time: time.run_time });
-    await row.save();
   }
   for (let i = 0; i < times.wood.length; i++) {
     const time = times.wood[i];
     const row = rows[i];
     row.assign({ wood_player: time.display_name, wood_time: time.run_time });
-    await row.save();
+  }
+  for (let i = 0; i < maxRows; i++) {
+    await rows[i].save();
   }
 }
 
@@ -106,7 +104,7 @@ async function createTourneySheet(trny) {
     mapCells.wood.value = trny.wood_map;
   }
   await sheet.saveUpdatedCells();
-  sheet.loadHeaderRow(6);
+  sheet.loadHeaderRow(6); // header row is always 6
   updateSheetTimes(trny);
 }
 
@@ -138,11 +136,10 @@ async function updateSheetTimes(trny) {
       .sort((a, b) => a.run_time - b.run_time)
       .map((time) => Object.assign(time, { run_time: formatRunTime(time.run_time) })),
   }
-
-  console.log(sheet.headerValues);
   await updateRows(rows, times);
 }
 
 module.exports = {
-  createTourneySheet
+  createTourneySheet,
+  updateSheetTimes
 };

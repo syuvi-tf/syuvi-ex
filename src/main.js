@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
 const { signupsChannelId } = require('./lib/guild-ids.js');
 const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
-const { startTourneyJob, endTourneyJob, updateSignupsJob } = require('./lib/schedules.js');
+const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = require('./lib/schedules.js');
 
 const { createTourneySheet } = require('./lib/sheet.js');
 dotenv.config();
@@ -63,13 +63,22 @@ getCommands(client);
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
-  // if there is an active tourney, we can start the start/end and update jobs
+  // if there is an active tourney, we can create the start/end and update jobs
   const trny = getActiveTourney();
   if (getActiveTourney() !== undefined) {
-    startTourneyJob(trny.starts_at, client.channels.cache);
+    if ((new Date(trny.starts_at) > new Date(new Date().toUTCString()))) // tourney starts in future
+    {
+      startTourneyJob(trny.starts_at, client.channels.cache);
+    }
+    else if ((new Date(trny.starts_at) < new Date(new Date().toUTCString()))) // tourney has started, but has not ended yet
+    {
+      updateSheetsJob();
+    }
+    // tourney ends in the future, but may or may not have already started
     endTourneyJob(trny.ends_at, client.channels.cache);
     updateSignupsJob(client.channels.cache.get(signupsChannelId));
   }
+
   // testing
   createTourneySheet(trny);
 });

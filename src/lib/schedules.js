@@ -2,6 +2,7 @@ const schedule = require('node-schedule');
 const { EmbedBuilder, userMention, inlineCode } = require('discord.js');
 const { getActiveTourney, getTourneyPlayers } = require('./database.js');
 const { timesChannelIds, signupsChannelId } = require('./guild-ids.js');
+const { createTourneySheet, updateSheetTimes } = require('./sheet.js');
 
 function resetFields(newEmbed, tourneyclass) {
   newEmbed.setFields(
@@ -22,6 +23,8 @@ function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
   const job = schedule.scheduleJob(date, async function () {
     const trny = getActiveTourney();
+    createTourneySheet(trny);
+    updateSheetsJob();
     // send all times channels their division's map name
     channels.get(timesChannelIds.get('Platinum')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.plat_gold_map)}`);
     channels.get(timesChannelIds.get('Gold')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.plat_gold_map)}`);
@@ -64,7 +67,7 @@ async function updateSignupsJob(channel) {
     let newEmbed = EmbedBuilder.from(embed);
     const trny = getActiveTourney();
     if (trny === undefined) { // no active tourney
-      job.cancel();
+      job.cancel(false);
     }
     else { // update embed with all signed_up tournament players
       newEmbed = resetFields(newEmbed, trny.class);
@@ -84,10 +87,22 @@ async function updateSignupsJob(channel) {
       signupMessage.edit({ embeds: [newEmbed] });
     }
   });
+
+}
+
+async function updateSheetsJob() {
+  const job = schedule.scheduleJob('*/5 * * * *', async function () {
+    const trny = getActiveTourney();
+    if (trny === undefined) {
+      job.cancel(false);
+    }
+    updateSheetTimes(trny);
+  });
 }
 
 module.exports = {
   startTourneyJob,
   endTourneyJob,
   updateSignupsJob,
+  updateSheetsJob,
 };
