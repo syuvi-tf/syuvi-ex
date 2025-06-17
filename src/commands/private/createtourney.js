@@ -124,7 +124,8 @@ module.exports = {
     const month = interaction.options.getString('month');
     const dayOption = interaction.options.getInteger('day');
     const day = dayOption < 10 ? '0' + dayOption : dayOption;
-    const endDay = dayOption + 2 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
+    // TODO: set endDay to + 2 days instead of + 1 days (from testing)
+    const endDay = dayOption + 1 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
     let year = new Date().getUTCFullYear();
     const now = new Date(new Date().toUTCString());
     // if the current date is ahead of the set tourney date, add a year

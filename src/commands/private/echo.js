@@ -3,7 +3,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('echo')
-    .setDescription('duplicate the last message sent in this channel, in another channel')
+    .setDescription('echo the last message sent in this channel, to another channel')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addChannelOption(option =>
       option.setName('channel')

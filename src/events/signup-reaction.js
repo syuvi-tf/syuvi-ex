@@ -11,7 +11,7 @@ function signupsReactionAdd(message, user) {
 function signupsReactionRemove(message, user) {
   const trny = getActiveTourney();
   const player = getPlayer(user.id);
-  removeTourneyPlayer(trny.id, player.id)
+  removeTourneyPlayer(trny.id, player.id);
 }
 
 module.exports = {
