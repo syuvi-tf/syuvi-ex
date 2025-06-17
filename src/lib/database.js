@@ -207,7 +207,7 @@ function getBestTourneyTimes(tournament_id) {
 function verifyTourneyTimes(tournament_id, discord_id) {
   const player = getPlayer(discord_id);
   const update = db.prepare(`UPDATE tournament_time
-    SET verified = TRUE,
+    SET verified = TRUE
     WHERE tournament_id = ? AND player_id = ?`);
   update.run(tournament_id, player.id);
 }

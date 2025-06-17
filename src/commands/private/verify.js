@@ -11,7 +11,7 @@ module.exports = {
         .setDescription('@mention')
         .setRequired(true)),
   async execute(interaction) {
-    const sentMessage = await interaction.deferReply(); //thinking...
+    await interaction.deferReply(); //thinking...
     const member = interaction.options.getMember('player');
     const trny = getActiveTourney();
     if (getActiveTourney !== undefined) {

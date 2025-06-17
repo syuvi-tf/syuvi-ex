@@ -89,49 +89,43 @@ module.exports = {
         content: `Couldn't submit your time, as you're missing a Tempus ID or division.`,
       });
     }
+    else if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
+      const parts = getTimeParts(time);
+      const timeSeconds = parts.length === 2 ? parseFloat(time) //SS.SS
+        : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]}`);
+      const response = await getTempusTime(player, map, trnyclass); // may fail if there is no tempus PR?
+      const tempusPRTime = response.result.duration;
+      const tempusPRDate = new Date(parseInt(response.result.date * 1000));
+      const tempusPRId = response.result.id;
 
+      if (!tempusPRTime || !tempusPRDate || !tempusPRId) {
+        await interaction.editReply({
+          content: `Couldn't find any Tempus PR. Is your Tempus ID correct, or is the Tempus API down? (${inlineCode(player.tempus.id)})`,
+        });
+      }
 
-
-    //else if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
-    const parts = getTimeParts(time);
-    const timeSeconds = parts.length === 2 ? parseFloat(time) //SS.SS
-      : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]}`);
-    const response = await getTempusTime(player, map, trnyclass); // may fail if there is no tempus PR?
-    const tempusPRTime = response.result.duration;
-    const tempusPRDate = new Date(parseInt(response.result.date * 1000));
-    const tempusPRId = response.result.id;
-
-    if (!tempusPRTime || !tempusPRDate || !tempusPRId) {
-      await interaction.editReply({
-        content: `Couldn't find any Tempus PR. Is your Tempus ID correct, or is the Tempus API down? (${inlineCode(player.tempus.id)})`,
-      });
-    }
-
-    // not possible for tempus PR Date to be in the future 
-    if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
-      // submit time
-      createTourneyTime(trny.id, player.id, tempusPRTime, true);
-      const embed = getSubmitEmbed(interaction.user, time, tempusPRId, trny.class, map);
-      await interaction.editReply({ embeds: [embed] });
-    }
-    else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
-      if (tempusPRTime < timeSeconds) { // submitted run slower than PR, say the submit is unverified
-        createTourneyTime(trny.id, player.id, timeSeconds, false);
-        const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
+      // not possible for tempus PR Date to be in the future 
+      if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
+        // submit time
+        createTourneyTime(trny.id, player.id, tempusPRTime, true);
+        const embed = getSubmitEmbed(interaction.user, time, tempusPRId, trny.class, map);
         await interaction.editReply({ embeds: [embed] });
       }
-      else { // tempus PR slower than submitted time, or tried to submit an old PR
-        await interaction.editReply(`Couldn't submit ${inlineCode(time)}. An old PR was submitted, or your Tempus PR is slower than the submitted time.`);
+      else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
+        if (tempusPRTime < timeSeconds) { // submitted run slower than PR, say the submit is unverified
+          createTourneyTime(trny.id, player.id, timeSeconds, false);
+          const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
+          await interaction.editReply({ embeds: [embed] });
+        }
+        else { // tempus PR slower than submitted time, or tried to submit an old PR
+          await interaction.editReply(`Couldn't submit ${inlineCode(time)}. An old PR was submitted, or your Tempus PR is slower than the submitted time.`);
+        }
       }
+
     }
-
-    //}
-
-
-
-    // else { // invalid time format, or no tourney active
-    //  await invalidFormatOrTourney(interaction, time);
-    //}
+    else { // invalid time format, or no tourney active
+      await invalidFormatOrTourney(interaction, time);
+    }
   },
 };
 
