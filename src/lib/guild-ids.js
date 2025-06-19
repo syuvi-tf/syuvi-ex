@@ -29,5 +29,6 @@ module.exports =
 {
   divisionRoleIds,
   signupsChannelId,
-  faqChannelId
+  faqChannelId,
+  timesChannelIds
 }

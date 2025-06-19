@@ -4,7 +4,7 @@ const { getActiveTourney, getTourneyPlayers } = require('./database.js');
 const { timesChannelIds, signupsChannelId } = require('./guild-ids.js');
 const { createTourneySheet, updateSheetTimes } = require('./sheet.js');
 
-function resetFields(newEmbed, tourneyclass) {
+function resetFields(newEmbed, tourneyclass, num_players) {
   newEmbed.setFields(
     { name: 'Platinum', value: '\u200b' },
     { name: 'Gold', value: '\u200b' },
@@ -16,6 +16,7 @@ function resetFields(newEmbed, tourneyclass) {
     newEmbed.addFields({ name: 'Wood', value: '\u200b' });
   }
   newEmbed.addFields({ name: 'No Division', value: '\u200b' });
+  newEmbed.setFooter({ text: `updates every minute (${num_players} signups)` });
   return newEmbed;
 }
 
@@ -37,11 +38,11 @@ function startTourneyJob(datetime, channels) {
   });
 }
 
-function endTourneyJob(datetime, channels) {
+function endTourneyJob(datetime, channels, trny_class) {
   const date = new Date(datetime); // from sqlite datetime
   const job = schedule.scheduleJob(date, async function () {
     // delete signups message
-    const signupMessage = await (await channels.get(signupsChannelId).fetch({ limit: 1, cache: false })).values().next().value;
+    const signupMessage = await (await channels.get(signupsChannelId).messages.fetch({ limit: 1, cache: false })).values().next().value;
     signupMessage.delete();
     // send all times channels an end message. include fastest times in the future?
     const endMessageContent = '🏁 Tourney has ended! If you have a valid time to submit, please do so manually.';
@@ -50,7 +51,7 @@ function endTourneyJob(datetime, channels) {
     channels.get(timesChannelIds.get('Silver')).send(endMessageContent);
     channels.get(timesChannelIds.get('Bronze')).send(endMessageContent);
     channels.get(timesChannelIds.get('Steel')).send(endMessageContent);
-    if (trny.class === 'Soldier') {
+    if (trny_class === 'Soldier') {
       channels.get(timesChannelIds.get('Wood')).send(endMessageContent);
     }
   });
@@ -59,7 +60,7 @@ function endTourneyJob(datetime, channels) {
 // should only be called when there is an active tourney (and therefore an active signups message)
 async function updateSignupsJob(channel) {
   // don't need to get a new message every time
-  const signupMessage = (await channel.messages.fetch({ limit: 1, cache: false })).values().next().value;
+  const signupMessage = await (await channel.messages.fetch({ limit: 1, cache: false })).values().next().value;
   const embed = signupMessage.embeds[0];
   // every minute, update the embed.
   // if a tourney ends while this is running, delete the job
@@ -70,10 +71,10 @@ async function updateSignupsJob(channel) {
       job.cancel(false);
     }
     else { // update embed with all signed_up tournament players
-      newEmbed = resetFields(newEmbed, trny.class);
 
       // sort each player into their respective embed division
       const players = getTourneyPlayers(trny.id);
+      newEmbed = resetFields(newEmbed, trny.class, players.length);
       players.forEach((player) => {
         const foundIndex = embed.fields.findIndex((field) => field.name === player.division);
         const divFieldIndex = foundIndex !== -1 ? foundIndex : newEmbed.data.fields.length - 1;

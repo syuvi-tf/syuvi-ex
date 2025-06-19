@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
+// if the second to last message is not a regular ass message (from a user, not a command, and no embeds), syuvi will crash
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('echo')

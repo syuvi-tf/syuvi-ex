@@ -86,7 +86,7 @@ async function createTourneySheet(trny) {
   await sheet.loadCells('B3:M3');
   await sheet.loadCells('B1:M1');
   const titleCell = sheet.getCellByA1('B1');
-  titleCell.value = `${trny.class} Tournament Standings(${trny_date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})`;
+  titleCell.value = `${trny.class} Tournament Standings (${trny_date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})`;
   const mapCells = {
     platinum: sheet.getCellByA1('B3'),
     gold: sheet.getCellByA1('D3'),
@@ -114,6 +114,7 @@ async function updateSheetTimes(trny) {
   const monthAndYear = trny_date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
   // get current tourney's sheet
   const sheet = await getSheetByName(monthAndYear);
+  sheet.loadHeaderRow(6);
   const rows = await sheet.getRows();
   // sort and format dbTimes
   const times = {

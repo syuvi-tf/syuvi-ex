@@ -1,5 +1,3 @@
-//TODO: create start and end jobs when a tourney is created
-
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, channelMention, inlineCode, time, TimestampStyles } = require('discord.js');
 const { createTourney, getActiveTourney } = require('../../lib/database.js');
 const { startTourneyJob, endTourneyJob, updateSignupsJob } = require('../../lib/schedules.js');
@@ -38,7 +36,7 @@ starts ${relative_starts_at}
 // wait for tourney confirmation
 async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
   const channel = interaction.channel;
-  const signupsChannel = interaction.guild.channels.cache.get(signupsChannelId);
+  const signupsChannel = await interaction.guild.channels.cache.get(signupsChannelId);
   const filter = (i) => i.user.id === interaction.user.id;
 
   try {
@@ -50,15 +48,16 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
       // create tourney in the database if there are none active
       const tourneyCreated = createTourney(submitted_trny);
       if (tourneyCreated) {
-        // get the tourney we just created
+        // get the tourney that was just created
         const trny = getActiveTourney();
         // start jobs for it
-        updateSignupsJob(signupsChannel);
         startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
-        endTourneyJob(trny.starts_at, interaction.guild.channels.cache);
-        // then send #signups message
+        endTourneyJob(trny.starts_at, interaction.guild.channels.cache, trny.class);
+        // then send #signup message
         const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed(trny)] });
         signupsMessage.react(`✅`);
+        // run this job after #signup message sends
+        updateSignupsJob(signupsChannel);
         await channel.send(`✅ Tournament confirmed.`);
       }
       else {
@@ -124,8 +123,7 @@ module.exports = {
     const month = interaction.options.getString('month');
     const dayOption = interaction.options.getInteger('day');
     const day = dayOption < 10 ? '0' + dayOption : dayOption;
-    // TODO: set endDay to + 2 days instead of + 1 days (from testing)
-    const endDay = dayOption + 1 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
+    const endDay = dayOption + 2 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
     let year = new Date().getUTCFullYear();
     const now = new Date(new Date().toUTCString());
     // if the current date is ahead of the set tourney date, add a year

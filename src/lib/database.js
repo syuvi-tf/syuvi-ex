@@ -56,12 +56,24 @@ function createPlayer(discord_id, display_name) {
   insert.run(discord_id, display_name);
 }
 
+// inserts a new player in the db, no display name (discord_id)
+// preferrably, this won't ever need to be used.
+// respectfully, fix this needing to be used so it can be removed
+// thankfully, it shouldn't be hard
+function createNamelessPlayer(discord_id) {
+  const insert = db.prepare(`INSERT OR IGNORE INTO player (discord_id, display_name)
+        VALUES (?, ?)`);
+  insert.run(discord_id, discord_id);
+}
+
+
+
 // get a player, creates a player if they don't exist
 function getPlayer(discord_id) {
   const select = db.prepare(`SELECT * FROM player
     WHERE discord_id = ?`);
   const player = select.get(discord_id);
-  if (player === undefined) createPlayer();
+  if (player === undefined) { createNamelessPlayer(discord_id); }
   return select.get(discord_id);
 }
 
@@ -152,7 +164,7 @@ function createTourney(trny) {
 // returns the nearest tourney in the future, and undefined otherwise 
 function getActiveTourney() {
   const select = db.prepare(`SELECT * FROM tournament
-    WHERE ends_at > datetime('now')
+    WHERE ends_at < datetime('now')
     ORDER BY starts_at ASC`);
   return select.get();
 }
@@ -200,7 +212,8 @@ function getBestTourneyTimes(tournament_id) {
   const select = db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, tournament_time.verified, player.display_name, tournament_player.division FROM tournament_time
     JOIN player ON tournament_time.player_id = player.id
     JOIN tournament_player ON tournament_time.player_id = tournament_player.player_id
-    WHERE tournament_time.tournament_id = ?`);
+    WHERE tournament_time.tournament_id = ?
+    GROUP BY player.id`);
   return select.all(tournament_id);
 }
 
@@ -219,6 +232,7 @@ function closeDB() {
 module.exports = {
   openDB,
   createPlayer,
+  createNamelessPlayer,
   getPlayer,
   updatePlayerDisplayName,
   updatePlayerDivision,
