@@ -216,12 +216,16 @@ function updateTourneyPlayerDivision(tournament_id, player_id, division_name) {
 function createTourneyTime(tournament_id, player_id, run_time, verified) {
   const insert = db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time, verified)
         VALUES (?, ?, ?, ?)`);
-  insert.run(tournament_id, player_id, run_time, verified ? '1' : '0');
+  const info = insert.run(tournament_id, player_id, run_time, verified ? '1' : '0');
+  if (info.changes === 1) {
+    return info.lastInsertRowid;
+  }
+  return -1;
 }
 
 // return a player's tourney times
 function getTourneyTimes(tournament_id, discord_id) {
-  const trny_id = tournament_id ?? getActiveTourney() ?? getRecentTourney();
+  const trny_id = tournament_id ?? getActiveTourney()?.id ?? getRecentTourney()?.id;
   const select = db.prepare(`SELECT * FROM tournament_time
     WHERE tournament_id = ? AND player_id = ?
     ORDER BY run_time`);

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink, subtext } = require('discord.js');
 const { getPlayer, getActiveTourney, createTourneyTime } = require('../../lib/database.js');
 
 function isValidTime(time) {
@@ -43,18 +43,19 @@ async function invalidFormatOrTourney(interaction, time) {
   }
 }
 
-function getSubmitEmbed(user, time, timeId, trnyclass, map) {
+function getSubmitEmbed(user, time, time_id, tempusPRId, trnyclass, map) {
   const embed = new EmbedBuilder()
     .setColor('A69ED7')
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
-    on ${map}`)
-    .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${timeId}`) })
+on ${map}
+${subtext(`Time ID: ${time_id}`)}`)
+    .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${tempusPRId}`) })
     .setTimestamp();
   return embed;
 }
 
-function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
+function getUnverifiedEmbed(user, time, time_id, tempusPRTime, trnyclass, map) {
   const minutes = String(Math.floor(tempusPRTime / 60)).padStart(2, '0');
   const seconds = String(Math.floor(tempusPRTime % 60)).padStart(2, '0');
   const ms = String(Math.floor((tempusPRTime % 1) * 100)).padStart(2, '0');
@@ -62,8 +63,9 @@ function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
     .setColor('F97583')
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
-    on ${map}`)
-    .setFooter({ text: `Unverified: Tempus PR is ${minutes}:${seconds}.${ms}` })
+on ${map}
+${subtext(`Time ID: ${time_id}`)}`)
+    .setFooter({ text: `Unverified: Tempus PR is ${minutes}: ${seconds}.${ms}` })
     .setTimestamp();
   return embed;
 }
@@ -93,10 +95,10 @@ module.exports = {
         content: `Couldn't submit your time, as you're missing a Tempus ID or division.`,
       });
     }
-    else if (isValidTime(time) && trny !== undefined && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
+    else if (isValidTime(time) && trny && new Date(trny.starts_at) < now && new Date(trny.ends_at) > now) {
       const parts = getTimeParts(time);
       const timeSeconds = parts.length === 2 ? parseFloat(time) //SS.SS
-        : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]}`);
+        : parseFloat(`${(parseInt(parts[0]) * 60) + parseInt(parts[1])}.${parts[2]} `);
       const response = await getTempusTime(player, map, trnyclass); // may fail if there is no tempus PR?
       if (!response.result || !response) {
         await interaction.editReply({
@@ -111,14 +113,14 @@ module.exports = {
         // not possible for tempus PR Date to be in the future 
         if (tempusPRDate > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusPRTime) <= 0.02) {
           // submit time
-          createTourneyTime(trny.id, player.id, tempusPRTime, true);
-          const embed = getSubmitEmbed(interaction.user, time, tempusPRId, trny.class, map);
+          const time_id = createTourneyTime(trny.id, player.id, tempusPRTime, true);
+          const embed = getSubmitEmbed(interaction.user, time, time_id, tempusPRId, trny.class, map);
           await interaction.editReply({ embeds: [embed] });
         }
         else { // PR date is before the tourney started, or PR time isn't the submitted time (don't reveal this)
           if (tempusPRTime < timeSeconds) { // submitted run slower than PR, say the submit is unverified
-            createTourneyTime(trny.id, player.id, timeSeconds, false);
-            const embed = getUnverifiedEmbed(interaction.user, time, tempusPRTime, trny.class, map);
+            const time_id = createTourneyTime(trny.id, player.id, timeSeconds, false);
+            const embed = getUnverifiedEmbed(interaction.user, time, time_id, tempusPRTime, trny.class, map);
             await interaction.editReply({ embeds: [embed] });
           }
           else { // tempus PR slower than submitted time, or tried to submit an old PR
