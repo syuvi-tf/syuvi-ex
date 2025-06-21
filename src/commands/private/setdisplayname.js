@@ -1,10 +1,10 @@
-const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { updatePlayerDisplayName } = require('../../lib/database.js');
+const { SlashCommandBuilder, PermissionFlagsBits, userMention } = require('discord.js');
+const { updatePlayerDisplayName, getPlayer, createPlayer } = require('../../lib/database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setdisplayname')
-    .setDescription('sets a player\'s display name')
+    .setDescription('sets a player\'s display name from their discord nickname')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addUserOption(option =>
       option.setName('player')
@@ -12,8 +12,9 @@ module.exports = {
         .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const member = interaction.options.getMember('player');
-    updatePlayerDisplayName(member.id, member.displayName);
-    interaction.editReply(`✅ Set ${inlineCode(member.displayName)}'s tourney display name`);
+    const user = interaction.options.getUser('player');
+    getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
+    updatePlayerDisplayName(user.id, user.displayName);
+    interaction.editReply({ content: `✅ Set ${userMention(user.id)}'s tourney display name`, allowedMentions: { users: [] } });
   },
 };

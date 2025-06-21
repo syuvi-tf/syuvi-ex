@@ -49,7 +49,8 @@ function getSubmitEmbed(user, time, timeId, trnyclass, map) {
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
     on ${map}`)
-    .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${timeId}`) });
+    .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${timeId}`) })
+    .setTimestamp();
   return embed;
 }
 
@@ -62,7 +63,8 @@ function getUnverifiedEmbed(user, time, tempusPRTime, trnyclass, map) {
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
     on ${map}`)
-    .setFooter({ text: `Unverified: Tempus PR is ${minutes}:${seconds}.${ms}` });
+    .setFooter({ text: `Unverified: Tempus PR is ${minutes}:${seconds}.${ms}` })
+    .setTimestamp();
   return embed;
 }
 

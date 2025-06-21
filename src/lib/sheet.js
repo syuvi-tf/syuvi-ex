@@ -23,13 +23,6 @@ async function getSheetByName(name) {
   return doc.sheetsByTitle[name];
 }
 
-// not used
-async function getSheets() {
-  await doc.loadInfo(); // loads document properties and worksheets
-  const sheets = doc.sheetsByIndex; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
-  return sheets;
-}
-
 function formatRunTime(time, verified) {
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time) - (minutes * 60);
@@ -42,32 +35,32 @@ async function updateRows(rows, times) {
   for (let i = 0; i < times.platinum.length; i++) {
     const time = times.platinum[i];
     const row = rows[i];
-    row.assign({ plat_player: time.display_name, plat_time: time.run_time });
+    row.assign({ plat_player: `'${time.display_name}`, plat_time: time.run_time });
   }
   for (let i = 0; i < times.gold.length; i++) {
     const time = times.gold[i];
     const row = rows[i];
-    row.assign({ gold_player: time.display_name, gold_time: time.run_time });
+    row.assign({ gold_player: `'${time.display_name}`, gold_time: time.run_time });
   }
   for (let i = 0; i < times.silver.length; i++) {
     const time = times.silver[i];
     const row = rows[i];
-    row.assign({ silver_player: time.display_name, silver_time: time.run_time });
+    row.assign({ silver_player: `'${time.display_name}`, silver_time: time.run_time });
   }
   for (let i = 0; i < times.bronze.length; i++) {
     const time = times.bronze[i];
     const row = rows[i];
-    row.assign({ bronze_player: time.display_name, bronze_time: time.run_time });
+    row.assign({ bronze_player: `'${time.display_name}`, bronze_time: time.run_time });
   }
   for (let i = 0; i < times.steel.length; i++) {
     const time = times.steel[i];
     const row = rows[i];
-    row.assign({ steel_player: time.display_name, steel_time: time.run_time });
+    row.assign({ steel_player: `'${time.display_name}`, steel_time: time.run_time });
   }
   for (let i = 0; i < times.wood.length; i++) {
     const time = times.wood[i];
     const row = rows[i];
-    row.assign({ wood_player: time.display_name, wood_time: time.run_time });
+    row.assign({ wood_player: `'${time.display_name}`, wood_time: time.run_time });
   }
   for (let i = 0; i < maxRows; i++) {
     await rows[i].save();

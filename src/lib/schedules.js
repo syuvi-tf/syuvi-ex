@@ -57,44 +57,43 @@ function endTourneyJob(datetime, channels, trny_class) {
   });
 };
 
-// should only be called when there is an active tourney (and therefore an active signups message)
 async function updateSignupsJob(channel) {
-  // don't need to get a new message every time
-  const signupMessage = await (await channel.messages.fetch({ limit: 1, cache: false })).values().next().value;
-  const embed = signupMessage.embeds[0];
-  // every minute, update the embed.
-  // if a tourney ends while this is running, delete the job
+  // message is only needed once
+  const signupMessages = await channel.messages.fetch({ limit: 1, cache: false });
+  const signupMessage = signupMessages.first();
+  const embed = signupMessage ? signupMessage.embeds[0] : null;
+
   const job = schedule.scheduleJob('*/1 * * * *', async function () {
-    let newEmbed = EmbedBuilder.from(embed);
     const trny = getActiveTourney();
-    if (trny === undefined) { // no active tourney
+    // trny has ended or no #signup message
+    if (!trny || !signupMessage || !embed) {
+      console.log("updateSignupsJob() error");
       job.cancel(false);
     }
-    else { // update embed with all signed_up tournament players
-
-      // sort each player into their respective embed division
+    else { // update #signup embed
       const players = getTourneyPlayers(trny.id);
+      let newEmbed = EmbedBuilder.from(embed);
       newEmbed = resetFields(newEmbed, trny.class, players.length);
+      // sort each player into their respective embed division
       players.forEach((player) => {
         const foundIndex = embed.fields.findIndex((field) => field.name === player.division);
         const divFieldIndex = foundIndex !== -1 ? foundIndex : newEmbed.data.fields.length - 1;
         newEmbed = newEmbed.spliceFields(divFieldIndex, 1,
           {
             name: newEmbed.data.fields[divFieldIndex].name,
-            value: newEmbed.data.fields[divFieldIndex].value += userMention(player.discord_id) + ' '
+            value: newEmbed.data.fields[divFieldIndex].value += `${userMention(player.discord_id)} `
           }
         );
       });
       signupMessage.edit({ embeds: [newEmbed] });
     }
   });
-
 }
 
 async function updateSheetsJob() {
   const job = schedule.scheduleJob('*/1 * * * *', async function () {
     const trny = getActiveTourney();
-    if (trny === undefined) {
+    if (!trny) {
       job.cancel(false);
     }
     updateSheetTimes(trny);

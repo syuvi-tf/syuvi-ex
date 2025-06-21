@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { createPlayer, updatePlayerDivision } = require('../../lib/database.js');
+const { SlashCommandBuilder, PermissionFlagsBits, roleMention, userMention } = require('discord.js');
+const { createPlayer, updatePlayerDivision, getPlayer } = require('../../lib/database.js');
 const { divisionRoleIds } = require('../../lib/guild-ids.js');
 
 module.exports = {
@@ -33,30 +33,40 @@ module.exports = {
           { name: 'None', value: 'None' },)
     ),
   async execute(interaction) {
-    await interaction.deferReply(); //thinking...
+    await interaction.deferReply(); // thinking...
     const member = interaction.options.getMember('player');
+    // first, create a player if they don't exist
+    getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
     const divisionClass = interaction.options.getString('class');
     const divisionName = interaction.options.getString('division');
     const division = {
       class: divisionClass,
       name: divisionName === 'None' ? null : divisionName
     };
-    const roleToAdd = member.guild.roles.cache.get(divisionRoleIds.get(`${division.name} ${division.class}`));
-    const roleToRemove = member.roles.cache.find((role) => role.name.includes(division.class));
-    let replyContent = '';
-    createPlayer(member.id, member.displayName);
 
-    if (roleToRemove !== undefined) { //if an old role exists, remove it
-      member.roles.remove(roleToRemove);
-      replyContent += (`${inlineCode('- ' + roleToRemove.name)} from ${inlineCode(member.displayName)}\n`);
+    if (division.name === 'Wood' && division.class === 'Demo') {
+      await interaction.editReply(`❌ Wood Demo is not a valid role.`);
     }
-
-    if (divisionName !== 'None') {
-      member.roles.add(roleToAdd);
-      replyContent += (`${inlineCode('+ ' + roleToAdd.name)} to ${inlineCode(member.displayName)}`);
+    else {
+      const roleToAdd = member.guild.roles.cache.get(divisionRoleIds.get(`${division.name} ${division.class}`));
+      const roleToRemove = member.roles.cache.find((role) => role.name.includes(division.class));
+      let messageContent = ``;
+      if (roleToRemove) { // if an old role exists, remove it
+        await member.roles.remove(roleToRemove);
+        messageContent += (`removed ${roleMention(roleToRemove.id)} from ${userMention(member.id)}\n`);
+      }
+      // don't add wood demo role
+      if (division.name) { // if there is a role to add, add it
+        await member.roles.add(roleToAdd);
+        messageContent += (`added ${roleMention(roleToAdd.id)} to ${userMention(member.id)}`);
+      }
+      updatePlayerDivision(member.id, division);
+      if (messageContent !== '') {
+        await interaction.editReply({ content: messageContent, allowedMentions: { users: [], roles: [] } });
+      }
+      else {
+        await interaction.editReply({ content: `❌ ${userMention(member.id)} doesn't have a ${division.class} role to remove.`, allowedMentions: { users: [], roles: [] } });
+      }
     }
-    updatePlayerDivision(member.id, division);
-
-    await interaction.editReply(replyContent);
   },
 };

@@ -61,18 +61,19 @@ getCommands(client);
 client.once(Events.ClientReady, readyClient => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
-  // if there is an active tourney, we can create the start/end and update jobs
+  // if there is an active or upcoming tourney, schedule jobs
   const trny = getActiveTourney();
-  if (getActiveTourney() !== undefined) {
-    if ((new Date(trny.starts_at) > new Date(new Date().toUTCString()))) // tourney starts in future
+  const now = new Date(new Date().toUTCString());
+  if (trny) {
+    if ((new Date(trny.starts_at) > now)) // tourney hasn't started yet
     {
       startTourneyJob(trny.starts_at, client.channels.cache);
     }
-    else if ((new Date(trny.starts_at) < new Date(new Date().toUTCString()))) // tourney has started, but has not ended yet
+    else if ((new Date(trny.starts_at) < now)) // tourney has started, but has not ended yet
     {
       updateSheetsJob();
     }
-    // tourney ends in the future, but may or may not have already started
+    // tourney hasn't ended yet
     endTourneyJob(trny.ends_at, client.channels.cache, trny.class);
     updateSignupsJob(client.channels.cache.get(signupsChannelId));
   }

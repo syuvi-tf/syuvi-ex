@@ -46,7 +46,6 @@ function getMapSelectModal(tourneyClass) {
   }
   return modal;
 }
-
 module.exports = {
   confirmRow,
   getMapSelectModal,

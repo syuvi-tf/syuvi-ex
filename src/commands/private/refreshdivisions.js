@@ -9,19 +9,18 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
   async execute(interaction) {
     const response = await interaction.reply({
-      content: `This command updates the divisions of every player according to their discord roles. This might be expensive, so please only use it when necessary!`,
+      content: `This command updates the divisions of every player according to their discord roles. Are you sure?`,
       components: [confirmRow],
       withResponse: true,
     });
 
-    const filter = (i) => i.user.id === interaction.user.id;
-
     try {
+      const filter = (i) => i.user.id === interaction.user.id;
       const confirmResponse = await response.resource.message.awaitMessageComponent({ filter, time: 30_000 });
       if (confirmResponse.customId === 'confirm') {
-        updateAllPlayerDivisions(interaction.guild.members.cache);
+        const numUpdated = updateAllPlayerDivisions(interaction.guild.members.cache);
         await confirmResponse.update({
-          content: `✅ Updated divisions.`,
+          content: `✅ Updated divisions for ${numUpdated} roles.`,
           components: []
         });
       }
