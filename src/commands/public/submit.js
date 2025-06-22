@@ -102,7 +102,7 @@ module.exports = {
     const time = interaction.options.getString('time');
     const member = interaction.member;
     const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
-    const trny = getRecentTourney();
+    const trny = getActiveTourney();
     const now = new Date(new Date().toUTCString());
 
     // no in-progress tourney, or no signed_up tourney player 
