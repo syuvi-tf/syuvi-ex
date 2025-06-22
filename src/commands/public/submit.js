@@ -1,20 +1,17 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink, subtext } = require('discord.js');
-const { getPlayer, createPlayer, getActiveTourney, createTourneyTime, getTourneyPlayer } = require('../../lib/database.js');
-
-// MM:SS.SS (MM: optional)
+const { getPlayer, createPlayer, getActiveTourney, createTourneyTime, getTourneyPlayer, getRecentTourney } = require('../../lib/database.js');
+const { getPlayerEmbed } = require('../../lib/components.js');
+// MM:SS.ss (MM: optional)
 function isValidTime(time) {
   const validRegex = /^((\d{0,2}):)?(\d{2}).(\d{2})$/g;
   return validRegex.test(time);
 }
 
-// return String[] of {MM,SS,SS} or {SS,SS}
+// return String[] of {MM,SS,ss} or {SS,ss}
 function getTimeParts(time) {
-  const partRegex = /\d{0,2}/g;
+  const partRegex = /\d{1,2}/g;
   return time.match(partRegex);
 }
-
-// from /info command
-// function getPlayerEmbed(player)
 
 async function noTourneyOrPlayer(interaction, trny) {
   if (!trny) {
@@ -29,17 +26,17 @@ async function noTourneyOrPlayer(interaction, trny) {
   }
 }
 
-async function noTempusIDOrDivision(interaction, player, discord_id) {
+async function noTempusIDOrDivision(interaction, player) {
   if (!player.tempus_id) {
     await interaction.editReply({
       content: `Couldn't submit your time, as you're missing a Tempus ID.`,
-      embeds: [getPlayerEmbed(player, discord_id)]
+      embeds: [getPlayerEmbed(interaction.user, player)]
     });
   }
   else {
     await interaction.editReply({
       content: `Couldn't submit your time, as you're missing a division.`,
-      embeds: [getPlayerEmbed(player, discord_id)]
+      embeds: [getPlayerEmbed(interaction.user, player)]
     });
   }
 }
@@ -67,25 +64,25 @@ function getTourneyMap(trny, division) {
   }
 }
 
-function getSubmitEmbed(member, time, time_id, tempusPRId, trnyclass, map) {
+function getSubmitEmbed(user, time, time_id, tempusPRId, trnyclass, map) {
   const embed = new EmbedBuilder()
     .setColor('A69ED7')
-    .setThumbnail(member.avatarURL())
-    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(member.id)} submitted ${time}
+    .setThumbnail(user.avatarURL())
+    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}`)
     .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${tempusPRId}`) })
   return embed;
 }
 
-function getUnverifiedEmbed(member, time, time_id, tempusPRTime, trnyclass, map) {
+function getUnverifiedEmbed(user, time, time_id, tempusPRTime, trnyclass, map) {
   const minutes = String(Math.floor(tempusPRTime / 60)).padStart(2, '0');
   const seconds = String(Math.floor(tempusPRTime % 60)).padStart(2, '0');
   const ms = String(Math.floor((tempusPRTime % 1) * 100)).padStart(2, '0');
   const embed = new EmbedBuilder()
     .setColor('F97583')
-    .setThumbnail(member.avatarURL())
-    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(member.id)} submitted ${time}
+    .setThumbnail(user.avatarURL())
+    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}`)
     .setFooter({ text: `Unverified: Tempus PR is ${minutes}: ${seconds}.${ms}` })
@@ -105,11 +102,11 @@ module.exports = {
     const time = interaction.options.getString('time');
     const member = interaction.member;
     const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
-    const trny = getActiveTourney();
+    const trny = getRecentTourney();
     const now = new Date(new Date().toUTCString());
 
     // no in-progress tourney, or no signed_up tourney player 
-    if (!trny || now < new Date(trny.starts_at) || new Date(trny.ends_at) > now || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id_player).signed_up === 0) {
+    if (!trny || now < new Date(trny.starts_at) || new Date(trny.ends_at) > now || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id, player.id).signed_up === 0) {
       noTourneyOrPlayer(interaction, trny);
       return;
     }
@@ -118,7 +115,7 @@ module.exports = {
     const division = trny_class === 3 ? player.soldier_division : player.demo_division;
     // no tempus id or division, show player info
     if (!player.tempus_id || !division) {
-      noTempusIDOrDivision(interaction, trny.id, player);
+      noTempusIDOrDivision(interaction, player);
     }
     // invalid time
     else if (!isValidTime(time)) {
@@ -132,9 +129,8 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       const map = getTourneyMap(trny, division);
       const response = await getTempusTime(player, map, trny_class);
       const timeParts = getTimeParts(time);
-      const timeSeconds = timeParts.length === 2
-        ? parseFloat(time) // SS.SS
-        : parseFloat(`${(parseInt(timeParts[0]) * 60) + parseInt(timeParts[1])}.${timeParts[2]} `); // MM:SS.ss
+      const timeSeconds = timeParts.length === 2 ? parseFloat(time) //SS.ss
+        : parseFloat(`${(parseInt(timeParts[0]) * 60) + parseInt(timeParts[1])}.${timeParts[2]}`);
       const tempusTime = {
         id: response?.result.id,
         date: new Date(parseInt(response?.result.date * 1000)),
@@ -144,19 +140,19 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       if (!tempusTime.id || !tempusTime.date || !tempusTime.time) {
         await interaction.editReply({
           content: `Couldn't find a Tempus PR. If the Tempus API isn't down, check your Tempus ID.`,
-          embeds: [getPlayerEmbed(player, member.id)]
+          embeds: [getPlayerEmbed(interaction.user, player)]
         });
       }
       // verified
       else if (tempusTime.date > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusTime.time) <= 0.02) {
         const time_id = createTourneyTime(trny.id, player.id, tempusTime.time, true);
-        const embed = getSubmitEmbed(interaction.member, time, time_id, tempusTime.id, trny.class, map);
+        const embed = getSubmitEmbed(interaction.user, time, time_id, tempusTime.id, trny.class, map);
         await interaction.editReply({ embeds: [embed] });
       }
       // unverified
       else if (timeSeconds > tempusTime.time) {
         const time_id = createTourneyTime(trny.id, player.id, timeSeconds, false);
-        const embed = getUnverifiedEmbed(interaction.member, time, time_id, tempusTime.time, trny.class, map);
+        const embed = getUnverifiedEmbed(interaction.user, time, time_id, tempusTime.time, trny.class, map);
         await interaction.editReply({ embeds: [embed] });
       }
       // submitted time is faster than PR, or old PR was attempted to submit

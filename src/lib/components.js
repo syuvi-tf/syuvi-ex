@@ -1,5 +1,5 @@
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention } = require('discord.js');
-const { timesChannelIds } = require('./guild-ids.js');
+const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder } = require('discord.js');
+const { divisionRoleIds } = require('./guild-ids.js');
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -48,16 +48,19 @@ function getMapSelectModal(tourneyClass) {
   return modal;
 }
 
-function getPlayerEmbed(player, discord_id) {
+function getPlayerEmbed(user, player) {
   const embed = new EmbedBuilder()
     .setColor('A69ED7')
     .setThumbnail(user.avatarURL())
-    .setDescription(`Player Info for ${userMention(discord_id)}
-Display Name: ${inlineCode(player.display_name)}
-${player.soldier_division ? roleMention(timesChannelIds.get(player.soldier_division)) : `${inlineCode('No Soldier Division')}`}
-${player.demo_division ? roleMention(timesChannelIds.get(player.demo_division)) : `${inlineCode('No Demo Division')}`}
-Tempus ID: ${inlineCode(tempus_id)}
-`)
+    .setDescription(`### Player Info for ${userMention(user.id)}`)
+    .addFields(
+      { name: 'Display Name', value: `${inlineCode(player.display_name)}`, inline: true },
+      { name: 'Tempus ID', value: `${inlineCode(player.tempus_id)}`, inline: true },
+      {
+        name: 'Divisions', value: `${player.soldier_division ? roleMention(divisionRoleIds.get(player.soldier_division + ' Soldier')) : `${inlineCode('No Soldier Division')}`}
+${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + ' Demo')) : `${inlineCode('No Demo Division')}`}`,
+      }
+    )
   return embed;
 }
 
