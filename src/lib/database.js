@@ -196,6 +196,12 @@ function removeTourneyPlayer(tournament_id, player_id) {
   update.run(tournament_id, player_id);
 }
 
+function getTourneyPlayer(tournament_id, player_id) {
+  const select = db.prepare(`SELECT * FROM tournament_player
+    WHERE tournament_id = ? AND player_id = ? AND signed_up = TRUE`);
+  return select.get(tournament_id, player_id);
+}
+
 // return all tourney players and associated discord ids
 function getTourneyPlayers(tournament_id) {
   const select = db.prepare(`SELECT tournament_player.*, player.discord_id FROM tournament_player
@@ -275,6 +281,7 @@ module.exports = {
   getAllTourneys,
   createTourneyPlayer,
   removeTourneyPlayer,
+  getTourneyPlayer,
   getTourneyPlayers,
   createTourneyTime,
   getTourneyTimes,

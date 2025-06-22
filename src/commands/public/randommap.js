@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, inlineCode } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 function getRandomMap(maps, tier, rating) {
   if (!tier && !rating) { // any map
@@ -27,6 +27,7 @@ function getRandomMap(maps, tier, rating) {
   }
 }
 
+// TODO: format cooler
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('randommap')

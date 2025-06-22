@@ -5,7 +5,7 @@ const { signupsChannelId, faqChannelId } = require('../../lib/guild-ids.js');
 const { confirmRow, getMapSelectModal } = require('../../lib/components.js');
 
 // get the initial signup embed
-async function getSignupsEmbed(trny) {
+function getSignupsEmbed(trny) {
   // get tourney we just wrote to the database
   const starts_at = time(new Date(trny.starts_at), TimestampStyles.LongDateTime);
   const ends_at = time(new Date(trny.ends_at), TimestampStyles.ShortDateTime);
@@ -54,7 +54,7 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
         startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
         endTourneyJob(trny.ends_at, interaction.guild.channels.cache, trny.class);
         // then send #signup message
-        const signupsMessage = await signupsChannel.send({ embeds: [await getSignupsEmbed(trny)] });
+        const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(trny)] });
         await signupsMessage.react(`✅`);
         // run this job after #signup message sends
         updateSignupsJob(signupsChannel);

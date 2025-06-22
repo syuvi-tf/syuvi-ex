@@ -1,4 +1,5 @@
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention } = require('discord.js');
+const { timesChannelIds } = require('./guild-ids.js');
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -46,7 +47,22 @@ function getMapSelectModal(tourneyClass) {
   }
   return modal;
 }
+
+function getPlayerEmbed(player, discord_id) {
+  const embed = new EmbedBuilder()
+    .setColor('A69ED7')
+    .setThumbnail(user.avatarURL())
+    .setDescription(`Player Info for ${userMention(discord_id)}
+Display Name: ${inlineCode(player.display_name)}
+${player.soldier_division ? roleMention(timesChannelIds.get(player.soldier_division)) : `${inlineCode('No Soldier Division')}`}
+${player.demo_division ? roleMention(timesChannelIds.get(player.demo_division)) : `${inlineCode('No Demo Division')}`}
+Tempus ID: ${inlineCode(tempus_id)}
+`)
+  return embed;
+}
+
 module.exports = {
   confirmRow,
   getMapSelectModal,
+  getPlayerEmbed,
 }
