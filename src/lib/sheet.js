@@ -70,7 +70,7 @@ async function updateRows(rows, times) {
 async function createTourneySheet(trny) {
   const templateSheet = await getTemplate(trny.class);
   const trny_date = new Date(trny.starts_at);
-  const monthAndYear = trny_date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+  const monthAndYear = trny_date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   // duplicate sheet from soldier / demo template
   await templateSheet.duplicate({ title: monthAndYear });
 
@@ -104,7 +104,7 @@ async function createTourneySheet(trny) {
 async function updateSheetTimes(trny) {
   const dbTimes = getBestTourneyTimes(trny.id);
   const trny_date = new Date(trny.starts_at);
-  const monthAndYear = trny_date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+  const monthAndYear = trny_date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   // get current tourney's sheet
   const sheet = await getSheetByName(monthAndYear);
   sheet.loadHeaderRow(6);
