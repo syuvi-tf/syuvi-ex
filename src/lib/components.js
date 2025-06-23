@@ -1,10 +1,27 @@
 const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } = require('discord.js');
 const { divisionRoleIds } = require('./guild-ids.js');
+const { getTourneyDivisionTopTimes } = require('./database.js');
 
 function getSteamURL(steam_id32) {
   const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + 1;
   const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
   return steam_url;
+}
+
+function formatTopTime(time, verified) {
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time) - (minutes * 60);
+  const ms = parseInt((time % 1).toFixed(2) * 100);
+  return `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}.${ms < 10 ? `0${ms}` : ms}${verified ? '' : ' ❔'}`;
+}
+
+function getInlineCodeTopTimes(toptimes) {
+  let inlines = ``;
+  for (let i = 0; i < toptimes.length; i++) {
+    inlines += `${inlineCode(`${i + 1} | ${toptimes[i].run_time}`)} ${userMention(toptimes[i].discord_id)}
+`;
+  }
+  return inlines;
 }
 
 const confirmRow = new ActionRowBuilder().addComponents(
@@ -71,7 +88,18 @@ ${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + 
 ${hyperlink('Steam', getSteamURL(player.steam_id))}`
           : `${inlineCode('No Linked Tempus ID')}`}`
       }
-    )
+    );
+  return embed;
+}
+
+function getTourneyTopTimesEmbed(trny, division_name, roles) {
+  const division_color = roles.cache.get(divisionRoleIds.get(`${division_name} ${trny.class}`)).color;
+  const db_toptimes = getTourneyDivisionTopTimes(trny.id, division_name);
+  const toptimes = db_toptimes.map((time) => Object.assign(time, { run_time: formatTopTime(time.run_time, time.verified) }));
+  const embed = new EmbedBuilder()
+    .setColor(division_color)
+    .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${trny.class}`))} Top 8
+${getInlineCodeTopTimes(toptimes)}`);
   return embed;
 }
 
@@ -79,4 +107,5 @@ module.exports = {
   confirmRow,
   getMapSelectModal,
   getPlayerEmbed,
+  getTourneyTopTimesEmbed,
 }

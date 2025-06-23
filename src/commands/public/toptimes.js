@@ -1,12 +1,7 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { getPlayer, createPlayer, getActiveTourney, getRecentTourney } = require('../../lib/database.js');
-const { getPlayerEmbed } = require('../../lib/components.js');
-
-// TODO: create embed
-function getTourneyTopTimesEmbed() {
-  const embed = new EmbedBuilder();
-  return embed;
-}
+const { getTourneyTopTimesEmbed } = require('../../lib/components.js');
+const { divisionRoleIds } = require('../../lib/guild-ids.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,14 +9,14 @@ module.exports = {
     .setDescription('display the top 8 times for the current / previous tourney')
     .addStringOption(option =>
       option.setName('division')
-        .setDescription('division top times to display'))
-    .addChoices(
-      { name: 'Platinum', value: 'Platinum' },
-      { name: 'Gold', value: 'Gold' },
-      { name: 'Silver', value: 'Silver' },
-      { name: 'Bronze', value: 'Bronze' },
-      { name: 'Steel', value: 'Steel' },
-      { name: 'Wood', value: 'Wood' },),
+        .setDescription('division top times to display')
+        .addChoices(
+          { name: 'Platinum', value: 'Platinum' },
+          { name: 'Gold', value: 'Gold' },
+          { name: 'Silver', value: 'Silver' },
+          { name: 'Bronze', value: 'Bronze' },
+          { name: 'Steel', value: 'Steel' },
+          { name: 'Wood', value: 'Wood' },)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const trny = getActiveTourney() ?? getRecentTourney();
@@ -34,9 +29,10 @@ module.exports = {
       if (!division_name) {
         // no division name, use player's div if they have one
         const player = getPlayer(member.id) ?? createPlayer(member.id);
-        const player_division = (trny.class === 'Soldier' ? player.soldier_division : player.demo_division);
-        if (player_division) {
+        const player_division_name = (trny.class === 'Soldier' ? player.soldier_division : player.demo_division);
+        if (player_division_name) {
           // embed leaderboard for player's division
+          interaction.editReply({ embeds: [getTourneyTopTimesEmbed(trny, player_division_name, interaction.guild.roles)] });
         }
         else {
           interaction.editReply(`Couldn't display a leaderboard, as you don't have a ${trny.class} division.`);
@@ -49,10 +45,9 @@ module.exports = {
         }
         else {
           // embed for selected division
+          interaction.editReply({ embeds: [getTourneyTopTimesEmbed(trny, division_name, interaction.guild.roles)] });
         }
       }
     }
-
-    interaction.editReply({ embeds: [getPlayerEmbed(user, player)] });
   },
 };

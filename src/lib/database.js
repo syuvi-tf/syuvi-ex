@@ -248,6 +248,16 @@ function getBestTourneyTimes(tournament_id) {
   return select.all(tournament_id);
 }
 
+function getTourneyDivisionTopTimes(tournament_id, division_name) {
+  const select = db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, tournament_time.verified, player.discord_id, tournament_player.division FROM tournament_time
+    JOIN player ON tournament_time.player_id = player.id
+    JOIN tournament_player ON tournament_time.player_id = tournament_player.player_id
+    WHERE tournament_time.tournament_id = ? AND tournament_player.division = ?
+    GROUP BY player.id
+    LIMIT 8`);
+  return select.all(1, division_name);
+}
+
 // verify a time for current or most recent tourney
 function verifyTourneyTime(discord_id, time_id) {
   const player = getPlayer(discord_id);
@@ -285,6 +295,7 @@ module.exports = {
   getTourneyPlayers,
   createTourneyTime,
   getTourneyTimes,
+  getTourneyDivisionTopTimes,
   getBestTourneyTimes,
   verifyTourneyTime,
   closeDB,
