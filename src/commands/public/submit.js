@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, userMention, inlineCode, hyperlink, subtext } = require('discord.js');
-const { getPlayer, createPlayer, getActiveTourney, createTourneyTime, getTourneyPlayer, getRecentTourney } = require('../../lib/database.js');
+const { SlashCommandBuilder, EmbedBuilder, userMention, hyperlink, subtext } = require('discord.js');
+const { getPlayer, createPlayer, getActiveTourney, createTourneyTime, getTourneyPlayer } = require('../../lib/database.js');
 const { getPlayerEmbed } = require('../../lib/components.js');
 // MM:SS.ss (MM: optional)
 function isValidTime(time) {
@@ -70,8 +70,9 @@ function getSubmitEmbed(user, time, time_id, tempusPRId, trnyclass, map) {
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
 on ${map}
-${subtext(`time ID: ${time_id}`)}`)
-    .addFields({ name: '\u200b', value: hyperlink('run details on Tempus', `https://tempus2.xyz/records/${tempusPRId}`) })
+${subtext(`time ID: ${time_id}`)}
+
+${hyperlink('run details on Tempus', `https://tempus2.xyz/records/${tempusPRId}`)}`);
   return embed;
 }
 
@@ -84,8 +85,9 @@ function getUnverifiedEmbed(user, time, time_id, tempusPRTime, trnyclass, map) {
     .setThumbnail(user.avatarURL())
     .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
 on ${map}
-${subtext(`time ID: ${time_id}`)}`)
-    .setFooter({ text: `Unverified: Tempus PR is ${minutes}: ${seconds}.${ms}` })
+${subtext(`time ID: ${time_id}`)}
+
+${subtext(`unverified: Tempus PR is ${minutes}:${seconds}.${ms}`)}`);
   return embed;
 }
 

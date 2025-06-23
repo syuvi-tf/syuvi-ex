@@ -31,7 +31,7 @@ function getRandomMap(maps, tier, rating) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('randommap')
-    .setDescription('get a random map from Tempus!')
+    .setDescription('roll for a random map from Tempus!')
     .addStringOption(option =>
       option.setName('tier')
         .setDescription('tier')

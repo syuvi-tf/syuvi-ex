@@ -1,14 +1,18 @@
-const { SlashCommandBuilder, inlineCode, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, inlineCode, EmbedBuilder, hyperlink } = require('discord.js');
 const { createPlayer, getPlayer } = require('../../lib/database.js');
 const { updatePlayerIds } = require('../../lib/database.js');
 
 function getEmbed(tempusInfo) {
   const embed = new EmbedBuilder()
     .setColor('E1703D')
-    .setDescription(`Set your Tempus ID. Last seen on Tempus as ${inlineCode(tempusInfo.name)}
-${inlineCode(`Rank ${tempusInfo.srank} Soldier`)}
-${inlineCode(`Rank ${tempusInfo.drank} Demo`)}`)
-    .setFooter({ text: `Tempus ID: ${tempusInfo.id}`, iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/f6ba291c-cd4f-46f7-9b43-75ef77e887a5-profile_image-70x70.png' });
+    .setAuthor({
+      name: 'Tempus profile',
+      url: `https://tempus2.xyz/players/${tempusInfo.id}`,
+      iconURL: 'https://static-cdn.jtvnw.net/jtv_user_pictures/f6ba291c-cd4f-46f7-9b43-75ef77e887a5-profile_image-70x70.png'
+    })
+    .setDescription(`Set your Tempus ID. Last seen as ${inlineCode(tempusInfo.name)} 
+> ${inlineCode(`Rank ${tempusInfo.srank} Soldier`)}
+> ${inlineCode(`Rank ${tempusInfo.drank} Demo`)}`);
   return embed;
 }
 

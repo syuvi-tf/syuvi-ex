@@ -1,5 +1,11 @@
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder } = require('discord.js');
+const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } = require('discord.js');
 const { divisionRoleIds } = require('./guild-ids.js');
+
+function getSteamURL(steam_id32) {
+  const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + 1;
+  const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
+  return steam_url;
+}
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -55,10 +61,15 @@ function getPlayerEmbed(user, player) {
     .setDescription(`### Player Info for ${userMention(user.id)}`)
     .addFields(
       { name: 'Display Name', value: `${inlineCode(player.display_name)}`, inline: true },
-      { name: 'Tempus ID', value: `${inlineCode(player.tempus_id)}`, inline: true },
       {
         name: 'Divisions', value: `${player.soldier_division ? roleMention(divisionRoleIds.get(player.soldier_division + ' Soldier')) : `${inlineCode('No Soldier Division')}`}
-${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + ' Demo')) : `${inlineCode('No Demo Division')}`}`,
+${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + ' Demo')) : `${inlineCode('No Demo Division')}`}`, inline: true
+      },
+      {
+        name: 'Profiles', value: `${player.tempus_id
+          ? `${hyperlink('Tempus', `https://tempus2.xyz/players/${player.tempus_id}`)}
+${hyperlink('Steam', getSteamURL(player.steam_id))}`
+          : `${inlineCode('No Linked Tempus ID')}`}`
       }
     )
   return embed;
