@@ -142,7 +142,7 @@ function updateAllPlayerDivisions(members) {
 }
 
 // steam URL formatting
-// const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + 1;
+// const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + Y;
 // const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
 // update a player's tempus and steam ids
 function updatePlayerIds(discord_id, tempus_id, steam_id) {

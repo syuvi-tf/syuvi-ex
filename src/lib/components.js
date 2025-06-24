@@ -3,7 +3,8 @@ const { divisionRoleIds } = require('./guild-ids.js');
 const { getTourneyDivisionTopTimes } = require('./database.js');
 
 function getSteamURL(steam_id32) {
-  const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + 1;
+  const Y = parseInt(steam_id32.charAt(steam_id32.indexOf(':') + 1));
+  const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + Y;
   const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
   return steam_url;
 }
