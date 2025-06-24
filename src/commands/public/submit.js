@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention, hyperlink, subtext } = require('discord.js');
-const { getPlayer, createPlayer, getActiveTourney, createTourneyTime, getTourneyPlayer } = require('../../lib/database.js');
+const { getPlayer, createPlayer, getActiveTourney, getTourneyPlayer, createTourneyTime, getPlayerBestTourneyTime } = require('../../lib/database.js');
 const { getPlayerEmbed } = require('../../lib/components.js');
 // MM:SS.ss (MM: optional)
 function isValidTime(time) {
@@ -153,11 +153,19 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       }
       // unverified
       else if (timeSeconds > tempusTime.time) {
-        const time_id = createTourneyTime(trny.id, player.id, timeSeconds, false);
-        const embed = getUnverifiedEmbed(interaction.user, time, time_id, tempusTime.time, trny.class, map);
-        await interaction.editReply({ embeds: [embed] });
+        const previousTime = getPlayerBestTourneyTime(trny.id, player.id);
+        // check if time is slower than tourney PR
+        if (previousTime < timeSeconds) {
+          await interaction.editReply(`Couldn't submit this time, as it's slower than your tourney PR.
+${subtext(`tourney PR: ${previousTime}s`)}`);
+        }
+        else {
+          const time_id = createTourneyTime(trny.id, player.id, timeSeconds, false);
+          const embed = getUnverifiedEmbed(interaction.user, time, time_id, tempusTime.time, trny.class, map);
+          await interaction.editReply({ embeds: [embed] });
+        }
       }
-      // submitted time is faster than PR, or old PR was attempted to submit
+      // submitted time is faster than tempus PR, or old tempus PR was attempted to submit
       else {
         if (Math.abs(timeSeconds - tempusTime.time) <= 0.02) {
           await interaction.editReply({
