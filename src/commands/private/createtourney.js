@@ -52,7 +52,7 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
         const trny = getActiveTourney();
         // start jobs for it
         startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
-        endTourneyJob(trny.ends_at, interaction.guild.channels.cache, trny.class);
+        endTourneyJob(trny.ends_at, interaction.guild.channels.cache, trny);
         // then send #signup message
         const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(trny)] });
         await signupsMessage.react(`✅`);

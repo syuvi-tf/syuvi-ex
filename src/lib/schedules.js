@@ -3,6 +3,7 @@ const { EmbedBuilder, userMention, inlineCode } = require('discord.js');
 const { getActiveTourney, getTourneyPlayers } = require('./database.js');
 const { timesChannelIds, signupsChannelId } = require('./guild-ids.js');
 const { createTourneySheet, updateSheetTimes } = require('./sheet.js');
+const { getMapEmbedByName, getTourneyTopTimesEmbed } = require('./components.js');
 
 function resetFields(newEmbed, tourneyclass, num_players) {
   newEmbed.setFields(
@@ -26,33 +27,35 @@ function startTourneyJob(datetime, channels) {
     const trny = getActiveTourney();
     createTourneySheet(trny);
     updateSheetsJob();
-    // send all times channels their division's map name
-    channels.get(timesChannelIds.get('Platinum')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.plat_gold_map)}`);
-    channels.get(timesChannelIds.get('Gold')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.plat_gold_map)}`);
-    channels.get(timesChannelIds.get('Silver')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.silver_map)}`);
-    channels.get(timesChannelIds.get('Bronze')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.bronze_map)}`);
-    channels.get(timesChannelIds.get('Steel')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.wood_map)}`);
+    // send all times channels their division's map embed
+    channels.get(timesChannelIds.get('Platinum')).send({ content: `🏁 A ${trny.class} tourney has started! The map is..`, embeds: [await getMapEmbedByName(trny.plat_gold_map)] });
+    channels.get(timesChannelIds.get('Gold')).send({ content: `🏁 A ${trny.class} tourney has started! The map is..`, embeds: [await getMapEmbedByName(trny.plat_gold_map)] });
+    channels.get(timesChannelIds.get('Silver')).send({ content: `🏁 A ${trny.class} tourney has started! The map is..`, embeds: [await getMapEmbedByName(trny.silver_map)] });
+    channels.get(timesChannelIds.get('Bronze')).send({ content: `🏁 A ${trny.class} tourney has started! The map is..`, embeds: [await getMapEmbedByName(trny.bronze_map)] });
+    channels.get(timesChannelIds.get('Steel')).send({ content: `🏁 A ${trny.class} tourney has started! The map is..`, embeds: [await getMapEmbedByName(trny.steel_map)] });
     if (trny.class === 'Soldier') {
-      channels.get(timesChannelIds.get('Wood')).send(`🏁 A ${trny.class} tourney has started! Map: ${inlineCode(trny.wood_map)}`);
+      channels.get(timesChannelIds.get('Wood')).send({ content: `🏁 A ${trny.class} tourney has started! The map is..`, embeds: [await getMapEmbedByName(trny.wood_map)] });
     }
   });
 }
 
-function endTourneyJob(datetime, channels, trny_class) {
+function endTourneyJob(datetime, channels, trny) {
   const date = new Date(datetime); // from sqlite datetime
   const job = schedule.scheduleJob(date, async function () {
+    const signupChannel = await channels.get(signupsChannelId);
+    const roles = await signupChannel.guild.roles;
     // delete signups message
-    const signupMessage = await (await channels.get(signupsChannelId).messages.fetch({ limit: 1, cache: false })).values().next().value;
+    const signupMessages = await signupChannel.messages.fetch({ limit: 1, cache: false });
+    const signupMessage = signupMessages.first();
     signupMessage.delete();
-    // send all times channels an end message. include fastest times in the future?
-    const endMessageContent = '🏁 Tourney has ended! If you have a valid time to submit, please do so manually.';
-    channels.get(timesChannelIds.get('Platinum')).send(endMessageContent);
-    channels.get(timesChannelIds.get('Gold')).send(endMessageContent);
-    channels.get(timesChannelIds.get('Silver')).send(endMessageContent);
-    channels.get(timesChannelIds.get('Bronze')).send(endMessageContent);
-    channels.get(timesChannelIds.get('Steel')).send(endMessageContent);
-    if (trny_class === 'Soldier') {
-      channels.get(timesChannelIds.get('Wood')).send(endMessageContent);
+    // send all times channels an end message and fastest times
+    channels.get(timesChannelIds.get('Platinum')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Platinum', roles)] });
+    channels.get(timesChannelIds.get('Gold')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Gold', roles)] });
+    channels.get(timesChannelIds.get('Silver')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Silver', roles)] });
+    channels.get(timesChannelIds.get('Bronze')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Bronze', roles)] });
+    channels.get(timesChannelIds.get('Steel')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Steel', roles)] });
+    if (trny.class === 'Soldier') {
+      channels.get(timesChannelIds.get('Wood')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Wood', roles)] });
     }
   });
 };

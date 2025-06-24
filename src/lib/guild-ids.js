@@ -1,4 +1,4 @@
-// update these for prod
+// for test
 const divisionRoleIds = new Map([
   ['Platinum Soldier', '1365102656040734761'],
   ['Gold Soldier', '1365102716283650151'],

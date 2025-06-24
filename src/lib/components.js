@@ -96,7 +96,31 @@ Record: ${map.demoman_runs.length > 0 ? formatTime(map.demoman_runs[0].duration,
         inline: true
       });
   return embed;
+}
 
+async function getMapEmbedByName(map_name) {
+  const map = await (await fetch(`https://tempus2.xyz/api/v0/maps/name/${map_name}/fullOverview2`)).json();
+  const author = map.authors.length > 1 ? 'Multiple Authors' : map.authors[0].name;
+  const embed = new EmbedBuilder()
+    .setColor('A69ED7')
+    .setTitle(map_name)
+    .setURL(`https://tempus2.xyz/maps/${map_name}`)
+    .setImage(`https://raw.githubusercontent.com/wfzq/Tempus-Tracker/refs/heads/master/src/data/thumbnails/${map_name}.jpg`)
+    .setDescription(`> By ${author}`)
+    .addFields(
+      {
+        name: 'Soldier',
+        value: `Tier ${map.tier_info.soldier}, Rating ${map.rating_info.soldier}
+Record: ${map.soldier_runs.length > 0 ? formatTime(map.soldier_runs[0].duration, true) : 'No completions.'}`,
+        inline: true
+      },
+      {
+        name: 'Demo',
+        value: `Tier ${map.rating_info.demoman}, Rating ${map.rating_info.demoman}
+Record: ${map.demoman_runs.length > 0 ? formatTime(map.demoman_runs[0].duration, true) : 'No completions.'}`,
+        inline: true
+      });
+  return embed;
 }
 
 function getPlayerEmbed(user, player) {
@@ -137,5 +161,6 @@ module.exports = {
   getMapSelectModal,
   getPlayerEmbed,
   getTourneyTopTimesEmbed,
-  getMapEmbed
+  getMapEmbed,
+  getMapEmbedByName
 }

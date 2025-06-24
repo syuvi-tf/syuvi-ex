@@ -74,7 +74,7 @@ client.once(Events.ClientReady, readyClient => {
       updateSheetsJob();
     }
     // tourney hasn't ended yet
-    endTourneyJob(trny.ends_at, client.channels.cache, trny.class);
+    endTourneyJob(trny.ends_at, client.channels.cache, trny);
     updateSignupsJob(client.channels.cache.get(signupsChannelId));
   }
 });
