@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention, hyperlink, subtext } = require('discord.js');
 const { getPlayer, createPlayer, getActiveTourney, getTourneyPlayer, createTourneyTime, getPlayerBestTourneyTime } = require('../../lib/database.js');
 const { getPlayerEmbed } = require('../../lib/components.js');
+const { formatTime } = require('../../lib/components.js');
+
 // MM:SS.ss (MM: optional)
 function isValidTime(time) {
   const validRegex = /^((\d{0,2}):)?(\d{2}).(\d{2})$/g;
@@ -157,7 +159,7 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
         // check if time is slower than tourney PR
         if (previousTime < timeSeconds) {
           await interaction.editReply(`Couldn't submit this time, as it's slower than your tourney PR.
-${subtext(`tourney PR: ${previousTime}s`)}`);
+${subtext(`tourney PR: ${formatTime(previousTime, true)}`)}`);
         }
         else {
           const time_id = createTourneyTime(trny.id, player.id, timeSeconds, false);

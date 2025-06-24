@@ -1,7 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { getPlayer, createPlayer, getActiveTourney, getRecentTourney } = require('../../lib/database.js');
 const { getTourneyTopTimesEmbed } = require('../../lib/components.js');
-const { divisionRoleIds } = require('../../lib/guild-ids.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
