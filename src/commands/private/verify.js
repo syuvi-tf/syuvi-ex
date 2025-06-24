@@ -1,25 +1,29 @@
-const { SlashCommandBuilder, inlineCode, PermissionFlagsBits } = require('discord.js');
-const { verifyTourneyTimes, getActiveTourney } = require('../../lib/database.js');
+const { SlashCommandBuilder, PermissionFlagsBits, inlineCode, subtext, userMention } = require('discord.js');
+const { verifyTourneyTime, getPlayerByID, getTime } = require('../../lib/database.js');
+const { formatTime } = require('../../lib/components.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('verify')
     .setDescription('verify a player\'s tourney time')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-    .addUserOption(option =>
-      option.setName('player')
-        .setDescription('@mention')
+    .addIntegerOption(option =>
+      option.setName('time_id')
+        .setDescription('from the submitted time\'s message')
+        .setMinValue(1)
+        .setMaxValue(999999)
         .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); // thinking...
-    const member = interaction.options.getMember('player');
-    const trny = getActiveTourney();
-    if (trny) {
-      verifyTourneyTimes(trny.id, member.id);
-      interaction.editReply(`✅ Verified ${inlineCode(member.displayName)}'s tourney times.`);
+    const time_id = interaction.options.getInteger('time_id');
+    const time = getTime(time_id);
+    if (time) {
+      const player = getPlayerByID(time.player_id);
+      verifyTourneyTime(time_id);
+      interaction.editReply({ content: `✅ Verified a ${formatTime(time.run_time, true)} for ${userMention(player.discord_id)}`, allowedMentions: { users: [] } });
     }
     else {
-      interaction.editReply(`❌ Couldn't verify ${inlineCode(member.displayName)}'s tourney times.. is there an ongoing tourney?`);
+      interaction.editReply(`❌ Couldn't find a time to verify.`);
     }
   },
 };

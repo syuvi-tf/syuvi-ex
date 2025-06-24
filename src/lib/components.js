@@ -8,7 +8,7 @@ function getSteamURL(steam_id32) {
   return steam_url;
 }
 
-function formatTopTime(time, verified) {
+function formatTime(time, verified) {
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time) - (minutes * 60);
   const ms = parseInt((time % 1).toFixed(2) * 100);
@@ -71,6 +71,33 @@ function getMapSelectModal(tourneyClass) {
   return modal;
 }
 
+async function getMapEmbed(mapId) {
+  const map = await (await fetch(`https://tempus2.xyz/api/v0/maps/id/${mapId}/fullOverview2`)).json();
+  const map_name = map.map_info.name;
+  const author = map.authors.length > 1 ? 'Multiple Authors' : map.authors[0].name;
+  const embed = new EmbedBuilder()
+    .setColor('A69ED7')
+    .setTitle(map_name)
+    .setURL(`https://tempus2.xyz/maps/${map_name}`)
+    .setImage(`https://raw.githubusercontent.com/wfzq/Tempus-Tracker/refs/heads/master/src/data/thumbnails/${map_name}.jpg`)
+    .setDescription(`> By ${author}`)
+    .addFields(
+      {
+        name: 'Soldier',
+        value: `Tier ${map.tier_info.soldier}, Rating ${map.rating_info.soldier}
+Record: ${map.soldier_runs.length > 0 ? formatTime(map.soldier_runs[0].duration, true) : 'No completions.'}`,
+        inline: true
+      },
+      {
+        name: 'Demo',
+        value: `Tier ${map.rating_info.demoman}, Rating ${map.rating_info.demoman}
+Record: ${map.demoman_runs.length > 0 ? formatTime(map.demoman_runs[0].duration, true) : 'No completions.'}`,
+        inline: true
+      });
+  return embed;
+
+}
+
 function getPlayerEmbed(user, player) {
   const embed = new EmbedBuilder()
     .setColor('A69ED7')
@@ -95,7 +122,7 @@ ${hyperlink('Steam', getSteamURL(player.steam_id))}`
 function getTourneyTopTimesEmbed(trny, division_name, roles) {
   const division_color = roles.cache.get(divisionRoleIds.get(`${division_name} ${trny.class}`)).color;
   const db_toptimes = getTourneyDivisionTopTimes(trny.id, division_name);
-  const toptimes = db_toptimes.map((time) => Object.assign(time, { run_time: formatTopTime(time.run_time, time.verified) }));
+  const toptimes = db_toptimes.map((time) => Object.assign(time, { run_time: formatTime(time.run_time, time.verified) }));
   const embed = new EmbedBuilder()
     .setColor(division_color)
     .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${trny.class}`))} Top 8
@@ -105,7 +132,9 @@ ${getInlineCodeTopTimes(toptimes)}`);
 
 module.exports = {
   confirmRow,
+  formatTime,
   getMapSelectModal,
   getPlayerEmbed,
   getTourneyTopTimesEmbed,
+  getMapEmbed
 }

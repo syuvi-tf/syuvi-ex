@@ -64,6 +64,13 @@ function getPlayer(discord_id) {
   return select.get(discord_id);
 }
 
+// return a player
+function getPlayerByID(player_id) {
+  const select = db.prepare(`SELECT * FROM player
+    WHERE id = ?`);
+  return select.get(player_id);
+}
+
 // update a player's display name
 function updatePlayerDisplayName(discord_id, display_name) {
   const update = db.prepare(`UPDATE player
@@ -229,13 +236,19 @@ function createTourneyTime(tournament_id, player_id, run_time, verified) {
   return -1;
 }
 
-// return a player's tourney times
-function getTourneyTimes(tournament_id, discord_id) {
-  const trny_id = tournament_id ?? getActiveTourney()?.id ?? getRecentTourney()?.id;
+// return a time
+function getTime(time_id) {
+  const select = db.prepare(`SELECT * FROM tournament_time
+    WHERE id = ?`);
+  return select.get(time_id);
+}
+
+// return a player's best tourney time
+function getPlayerBestTourneyTime(tournament_id, player_id) {
   const select = db.prepare(`SELECT * FROM tournament_time
     WHERE tournament_id = ? AND player_id = ?
     ORDER BY run_time`);
-  return select.all(trny_id, discord_id);
+  return select.get(tournament_id, player_id);
 }
 
 // return every player's best tourney time
@@ -255,23 +268,23 @@ function getTourneyDivisionTopTimes(tournament_id, division_name) {
     WHERE tournament_time.tournament_id = ? AND tournament_player.division = ?
     GROUP BY player.id
     LIMIT 8`);
-  return select.all(1, division_name);
+  return select.all(tournament_id, division_name);
 }
 
-// verify a time for current or most recent tourney
-function verifyTourneyTime(discord_id, time_id) {
-  const player = getPlayer(discord_id);
-  const trny = getActiveTourney() ?? getRecentTourney();
+// verify a time
+function verifyTourneyTime(time_id) {
   const update = db.prepare(`UPDATE tournament_time
     SET verified = TRUE
-    WHERE tournament_time.id = ? AND tournament_id = ? AND player_id = ?`);
-  if (trny && player) {
-    update.run(time_id, trny.id, player.id);
-    return true;
-  }
-  // no trny or player
-  return false;
+    WHERE id = ?`);
+  update.run(time_id);
 }
+
+function removeTourneyTime(time_id) {
+  const remove = db.prepare(`DELETE FROM tournament_time
+  WHERE id = ?`);
+  remove.run(time_id);
+}
+
 // close connection
 function closeDB() {
   db.close();
@@ -281,6 +294,7 @@ module.exports = {
   openDB,
   createPlayer,
   getPlayer,
+  getPlayerByID,
   updatePlayerDisplayName,
   updatePlayerDivision,
   updateAllPlayerDivisions,
@@ -294,9 +308,11 @@ module.exports = {
   getTourneyPlayer,
   getTourneyPlayers,
   createTourneyTime,
-  getTourneyTimes,
+  getTime,
   getTourneyDivisionTopTimes,
+  getPlayerBestTourneyTime,
   getBestTourneyTimes,
   verifyTourneyTime,
+  removeTourneyTime,
   closeDB,
 };
