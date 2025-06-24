@@ -1,29 +1,30 @@
 const { SlashCommandBuilder } = require('discord.js');
+const { getMapEmbed } = require('../../lib/components.js');
 
-function getRandomMap(maps, tier, rating) {
+function getRandomMapId(maps, tier, rating) {
   if (!tier && !rating) { // any map
     const randomIndex = Math.floor(Math.random() * maps.length);
-    return maps[randomIndex].name;
+    return maps[randomIndex].id;
   }
   else if (!tier) { // specific rating
     const filteredMaps = maps.filter((map) => map.rating_info[rating.class] === rating.rating);
     if (filteredMaps.length === 0) { return `There are no ${rating.class === '3' ? 'Soldier' : 'Demo'} R${rating.rating} maps..`; }
     const randomIndex = Math.floor(Math.random() * filteredMaps.length);
-    return filteredMaps[randomIndex].name;
+    return filteredMaps[randomIndex].id;
 
   }
   else if (!rating) { // specific tier
     const filteredMaps = maps.filter((map) => map.tier_info[tier.class] === tier.tier);
     if (filteredMaps.length === 0) { return `There are no ${tier.class === '3' ? 'Soldier' : 'Demo'} T${tier.tier} maps..`; }
     const randomIndex = Math.floor(Math.random() * filteredMaps.length);
-    return filteredMaps[randomIndex].name;
+    return filteredMaps[randomIndex].id;
   }
   else { // specific rating and tier
     const filteredMaps = maps.filter((map) => map.rating_info[rating.class] === rating.rating
       && map.tier_info[tier.class] === tier.tier);
     if (filteredMaps.length === 0) { return `There are no ${tier.class === '3' ? 'Soldier' : 'Demo'} T${tier.tier} and ${rating.class === '3' ? 'Soldier' : 'Demo'} R${rating.rating} maps..`; }
     const randomIndex = Math.floor(Math.random() * filteredMaps.length);
-    return filteredMaps[randomIndex].name;
+    return filteredMaps[randomIndex].id;
   }
 }
 
@@ -78,10 +79,10 @@ module.exports = {
     const rating = ratingOption ? { class: ratingOption.includes('Soldier') ? '3' : '4', rating: parseInt(ratingOption.match(/\d+/g)[0]) } : null;
     const maps = await (await fetch(`https://tempus2.xyz/api/v0/maps/detailedList`)).json();
 
-    const randomMap = getRandomMap(maps, tier, rating);
-
-    const response = await interaction.editReply(`${randomMap}`);
-    if (randomMap === 'jump_escape_rc4') { // easter egg
+    const mapId = getRandomMapId(maps, tier, rating);
+    const mapEmbed = await getMapEmbed(mapId);
+    const response = await interaction.editReply({ embeds: [mapEmbed] });
+    if (mapId === '644') { // easter egg
       response.react('🗻');
     }
   },
