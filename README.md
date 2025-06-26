@@ -2,9 +2,9 @@
 
 ## Command List
 > [!NOTE]
-> these are sorted by Discord permission
+> these are sorted by Discord permission\
 > `[option]` is a required slash command option\
-> `(option)` is an optional slash command option\
+> `(option)` is an optional slash command option
 
 <ins>Public Commands</ins>\
 `/link [Tempus ID]` - link Tempus ID, used to verify `/submit`'ed Tempus PR times, and displayed in `/profile`\
