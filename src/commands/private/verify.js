@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits, inlineCode, subtext, userMention } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, subtext, userMention } = require('discord.js');
 const { getTourney, verifyTourneyTime, getPlayerByID, getTime } = require('../../lib/database.js');
 const { getTourneyMap, formatTime } = require('../../lib/shared-functions.js');
 
