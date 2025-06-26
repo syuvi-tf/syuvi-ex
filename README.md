@@ -8,10 +8,10 @@
 
 <ins>Public Commands</ins>\
 `/link [Tempus ID]` - link Tempus ID, used to verify `/submit`'ed Tempus PR times, and displayed in `/profile`\
-`/profile (@user)` - view a player's profile (display name, divisions, tempus & steam profile)\
-`/randommap (tier) (rating)` - get a random map from the current Tempus map list.\
 `/submit [time]` - submit a verified (Tempus PR) or unverified (slower than Tempus PR) time for the ongoing tournament's map, according to player division.\
 `/toptimes (division)` - view Top 8 times for the ongoing (or previous) tournament.
+`/profile (@user)` - view a player's profile (display name, divisions, tempus & steam profile)\
+`/randommap (tier) (rating)` - get a random map from the current Tempus map list.\
 
 <ins>Administrator Commands</ins>\
 `/createtourney [class] [month] [day]` - create and open signups for a new tournament at midnight UTC\
@@ -19,9 +19,9 @@
 `/echo [#channel]` - echo last message sent (in this channel) to another channel
 
 <ins>ManageRoles Commands</ins>\
-`/forcesubmit [@user] [time]` - force submit a time for a player\
 `/refreshdivisions` - update division(s) for every player with at least one division discord role.\
 `/setdivision [@user] [class] [division]` - update a player's division
+`/forcesubmit [@user] [time]` - force submit a time for a player\
 
 <ins>ManageMessages Commands</ins>\
 `/setdisplayname [@user]` - update a player's display name (sheet alias) using their server nickname.\
