@@ -8,7 +8,7 @@ module.exports = {
     .setDescription('view a player\'s profile')
     .addUserOption(option =>
       option.setName('player')
-        .setDescription('@mention')),
+        .setDescription('@user')),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const user = interaction.options.getUser('player') ?? interaction.user;

@@ -5,11 +5,11 @@ const { divisionRoleIds } = require('../../lib/guild-ids.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setdivision')
-    .setDescription('set a player\'s division')
+    .setDescription('update a player\'s division')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addUserOption(option =>
       option.setName('player')
-        .setDescription('@mention')
+        .setDescription('@user')
         .setRequired(true))
     .addStringOption(option =>
       option.setName('class')

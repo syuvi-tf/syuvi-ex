@@ -4,11 +4,11 @@ const { updatePlayerDisplayName, getPlayer, createPlayer } = require('../../lib/
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setdisplayname')
-    .setDescription('sets a player\'s display name from their discord nickname')
+    .setDescription('update a player\'s display name from their discord nickname')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addUserOption(option =>
       option.setName('player')
-        .setDescription('@mention')
+        .setDescription('@user')
         .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...

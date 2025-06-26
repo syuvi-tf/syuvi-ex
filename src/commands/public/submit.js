@@ -70,7 +70,7 @@ module.exports = {
     .setDescription('submit a time for the current tourney')
     .addStringOption(option =>
       option.setName('time')
-        .setDescription('format: MM:SS.SS')
+        .setDescription('format: MM:SS.ss')
         .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...

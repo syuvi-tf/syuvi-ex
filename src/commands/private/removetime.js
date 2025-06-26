@@ -5,7 +5,7 @@ const { formatTime } = require('../../lib/shared-functions.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('removetime')
-    .setDescription('delete a player\'s time')
+    .setDescription('remove a player\'s time')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addIntegerOption(option =>
       option.setName('time_id')

@@ -16,15 +16,15 @@ ${subtext(`force submitted: this time skipped PR checks.`)}`);
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('forcesubmit')
-    .setDescription('manually submit a time for a player')
+    .setDescription('force submit a time for a player')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addUserOption(option =>
       option.setName('player')
-        .setDescription('@mention')
+        .setDescription('@user')
         .setRequired(true))
     .addStringOption(option =>
       option.setName('time')
-        .setDescription('format: MM:SS.SS')
+        .setDescription('format: MM:SS.ss')
         .setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...

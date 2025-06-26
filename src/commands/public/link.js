@@ -19,7 +19,7 @@ function getEmbed(tempusInfo) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('link')
-    .setDescription('links your Tempus ID to verify PR times')
+    .setDescription('link your Tempus ID to verify PR times')
     .addIntegerOption(option =>
       option.setName('tempus_id')
         .setDescription('from your tempus2.xyz url')

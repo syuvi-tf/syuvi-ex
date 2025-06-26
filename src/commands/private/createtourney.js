@@ -87,7 +87,7 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addStringOption(option =>
       option.setName('class')
-        .setDescription('tourney class')
+        .setDescription('tournament class')
         .setRequired(true)
         .addChoices(
           { name: 'Soldier', value: 'Soldier' },
@@ -95,7 +95,7 @@ module.exports = {
     )
     .addStringOption(option =>
       option.setName('month')
-        .setDescription('tourney start month')
+        .setDescription('tournament start month')
         .setRequired(true)
         .addChoices(
           { name: 'January', value: '01' },

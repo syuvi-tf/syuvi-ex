@@ -3,11 +3,11 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('echo')
-    .setDescription('echo the last message sent to another channel')
+    .setDescription('echo last message sent to another channel')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addChannelOption(option =>
       option.setName('channel')
-        .setDescription('#channel to relay the last message to')
+        .setDescription('#channel to echo to')
         .setRequired(true)),
   async execute(interaction) {
 
