@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, userMention } = require('discord.js');
 const { getPlayerByID, removeTourneyTime, getTime } = require('../../lib/database.js');
-const { formatTime } = require('../../lib/components.js');
+const { formatTime } = require('../../lib/shared-functions.js');
 
 module.exports = {
   data: new SlashCommandBuilder()

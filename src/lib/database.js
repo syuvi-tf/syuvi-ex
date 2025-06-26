@@ -166,6 +166,13 @@ function createTourney(trny) {
   return false;
 }
 
+// get tourney by id
+function getTourney(tournament_id) {
+  const select = db.prepare(`SELECT * FROM tournament
+    WHERE tournament_id = ?`);
+  return select.get(tournament_id);
+}
+
 // return nearest tourney in the future
 function getActiveTourney() {
   const select = db.prepare(`SELECT * FROM tournament
@@ -299,6 +306,7 @@ module.exports = {
   updatePlayerDivision,
   updateAllPlayerDivisions,
   updatePlayerIds,
+  getTourney,
   createTourney,
   getActiveTourney,
   getRecentTourney,

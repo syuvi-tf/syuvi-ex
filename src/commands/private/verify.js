@@ -1,6 +1,17 @@
 const { SlashCommandBuilder, PermissionFlagsBits, inlineCode, subtext, userMention } = require('discord.js');
-const { verifyTourneyTime, getPlayerByID, getTime } = require('../../lib/database.js');
-const { formatTime } = require('../../lib/components.js');
+const { getTourney, verifyTourneyTime, getPlayerByID, getTime } = require('../../lib/database.js');
+const { getTourneyMap, formatTime } = require('../../lib/shared-functions.js');
+
+function getForceVerifiedEmbed(player_id, time, time_id, trnyclass, map) {
+  const embed = new EmbedBuilder()
+    .setColor('A69ED7')
+    .setDescription(`TF2PJ | (${trnyclass}) Verified a ${time} for ${userMention(player_id)}
+on ${map}
+${subtext(`time ID: ${time_id}`)}
+
+${subtext(`verified: this time was slower than Tempus PR`)}`);
+  return embed;
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -19,8 +30,10 @@ module.exports = {
     const time = getTime(time_id);
     if (time) {
       const player = getPlayerByID(time.player_id);
+      const trny = getTourney(time.tournament_id);
+      const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
       verifyTourneyTime(time_id);
-      interaction.editReply({ content: `✅ Verified a ${formatTime(time.run_time, true)} for ${userMention(player.discord_id)}`, allowedMentions: { users: [] } });
+      interaction.editReply({ embeds: [getForceVerifiedEmbed(player.id, formatTime(time.run_time), time_id, trny.class, getTourneyMap(trny, division))] });
     }
     else {
       interaction.editReply(`❌ Couldn't find a time to verify.`);

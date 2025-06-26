@@ -70,7 +70,7 @@ async function updateSignupsJob(channel) {
     const trny = getActiveTourney();
     // trny has ended or no #signup message
     if (!trny || !signupMessage || !embed) {
-      console.log("updateSignupsJob() error");
+      console.log("updateSignupsJob() finished");
       job.cancel(false);
     }
     else { // update #signup embed
@@ -97,9 +97,12 @@ async function updateSheetsJob() {
   const job = schedule.scheduleJob('*/1 * * * *', async function () {
     const trny = getActiveTourney();
     if (!trny) {
+      console.log("updateSignupsJob() finished");
       job.cancel(false);
     }
-    updateSheetTimes(trny);
+    else {
+      updateSheetTimes(trny);
+    }
   });
 }
 

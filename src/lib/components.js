@@ -1,29 +1,7 @@
 const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } = require('discord.js');
 const { divisionRoleIds } = require('./guild-ids.js');
 const { getTourneyDivisionTopTimes } = require('./database.js');
-
-function getSteamURL(steam_id32) {
-  const Y = parseInt(steam_id32.charAt(steam_id32.indexOf(':') + 1));
-  const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + Y;
-  const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
-  return steam_url;
-}
-
-function formatTime(time, verified) {
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time) - (minutes * 60);
-  const ms = parseInt((time % 1).toFixed(2) * 100);
-  return `${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}.${ms < 10 ? `0${ms}` : ms}${verified ? '' : ' ❔'}`;
-}
-
-function getInlineCodeTopTimes(toptimes) {
-  let inlines = ``;
-  for (let i = 0; i < toptimes.length; i++) {
-    inlines += `${inlineCode(`${i + 1} | ${toptimes[i].run_time}`)} ${userMention(toptimes[i].discord_id)}
-`;
-  }
-  return inlines;
-}
+const { formatTime } = require('./shared-functions.js');
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -34,6 +12,26 @@ const confirmRow = new ActionRowBuilder().addComponents(
     .setCustomId('cancel')
     .setLabel('cancel')
     .setStyle(ButtonStyle.Secondary));
+
+function getInlineCodeTopTimes(toptimes) {
+  let inlines = ``;
+  for (let i = 0; i < toptimes.length; i++) {
+    inlines += `${inlineCode(`${i + 1} | ${toptimes[i].run_time}`)} ${userMention(toptimes[i].discord_id)}
+`;
+  }
+  return inlines;
+}
+
+function getTourneyTopTimesEmbed(trny, division_name, roles) {
+  const division_color = roles.cache.get(divisionRoleIds.get(`${division_name} ${trny.class}`)).color;
+  const db_toptimes = getTourneyDivisionTopTimes(trny.id, division_name);
+  const toptimes = db_toptimes.map((time) => Object.assign(time, { run_time: formatTime(time.run_time, time.verified) }));
+  const embed = new EmbedBuilder()
+    .setColor(division_color)
+    .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${trny.class}`))} Top 8
+${getInlineCodeTopTimes(toptimes)}`);
+  return embed;
+}
 
 function getMapSelectModal(tourneyClass) {
   const modal = new ModalBuilder()
@@ -98,6 +96,7 @@ Record: ${map.demoman_runs.length > 0 ? formatTime(map.demoman_runs[0].duration,
   return embed;
 }
 
+// re-uses getMapEmbed(), but results in one less Tempus API call (good courtesy?)
 async function getMapEmbedByName(map_name) {
   const map = await (await fetch(`https://tempus2.xyz/api/v0/maps/name/${map_name}/fullOverview2`)).json();
   const author = map.authors.length > 1 ? 'Multiple Authors' : map.authors[0].name;
@@ -144,23 +143,11 @@ ${hyperlink('Steam', getSteamURL(player.steam_id))}`
   return embed;
 }
 
-function getTourneyTopTimesEmbed(trny, division_name, roles) {
-  const division_color = roles.cache.get(divisionRoleIds.get(`${division_name} ${trny.class}`)).color;
-  const db_toptimes = getTourneyDivisionTopTimes(trny.id, division_name);
-  const toptimes = db_toptimes.map((time) => Object.assign(time, { run_time: formatTime(time.run_time, time.verified) }));
-  const embed = new EmbedBuilder()
-    .setColor(division_color)
-    .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${trny.class}`))} Top 8
-${getInlineCodeTopTimes(toptimes)}`);
-  return embed;
-}
-
 module.exports = {
   confirmRow,
-  formatTime,
+  getTourneyTopTimesEmbed,
   getMapSelectModal,
   getPlayerEmbed,
-  getTourneyTopTimesEmbed,
   getMapEmbed,
   getMapEmbedByName
 }

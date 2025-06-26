@@ -1,19 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention, hyperlink, subtext } = require('discord.js');
 const { getPlayer, createPlayer, getActiveTourney, getTourneyPlayer, createTourneyTime, getPlayerBestTourneyTime } = require('../../lib/database.js');
 const { getPlayerEmbed } = require('../../lib/components.js');
-const { formatTime } = require('../../lib/components.js');
-
-// MM:SS.ss (MM: optional)
-function isValidTime(time) {
-  const validRegex = /^((\d{0,2}):)?(\d{2}).(\d{2})$/g;
-  return validRegex.test(time);
-}
-
-// return String[] of {MM,SS,ss} or {SS,ss}
-function getTimeParts(time) {
-  const partRegex = /\d{1,2}/g;
-  return time.match(partRegex);
-}
+const { getTourneyMap, formatTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
 
 async function noTourneyOrPlayer(interaction, trny) {
   if (!trny) {
@@ -23,7 +11,8 @@ async function noTourneyOrPlayer(interaction, trny) {
   }
   else {
     await interaction.editReply({
-      content: `Couldn't submit your time, as you're not signed up.`,
+      content: `Couldn't submit your time, as you're not signed up.
+${subtext(`or a strange unhandled error`)}`,
     });
   }
 }
@@ -48,25 +37,7 @@ async function getTempusTime(player, map, trnyclass) {
   return response;
 }
 
-function getTourneyMap(trny, division) {
-  switch (division) {
-    case 'Platinum':
-    case 'Gold':
-      return trny.plat_gold_map;
-    case 'Silver':
-      return trny.silver_map;
-    case 'Bronze':
-      return trny.bronze_map;
-    case 'Steel':
-      return trny.steel_map;
-    case 'Wood':
-      return trny.wood_map;
-    default:
-      console.log(`/submit error: couldn't find a tourney map..`);
-  }
-}
-
-function getSubmitEmbed(user, time, time_id, tempusPRId, trnyclass, map) {
+function getVerifiedEmbed(user, time, time_id, tempusPRId, trnyclass, map) {
   const embed = new EmbedBuilder()
     .setColor('A69ED7')
     .setThumbnail(user.avatarURL())
@@ -110,7 +81,7 @@ module.exports = {
     const now = new Date(new Date().toUTCString());
 
     // no in-progress tourney, or no signed_up tourney player 
-    if (!trny || now < new Date(trny.starts_at) || new Date(trny.ends_at) > now || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id, player.id).signed_up === 0) {
+    if (!trny || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id, player.id).signed_up === 0) {
       noTourneyOrPlayer(interaction, trny);
       return;
     }
@@ -132,7 +103,7 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
     else {
       const map = getTourneyMap(trny, division);
       const response = await getTempusTime(player, map, trny_class);
-      const timeParts = getTimeParts(time);
+      const timeParts = getTimeSectionsArray(time);
       const timeSeconds = timeParts.length === 2 ? parseFloat(time) //SS.ss
         : parseFloat(`${(parseInt(timeParts[0]) * 60) + parseInt(timeParts[1])}.${timeParts[2]}`);
       const tempusTime = {
@@ -150,7 +121,7 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       // verified
       else if (tempusTime.date > new Date(trny.starts_at) && Math.abs(timeSeconds - tempusTime.time) <= 0.02) {
         const time_id = createTourneyTime(trny.id, player.id, tempusTime.time, true);
-        const embed = getSubmitEmbed(interaction.user, time, time_id, tempusTime.id, trny.class, map);
+        const embed = getVerifiedEmbed(interaction.user, time, time_id, tempusTime.id, trny.class, map);
         await interaction.editReply({ embeds: [embed] });
       }
       // unverified

@@ -1,33 +1,16 @@
 const { SlashCommandBuilder, PermissionFlagsBits, userMention, subtext } = require('discord.js');
 const { getPlayer, createPlayer, getActiveTourney, getRecentTourney, getTourneyPlayer, createTourneyTime } = require('../../lib/database.js');
+const { getTourneyMap, isValidTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
 
-// return String[] of {MM,SS,ss} or {SS,ss}
-function getTimeParts(time) {
-  const partRegex = /\d{1,2}/g;
-  return time.match(partRegex);
-}
+function getForceSubmitEmbed(player_id, time, time_id, trnyclass, map) {
+  const embed = new EmbedBuilder()
+    .setColor('A69ED7')
+    .setDescription(`TF2PJ | (${trnyclass}) Force submitted a ${time} for ${userMention(player_id)}
+on ${map}
+${subtext(`time ID: ${time_id}`)}
 
-function isValidTime(time) {
-  const validRegex = /^((\d{0,2}):)?(\d{2}).(\d{2})$/g;
-  return validRegex.test(time);
-}
-
-function getTourneyMap(trny, division) {
-  switch (division) {
-    case 'Platinum':
-    case 'Gold':
-      return trny.plat_gold_map;
-    case 'Silver':
-      return trny.silver_map;
-    case 'Bronze':
-      return trny.bronze_map;
-    case 'Steel':
-      return trny.steel_map;
-    case 'Wood':
-      return trny.wood_map;
-    default:
-      console.log(`/forcesubmit error: couldn't find a tourney map..`);
-  }
+${subtext(`force submitted: this time skipped PR checks.`)}`);
+  return embed;
 }
 
 module.exports = {
@@ -49,8 +32,7 @@ module.exports = {
     const time = interaction.options.getString('time');
     const player = getPlayer(user.id) ?? createPlayer(user.id);
     const trny = getActiveTourney() ?? getRecentTourney();
-    const trny_class = trny.class === 'Soldier' ? 3 : 4;
-    const division = trny_class === 3 ? player.soldier_division : player.demo_division;
+    const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
 
     if (!isValidTime(time)) {
       await interaction.editReply({
@@ -63,15 +45,13 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
         interaction.editReply(`❌ Couldn't manually submit this time. Couldn't find an ongoing / recent tourney, or this player is missing a division, or this player wasn't signed up.`);
       }
       else {
-        const timeParts = getTimeParts(time);
-        const timeSeconds = timeParts.length === 2 ? parseFloat(time) //SS.ss
-          : parseFloat(`${(parseInt(timeParts[0]) * 60) + parseInt(timeParts[1])}.${timeParts[2]}`);
+        const timeSections = getTimeSectionsArray(time);
+        const timeSeconds = timeSections.length === 2 ? parseFloat(time) //SS.ss
+          : parseFloat(`${(parseInt(timeSections[0]) * 60) + parseInt(timeSections[1])}.${timeSections[2]}`);
         const time_id = createTourneyTime(trny.id, player.id, timeSeconds, true);
         interaction.editReply(
           {
-            content: `✅ Force submitted a ${time} for ${userMention(user.id)} on ${getTourneyMap(trny, division)}
-${subtext(`tourney ID: ${trny.id}`)}
-${subtext(`time ID: ${time_id}`)}`, allowedMentions: { users: [] }
+            embeds: [getForceSubmitEmbed(player.id, timeSeconds, time_id, trny.class, getTourneyMap(trny, division))]
           }
         );
       }
