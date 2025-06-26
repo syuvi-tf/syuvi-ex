@@ -78,9 +78,9 @@ async function createTourneySheet(trny) {
   const sheet = await getSheetByName(monthAndYear);
   await sheet.loadCells('B3:M3');
   await sheet.loadCells('B1:M1');
-  await sheet.loadCells('B58:B58');
+  await sheet.loadCells('A57:B57');
   const titleCell = sheet.getCellByA1('B1');
-  const trny_idCell = sheet.getCellByA1('B58');
+  const trny_idCell = sheet.getCellByA1('A57');
   titleCell.value = `${trny.class} Tournament Standings (${trny_date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})`;
   trny_idCell.value = `Tourney ID: ${trny.id}`;
   const mapCells = {
