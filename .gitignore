@@ -131,3 +131,4 @@ dist
 *.db
 /src_old
 /src/commands/test
+/src/test
