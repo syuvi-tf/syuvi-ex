@@ -79,13 +79,14 @@ module.exports = {
     const rating = ratingOption ? { class: ratingOption.includes('Soldier') ? '3' : '4', rating: parseInt(ratingOption.match(/\d+/g)[0]) } : null;
     const maps = await (await fetch(`https://tempus2.xyz/api/v0/maps/detailedList`)).json();
 
-    const mapId = getRandomMapId(maps, tier, rating);
-    if (typeof mapId !== "number") // there are no maps for this criteria
-      interaction.editReply(mapId);
+    const mapIdOrMissing = getRandomMapId(maps, tier, rating);
+    console.log(mapIdOrMissing);
+    if (typeof mapIdOrMissing === "string") // there are no maps for this criteria
+      interaction.editReply(mapIdOrMissing);
     else {
-      const mapEmbed = await getMapEmbed(mapId);
+      const mapEmbed = await getMapEmbed(mapIdOrMissing);
       const response = await interaction.editReply({ embeds: [mapEmbed] });
-      if (mapId === '644') { // easter egg
+      if (mapIdOrMissing === '644') { // easter egg
         response.react('🗻');
       }
     }
