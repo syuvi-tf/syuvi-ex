@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const express = require('express');
 const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } = require('discord.js');
 const dotenv = require('dotenv');
 const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
@@ -7,6 +8,10 @@ const { signupsChannelId } = require('./lib/guild-ids.js');
 const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
 const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = require('./lib/schedules.js');
 dotenv.config();
+
+const expressApp = express();
+expressApp.get('/', (_, res) => res.send('{"status":"OK"}'));
+expressApp.listen(3000, () => console.log("Status API listening on port 3000"));
 
 function getCommands(client) {
   const foldersPath = path.join(__dirname, 'commands');
