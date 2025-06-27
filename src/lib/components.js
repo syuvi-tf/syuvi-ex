@@ -1,7 +1,7 @@
 const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } = require('discord.js');
 const { divisionRoleIds } = require('./guild-ids.js');
 const { getTourneyDivisionTopTimes } = require('./database.js');
-const { formatTime } = require('./shared-functions.js');
+const { formatTime, formatSteamURL } = require('./shared-functions.js');
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -136,7 +136,7 @@ ${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + 
       {
         name: 'Profiles', value: `${player.tempus_id
           ? `${hyperlink('Tempus', `https://tempus2.xyz/players/${player.tempus_id}`)}
-${hyperlink('Steam', getSteamURL(player.steam_id))}`
+${hyperlink('Steam', formatSteamURL(player.steam_id))}`
           : `${inlineCode('No Linked Tempus ID')}`}`
       }
     );
