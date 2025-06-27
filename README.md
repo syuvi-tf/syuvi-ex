@@ -25,3 +25,45 @@
 `/setdivision [@user] [class] [division]` - update a player's division\
 `/verify [time_id]` - verify a previously unverified tournament time\
 `/forcesubmit [@user] [time]` - force submit a time for a player
+
+## Development
+
+### Getting Started
+
+Install Prerequisites:
+
+- [flyctl](https://fly.io/docs/flyctl/)
+- nodejs v24
+- Docker (optional, only needed for local container testing)
+
+Install local dependencies:
+
+```sh
+npm i
+```
+
+Setup test envvars in `.env`:
+
+```sh
+DISCORD_TOKEN="..."
+CLIENT_ID="the bot's UID"
+GUILD_ID="ID of the guild this instance of the bot is targetting"
+SHEETS_CLIENT_EMAIL="GCP/Google Services client email"
+SHEETS_PRIVATE_KEY="private key for GCP/Google Services"
+SHEETS_SPREADSHEET_ID="ID of the spreadsheet to render tournament details to"
+```
+
+Run the bot:
+
+```
+node .
+```
+
+### Deploying
+
+If your code change DOES NOT involve a change to the sql schema then:
+
+1. make your changes!
+1. test your changes locally!
+1. commit your changes!
+1. `fly deploy` & monitor deployment!
