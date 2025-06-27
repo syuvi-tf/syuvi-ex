@@ -1,6 +1,7 @@
 ![syuvi](https://github.com/user-attachments/assets/03daef07-fc0b-41db-bb3a-f052a7640241)
 
 ## Command List
+
 > [!NOTE]
 > these are sorted by Discord permission\
 > `[option]` is a required slash command option\
@@ -15,14 +16,12 @@
 
 <ins>Administrator Commands</ins>\
 `/createtourney [class] [month] [day]` - create and open signups for a new tournament at midnight UTC\
+`/refreshdivisions` - update division(s) for every player with at least one division discord role.\
 `/removetime [time_id]` - remove a player's time\
 `/echo [#channel]` - echo last message sent (in this channel) to another channel
 
-<ins>ManageRoles Commands</ins>\
-`/refreshdivisions` - update division(s) for every player with at least one division discord role.\
-`/setdivision [@user] [class] [division]` - update a player's division\
-`/forcesubmit [@user] [time]` - force submit a time for a player
-
 <ins>ManageMessages Commands</ins>\
 `/setdisplayname [@user]` - update a player's display name (sheet alias) using their server nickname.\
-`/verify [time_id]` - verify a previously unverified tournament time.
+`/setdivision [@user] [class] [division]` - update a player's division\
+`/verify [time_id]` - verify a previously unverified tournament time.\
+`/forcesubmit [@user] [time]` - force submit a time for a player

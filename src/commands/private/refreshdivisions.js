@@ -6,7 +6,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('refreshdivisions')
     .setDescription('refresh divisions for every player')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
     const response = await interaction.reply({
       content: `This command updates the divisions of every player according to their discord roles. Are you sure?`,

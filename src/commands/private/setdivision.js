@@ -6,7 +6,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('setdivision')
     .setDescription('update a player\'s division')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addUserOption(option =>
       option.setName('player')
         .setDescription('@user')

@@ -17,7 +17,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('forcesubmit')
     .setDescription('force submit a time for a player')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addUserOption(option =>
       option.setName('player')
         .setDescription('@user')
