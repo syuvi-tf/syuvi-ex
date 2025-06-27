@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention, hyperlink, subtext } = require('discord.js');
-const { getPlayer, createPlayer, getActiveTourney, getTourneyPlayer, createTourneyTime, getPlayerBestTourneyTime } = require('../../lib/database.js');
+const { getPlayer, createPlayer, getOngoingTourney, getActiveTourney, getTourneyPlayer, createTourneyTime, getPlayerBestTourneyTime } = require('../../lib/database.js');
 const { getPlayerEmbed } = require('../../lib/components.js');
 const { getTourneyMap, formatTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
 
@@ -77,8 +77,8 @@ module.exports = {
     const time = interaction.options.getString('time');
     const member = interaction.member;
     const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
-    const trny = getActiveTourney();
-    const now = new Date(new Date().toUTCString());
+    const trny = getOngoingTourney(); // getActiveTourney();
+    // const now = new Date(new Date().toUTCString());
 
     // no in-progress tourney, or no signed_up tourney player 
     if (!trny || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id, player.id).signed_up === 0) {

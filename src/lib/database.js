@@ -180,6 +180,13 @@ function getActiveTourney() {
   return select.get();
 }
 
+function getOngoingTourney() {
+  const select = db.prepare(`SELECT * FROM tournament
+    WHERE ends_at > strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+    AND starts_at < strftime('%Y-%m-%dT%H:%M:%SZ', 'now')`);
+  return select.get();
+}
+
 // return most recent tourney
 function getRecentTourney() {
   const select = db.prepare(`SELECT * FROM tournament
@@ -308,6 +315,7 @@ module.exports = {
   updatePlayerIds,
   getTourney,
   createTourney,
+  getOngoingTourney,
   getActiveTourney,
   getRecentTourney,
   getAllTourneys,
