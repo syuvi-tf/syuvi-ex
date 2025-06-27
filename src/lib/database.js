@@ -1,7 +1,9 @@
 const Database = require('better-sqlite3');
-const db = new Database('jump.db'
+const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
+const db = new Database(dbPath
   //  , { verbose: console.log }
 );
+
 // const { createStartJob, createEndJob } = require('./schedules.js');
 
 // open connection
