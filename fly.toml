@@ -1,0 +1,19 @@
+# fly.toml app configuration file generated for syuvi on 2025-06-27T13:23:59-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'syuvi'
+primary_region = 'lax'
+
+[build]
+
+[mounts]
+  source = "litefs"
+  destination = "/var/lib/litefs"
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
