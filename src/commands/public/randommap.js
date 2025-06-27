@@ -80,10 +80,14 @@ module.exports = {
     const maps = await (await fetch(`https://tempus2.xyz/api/v0/maps/detailedList`)).json();
 
     const mapId = getRandomMapId(maps, tier, rating);
-    const mapEmbed = await getMapEmbed(mapId);
-    const response = await interaction.editReply({ embeds: [mapEmbed] });
-    if (mapId === '644') { // easter egg
-      response.react('🗻');
+    if (typeof mapId !== "number") // there are no maps for this criteria
+      interaction.editReply(mapId);
+    else {
+      const mapEmbed = await getMapEmbed(mapId);
+      const response = await interaction.editReply({ embeds: [mapEmbed] });
+      if (mapId === '644') { // easter egg
+        response.react('🗻');
+      }
     }
   },
 };
