@@ -12,7 +12,7 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
     const user = interaction.options.getUser('player') ?? interaction.user;
-    const player = getPlayer(user.id) ?? createPlayer(user.id);
+    const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
 
     interaction.editReply({ embeds: [getPlayerEmbed(user, player)] });
   },

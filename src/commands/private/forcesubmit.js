@@ -30,7 +30,7 @@ module.exports = {
     await interaction.deferReply(); //thinking...
     const user = interaction.options.getUser('player');
     const time = interaction.options.getString('time');
-    const player = getPlayer(user.id) ?? createPlayer(user.id);
+    const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
     const trny = getActiveTourney() ?? getRecentTourney();
     const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
 

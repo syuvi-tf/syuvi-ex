@@ -27,7 +27,7 @@ module.exports = {
     else {
       if (!division_name) {
         // no division name, use player's div if they have one
-        const player = getPlayer(member.id) ?? createPlayer(member.id);
+        const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
         const player_division_name = (trny.class === 'Soldier' ? player.soldier_division : player.demo_division);
         if (player_division_name) {
           // embed leaderboard for player's division
