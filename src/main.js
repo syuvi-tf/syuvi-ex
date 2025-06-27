@@ -10,7 +10,10 @@ const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = re
 dotenv.config();
 
 const expressApp = express();
-expressApp.get('/', (_, res) => res.send('{"status":"OK"}'));
+expressApp.get('/', (_, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send('{"status":"OK"}');
+});
 expressApp.listen(3000, () => console.log("Status API listening on port 3000"));
 
 function getCommands(client) {
