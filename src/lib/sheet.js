@@ -6,7 +6,7 @@ const { getBestTourneyTimes } = require('./database.js');
 dotenv.config();
 const jwt = new JWT({
   email: process.env.SHEETS_CLIENT_EMAIL,
-  key: process.env.SHEETS_PRIVATE_KEY,
+  key: process.env.SHEETS_PRIVATE_KEY.split(String.raw`\n`).join('\n'),
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 const doc = new GoogleSpreadsheet(process.env.SHEETS_SPREADSHEET_ID, jwt);
@@ -68,6 +68,7 @@ async function updateRows(rows, times) {
 }
 
 async function createTourneySheet(trny) {
+  console.log('trying to create a new tourney sheet..');
   const templateSheet = await getTemplate(trny.class);
   const trny_date = new Date(trny.starts_at);
   const monthAndYear = trny_date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
@@ -76,6 +77,7 @@ async function createTourneySheet(trny) {
 
   // populate month/year in header, maps per division
   const sheet = await getSheetByName(monthAndYear);
+  await sheet.updateProperties({ hidden: false });
   await sheet.loadCells('B3:M3');
   await sheet.loadCells('B1:M1');
   await sheet.loadCells('A57:B57');

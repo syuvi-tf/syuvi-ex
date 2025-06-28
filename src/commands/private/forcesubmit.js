@@ -33,7 +33,6 @@ module.exports = {
     const time = interaction.options.getString('time');
     const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
     const trny = getOngoingTourney() ?? getRecentTourney();
-    const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
 
     if (!isValidTime(time)) {
       await interaction.editReply({
@@ -42,20 +41,26 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       });
     }
     else {
-      if (!trny || !division || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id, player.id).signed_up === 0) {
-        interaction.editReply(`❌ Couldn't manually submit this time. Couldn't find an ongoing / recent tourney, or this player is missing a division, or this player wasn't signed up.`);
+      if (!trny) {
+        interaction.editReply(`❌ Couldn't manually submit this time, as there's no ongoing or recent tourney.`);
       }
       else {
-        const timeSections = getTimeSectionsArray(time);
-        const timeSeconds = timeSections.length === 2 ? parseFloat(time) //SS.ss
-          : parseFloat(`${(parseInt(timeSections[0]) * 60) + parseInt(timeSections[1])}.${timeSections[2]}`);
-        const time_id = createTourneyTime(trny.id, player.id, timeSeconds, true);
-        interaction.editReply(
-          {
-            embeds: [getForceSubmitEmbed(player.id, timeSeconds, time_id, trny.class, getTourneyMap(trny, division))]
-          }
-        );
-        updateSheetTimes(trny);
+        const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
+        if (!division || !getTourneyPlayer(trny.id, player.id) || getTourneyPlayer(trny.id, player.id).signed_up === 0) {
+          interaction.editReply(`❌ Couldn't manually submit this time, as this player is missing a division or wasn't signed up.`);
+        }
+        else {
+          const timeSections = getTimeSectionsArray(time);
+          const timeSeconds = timeSections.length === 2 ? parseFloat(time) //SS.ss
+            : parseFloat(`${(parseInt(timeSections[0]) * 60) + parseInt(timeSections[1])}.${timeSections[2]}`);
+          const time_id = createTourneyTime(trny.id, player.id, timeSeconds, true);
+          interaction.editReply(
+            {
+              embeds: [getForceSubmitEmbed(player.discord_id, time, time_id, trny.class, getTourneyMap(trny, division))]
+            }
+          );
+          updateSheetTimes(trny);
+        }
       }
     }
   },
