@@ -168,7 +168,7 @@ function createTourney(trny) {
 // get tourney by id
 function getTourney(tournament_id) {
   const select = db.prepare(`SELECT * FROM tournament
-    WHERE tournament_id = ?`);
+    WHERE id = ?`);
   return select.get(tournament_id);
 }
 
