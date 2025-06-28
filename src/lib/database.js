@@ -122,9 +122,9 @@ function updateAllPlayerDivisions(members) {
 
   const partialPlayers = new Set();
   members.forEach((member) => {
-    const soldierRole = member.roles.cache.find((role) => role.name.includes('Soldier'));
+    const soldierRole = member.roles.cache.find((role) => role.name.endsWith(' Soldier'));
     const soldierDivision = !soldierRole ? null : soldierRole.name.substring(0, soldierRole.name.indexOf(' '));
-    const demoRole = member.roles.cache.find((role) => role.name.includes('Demo'));
+    const demoRole = member.roles.cache.find((role) => role.name.endsWith(' Demo'));
     const demoDivision = !demoRole ? null : demoRole.name.substring(0, demoRole.name.indexOf(' '));
     // if a member has a division role, try inserting them into the database
     if (demoDivision || soldierDivision) {
