@@ -128,7 +128,7 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       else if (timeSeconds > tempusTime.time) {
         const previousTime = getPlayerBestTourneyTime(trny.id, player.id);
         // check if time is slower than tourney PR
-        if (previousTime.run_time < timeSeconds) {
+        if (previousTime && previousTime.run_time < timeSeconds) {
           await interaction.editReply(`Couldn't submit this time, as it's slower than your tourney PR.
 ${subtext(`tourney PR: ${formatTime(previousTime.run_time, true)}`)}`);
         }
