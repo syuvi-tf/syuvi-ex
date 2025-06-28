@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
 const { signupsChannelId } = require('./lib/guild-ids.js');
 const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
+const { memberJoin } = require('./events/member-join.js');
 const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = require('./lib/schedules.js');
 dotenv.config();
 
@@ -59,7 +60,7 @@ async function runCommand(interaction) {
 // create a new client instance
 const client = new Client(
   {
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
     partials: [Partials.Message, Partials.Reaction]
   });
 
@@ -103,6 +104,11 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
     signupsReactionRemove(reaction.message, user);
   }
+});
+
+// give user division roles back from db, if they had any
+client.on(Events.GuildMemberAdd, async (member) => {
+  memberJoin(member);
 });
 
 // log in to discord with client token
