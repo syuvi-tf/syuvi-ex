@@ -189,6 +189,7 @@ function getOngoingTourney() {
 // return most recent tourney
 function getRecentTourney() {
   const select = db.prepare(`SELECT * FROM tournament
+    WHERE ends_at < strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
     ORDER BY starts_at DESC`);
   return select.get();
 }
