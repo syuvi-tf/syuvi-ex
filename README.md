@@ -46,8 +46,6 @@ Setup test envvars in `.env`:
 
 ```sh
 DISCORD_TOKEN="..."
-CLIENT_ID="the bot's UID"
-GUILD_ID="ID of the guild this instance of the bot is targetting"
 SHEETS_CLIENT_EMAIL="GCP/Google Services client email"
 SHEETS_PRIVATE_KEY="private key for GCP/Google Services"
 SHEETS_SPREADSHEET_ID="ID of the spreadsheet to render tournament details to"
@@ -86,6 +84,7 @@ flyctl consul attach
 ```
 
 Mount the `litefs` volume to the fly app, in `app-name.fly.toml` (e.g. `test.fly.toml`):
+
 ```toml
 [mounts]
   source = "litefs"
@@ -93,6 +92,7 @@ Mount the `litefs` volume to the fly app, in `app-name.fly.toml` (e.g. `test.fly
 ```
 
 Add environment secrets to the app:
+
 ```sh
 fly secrets import <.env
 ```
