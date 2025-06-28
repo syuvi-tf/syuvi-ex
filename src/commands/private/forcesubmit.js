@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits, userMention, subtext } = require('discord.js');
-const { getPlayer, createPlayer, getTourney, getRecentTourney, getTourneyPlayer, createTourneyTime, getOngoingTourney } = require('../../lib/database.js');
+const { SlashCommandBuilder, PermissionFlagsBits, userMention, subtext, EmbedBuilder } = require('discord.js');
+const { getPlayer, createPlayer, getRecentTourney, getTourneyPlayer, createTourneyTime, getOngoingTourney } = require('../../lib/database.js');
 const { getTourneyMap, isValidTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
 const { updateSheetTimes } = require('../../lib/sheet.js');
 
