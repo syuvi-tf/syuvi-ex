@@ -28,7 +28,6 @@ function getRandomMapId(maps, tier, rating) {
   }
 }
 
-// TODO: format cooler
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('randommap')
@@ -80,13 +79,12 @@ module.exports = {
     const maps = await (await fetch(`https://tempus2.xyz/api/v0/maps/detailedList`)).json();
 
     const mapIdOrMissing = getRandomMapId(maps, tier, rating);
-    console.log(mapIdOrMissing);
-    if (typeof mapIdOrMissing === "string") // there are no maps for this criteria
+    if (typeof mapIdOrMissing === "string") // i know
       interaction.editReply(mapIdOrMissing);
     else {
       const mapEmbed = await getMapEmbed(mapIdOrMissing);
       const response = await interaction.editReply({ embeds: [mapEmbed] });
-      if (mapIdOrMissing === '644') { // easter egg
+      if (mapIdOrMissing === 644) { // easter egg
         response.react('🗻');
       }
     }

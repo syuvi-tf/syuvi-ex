@@ -143,10 +143,7 @@ function updateAllPlayerDivisions(members) {
   return numUpdates;
 }
 
-// steam URL formatting
-// const W = parseInt(steam_id32.substring(steam_id32.lastIndexOf(':') + 1)) * 2 + Y;
-// const steam_url = `https://steamcommunity.com/profiles/[U:1:${W}]`;
-// update a player's tempus and steam ids
+// set Tempus and SteamID32
 function updatePlayerIds(discord_id, tempus_id, steam_id) {
   const update = db.prepare(`UPDATE player
     SET tempus_id = ?,
@@ -306,6 +303,21 @@ function closeDB() {
   db.close();
 }
 
+// test functions
+function forceStartTourney(tournament_id) {
+  const update = db.prepare(`UPDATE tournament
+    SET starts_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '+1 minute')
+    WHERE id = ?`);
+  update.run(tournament_id);
+}
+
+function forceEndTourney(tournament_id) {
+  const update = db.prepare(`UPDATE tournament
+    SET ends_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '+1 minute')
+    WHERE id = ?`);
+  update.run(tournament_id);
+}
+
 module.exports = {
   openDB,
   createPlayer,
@@ -333,4 +345,7 @@ module.exports = {
   verifyTourneyTime,
   removeTourneyTime,
   closeDB,
+  // test functions
+  forceStartTourney,
+  forceEndTourney
 };

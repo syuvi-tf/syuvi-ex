@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits, userMention, subtext } = require('discord.js');
-const { getPlayer, createPlayer, getActiveTourney, getRecentTourney, getTourneyPlayer, createTourneyTime } = require('../../lib/database.js');
+const { getPlayer, createPlayer, getTourney, getRecentTourney, getTourneyPlayer, createTourneyTime, getOngoingTourney } = require('../../lib/database.js');
 const { getTourneyMap, isValidTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
+const { updateSheetTimes } = require('../../lib/sheet.js');
 
 function getForceSubmitEmbed(player_id, time, time_id, trnyclass, map) {
   const embed = new EmbedBuilder()
@@ -31,7 +32,7 @@ module.exports = {
     const user = interaction.options.getUser('player');
     const time = interaction.options.getString('time');
     const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
-    const trny = getActiveTourney() ?? getRecentTourney();
+    const trny = getOngoingTourney() ?? getRecentTourney();
     const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
 
     if (!isValidTime(time)) {
@@ -54,6 +55,7 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
             embeds: [getForceSubmitEmbed(player.id, timeSeconds, time_id, trny.class, getTourneyMap(trny, division))]
           }
         );
+        updateSheetTimes(trny);
       }
     }
   },

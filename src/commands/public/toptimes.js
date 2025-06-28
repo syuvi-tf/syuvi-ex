@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { getPlayer, createPlayer, getActiveTourney, getRecentTourney } = require('../../lib/database.js');
+const { getPlayer, createPlayer, getOngoingTourney, getRecentTourney } = require('../../lib/database.js');
 const { getTourneyTopTimesEmbed } = require('../../lib/components.js');
 
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
           { name: 'Wood', value: 'Wood' },)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const trny = getActiveTourney() ?? getRecentTourney();
+    const trny = getOngoingTourney() ?? getRecentTourney();
     const member = interaction.member;
     const division_name = interaction.options.getString('division') ?? null;
     if (!trny) {

@@ -1,5 +1,5 @@
 const schedule = require('node-schedule');
-const { EmbedBuilder, userMention, inlineCode } = require('discord.js');
+const { EmbedBuilder, userMention } = require('discord.js');
 const { getActiveTourney, getTourneyPlayers } = require('./database.js');
 const { timesChannelIds, signupsChannelId } = require('./guild-ids.js');
 const { createTourneySheet, updateSheetTimes } = require('./sheet.js');
@@ -24,6 +24,7 @@ function resetFields(newEmbed, tourneyclass, num_players) {
 function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
   const job = schedule.scheduleJob(date, async function () {
+    console.log('tried to start a tourney!');
     const trny = getActiveTourney();
     createTourneySheet(trny);
     updateSheetsJob();
@@ -42,12 +43,17 @@ function startTourneyJob(datetime, channels) {
 function endTourneyJob(datetime, channels, trny) {
   const date = new Date(datetime); // from sqlite datetime
   const job = schedule.scheduleJob(date, async function () {
+    // update sheets one more time
+    updateSheetTimes(trny);
+    console.log('tried to end a tourney!');
     const signupChannel = await channels.get(signupsChannelId);
     const roles = await signupChannel.guild.roles;
     // delete signups message
     const signupMessages = await signupChannel.messages.fetch({ limit: 1, cache: false });
     const signupMessage = signupMessages.first();
-    signupMessage.delete();
+    // it's likely better to have an admin delete the message whenever they'd like, if they want to archive the signups
+    // signupMessage.delete();
+    //
     // send all times channels an end message and fastest times
     channels.get(timesChannelIds.get('Platinum')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Platinum', roles)] });
     channels.get(timesChannelIds.get('Gold')).send({ content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`, embeds: [getTourneyTopTimesEmbed(trny, 'Gold', roles)] });
@@ -97,7 +103,7 @@ async function updateSheetsJob() {
   const job = schedule.scheduleJob('*/1 * * * *', async function () {
     const trny = getActiveTourney();
     if (!trny) {
-      console.log("updateSignupsJob() finished");
+      console.log("updateSheetsJob() finished");
       job.cancel(false);
     }
     else {

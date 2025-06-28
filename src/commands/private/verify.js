@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits, subtext, userMention } = require('discord.js');
 const { getTourney, verifyTourneyTime, getPlayerByID, getTime } = require('../../lib/database.js');
 const { getTourneyMap, formatTime } = require('../../lib/shared-functions.js');
+const { updateSheetTimes } = require('../../lib/sheet.js');
 
 function getForceVerifiedEmbed(player_id, time, time_id, trnyclass, map) {
   const embed = new EmbedBuilder()
@@ -34,6 +35,7 @@ module.exports = {
       const division = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
       verifyTourneyTime(time_id);
       interaction.editReply({ embeds: [getForceVerifiedEmbed(player.id, formatTime(time.run_time), time_id, trny.class, getTourneyMap(trny, division))] });
+      updateSheetTimes(trny);
     }
     else {
       interaction.editReply(`❌ Couldn't find a time to verify.`);

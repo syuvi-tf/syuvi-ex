@@ -124,14 +124,15 @@ module.exports = {
     const now = new Date(new Date().toUTCString());
 
     const day = dayOption < 10 ? '0' + dayOption : dayOption;
-    const endDay = dayOption + 2 < 10 ? '0' + (dayOption + 2) : dayOption + 2;
-    let year = new Date().getUTCFullYear();
+    let year = now.getUTCFullYear();
     // if the current date is ahead of the set tourney date, add a year
     if (now > new Date(`${year}-${month}-${day}T00:00:00Z`)) {
       year += 1;
     }
     const datetime = `${year}-${month}-${day}T00:00:00Z`;
-    const endDatetime = `${year}-${month}-${endDay}T00:00:00Z`;
+    const endDate = new Date(datetime);
+    endDate.setDate(endDate.getDate() + 2);
+    const endDatetime = endDate.toISOString();
     const discordTimestamp = time(new Date(datetime));
     // waiting...
     const channel = await interaction.channel;

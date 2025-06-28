@@ -1,7 +1,7 @@
 const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } = require('discord.js');
 const { divisionRoleIds } = require('./guild-ids.js');
 const { getTourneyDivisionTopTimes } = require('./database.js');
-const { formatTime, formatSteamURL } = require('./shared-functions.js');
+const { formatTime, formatSteamURL, getTourneyMap } = require('./shared-functions.js');
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -29,6 +29,7 @@ function getTourneyTopTimesEmbed(trny, division_name, roles) {
   const embed = new EmbedBuilder()
     .setColor(division_color)
     .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${trny.class}`))} Top 8
+> ${getTourneyMap(trny, division_name)}
 ${getInlineCodeTopTimes(toptimes)}`);
   return embed;
 }

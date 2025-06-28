@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention, hyperlink, subtext } = require('discord.js');
 const { getPlayer, createPlayer, getOngoingTourney, getActiveTourney, getTourneyPlayer, createTourneyTime, getPlayerBestTourneyTime } = require('../../lib/database.js');
 const { getPlayerEmbed } = require('../../lib/components.js');
-const { getTourneyMap, formatTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
+const { getTourneyMap, formatTime, isValidTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
 
 async function noTourneyOrPlayer(interaction, trny) {
   if (!trny) {

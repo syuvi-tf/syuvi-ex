@@ -19,7 +19,7 @@ function getTourneyMap(trny, division) {
     case 'Wood':
       return trny.wood_map;
     default:
-      console.log(`/forcesubmit error: couldn't find a tourney map..`);
+      console.log(`getTourneyMap() error: couldn't find a tourney map..`);
   }
 }
 
