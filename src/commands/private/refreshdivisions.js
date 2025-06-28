@@ -18,7 +18,7 @@ module.exports = {
       const filter = (i) => i.user.id === interaction.user.id;
       const confirmResponse = await response.resource.message.awaitMessageComponent({ filter, time: 30_000 });
       if (confirmResponse.customId === 'confirm') {
-        const numUpdated = updateAllPlayerDivisions(interaction.guild.members.cache);
+        const numUpdated = updateAllPlayerDivisions(await interaction.guild.members.fetch());
         await confirmResponse.update({
           content: `✅ Updated divisions for ${numUpdated} roles.`,
           components: []
