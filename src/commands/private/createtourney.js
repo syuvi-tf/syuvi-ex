@@ -116,20 +116,27 @@ module.exports = {
         .setDescription('tourney start day (midnight UTC)')
         .setMinValue(1)
         .setMaxValue(31)
-        .setRequired(true)),
+        .setRequired(true))
+    .addIntegerOption(option =>
+      option.setName('offset')
+        .setDescription('positive offset in hours from UTC midnight (start of day)')
+        .setMinValue(1)
+        .setMaxValue(23)),
   async execute(interaction) {
     const trny_class = interaction.options.getString('class');
     const month = interaction.options.getString('month');
     const dayOption = interaction.options.getInteger('day');
+    const offsetHoursOption = interaction.options.getInteger('offset') ?? 0;
+    const offsetHours = offsetHoursOption < 10 ? '0' + offsetHoursOption : offsetHoursOption;
     const now = new Date(new Date().toUTCString());
 
     const day = dayOption < 10 ? '0' + dayOption : dayOption;
     let year = now.getUTCFullYear();
     // if the current date is ahead of the set tourney date, add a year
-    if (now > new Date(`${year}-${month}-${day}T00:00:00Z`)) {
+    if (now > new Date(`${year}-${month}-${day}T${offsetHours}:00:00Z`)) {
       year += 1;
     }
-    const datetime = `${year}-${month}-${day}T00:00:00Z`;
+    const datetime = `${year}-${month}-${day}T${offsetHours}:00:00Z`;
     const endDate = new Date(datetime);
     endDate.setDate(endDate.getDate() + 2);
     const endDatetime = endDate.toISOString();
