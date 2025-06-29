@@ -32,6 +32,9 @@ module.exports = {
     if (isOngoing) {
       interaction.editReply(`Couldn't change maps, as this tourney has already started.`);
     }
+    else if (trny.class === 'Demo' && mapDivision === 'Wood') {
+      interaction.editReply(`Couldn't change maps, since Demo doesn't have a Wood division.`);
+    }
     else {
       if (trny) {
         switch (mapDivision) {
