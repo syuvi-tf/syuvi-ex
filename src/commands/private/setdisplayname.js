@@ -1,5 +1,5 @@
-import { SlashCommandBuilder, PermissionFlagsBits, userMention } from "discord.js"
-import { updatePlayerDisplayName, getPlayer, createPlayer } from "../../lib/database.js"
+import { SlashCommandBuilder, PermissionFlagsBits, userMention } from "discord.js";
+import { updatePlayerDisplayName, getPlayer, createPlayer } from "../../lib/database.js";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -8,13 +8,13 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addUserOption((option) => option.setName("player").setDescription("@user").setRequired(true)),
   async execute(interaction) {
-    await interaction.deferReply() //thinking...
-    const user = interaction.options.getUser("player")
-    getPlayer(user.id) ?? createPlayer(user.id, user.displayName)
-    updatePlayerDisplayName(user.id, user.displayName)
+    await interaction.deferReply(); //thinking...
+    const user = interaction.options.getUser("player");
+    getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
+    updatePlayerDisplayName(user.id, user.displayName);
     interaction.editReply({
       content: `✅ Set ${userMention(user.id)}'s tourney display name`,
       allowedMentions: { users: [] },
-    })
+    });
   },
-}
+};

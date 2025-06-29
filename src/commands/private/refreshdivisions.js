@@ -1,6 +1,6 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js"
-import { updateAllPlayerDivisions } from "../../lib/database.js"
-import { confirmRow } from "../../lib/components.js"
+import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { updateAllPlayerDivisions } from "../../lib/database.js";
+import { confirmRow } from "../../lib/components.js";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,32 +12,32 @@ module.exports = {
       content: `This command updates the divisions of every player according to their discord roles. Are you sure?`,
       components: [confirmRow],
       withResponse: true,
-    })
+    });
 
     try {
-      const filter = (i) => i.user.id === interaction.user.id
+      const filter = (i) => i.user.id === interaction.user.id;
       const confirmResponse = await response.resource.message.awaitMessageComponent({
         filter,
         time: 30_000,
-      })
+      });
       if (confirmResponse.customId === "confirm") {
-        const numUpdated = updateAllPlayerDivisions(await interaction.guild.members.fetch())
+        const numUpdated = updateAllPlayerDivisions(await interaction.guild.members.fetch());
         await confirmResponse.update({
           content: `✅ Updated divisions for ${numUpdated} roles.`,
           components: [],
-        })
+        });
       } else if (confirmResponse.customId === "cancel") {
         await confirmResponse.update({
           content: `❌ Canceled command.`,
           components: [],
-        })
+        });
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       await interaction.editReply({
         content: `❌ Timed out after 30 seconds or ran into an error.. canceled command.`,
         components: [],
-      })
+      });
     }
   },
-}
+};

@@ -1,6 +1,6 @@
-import { SlashCommandBuilder, inlineCode, EmbedBuilder } from "discord.js"
-import { createPlayer, getPlayer } from "../../lib/database.js"
-import { updatePlayerIds } from "../../lib/database.js"
+import { SlashCommandBuilder, inlineCode, EmbedBuilder } from "discord.js";
+import { createPlayer, getPlayer } from "../../lib/database.js";
+import { updatePlayerIds } from "../../lib/database.js";
 
 function getEmbed(tempusInfo) {
   const embed = new EmbedBuilder().setColor("E1703D").setAuthor({
@@ -10,8 +10,8 @@ function getEmbed(tempusInfo) {
       "https://static-cdn.jtvnw.net/jtv_user_pictures/f6ba291c-cd4f-46f7-9b43-75ef77e887a5-profile_image-70x70.png",
   }).setDescription(`Set your Tempus ID. Last seen as ${inlineCode(tempusInfo.name)} 
 > ${inlineCode(`Rank ${tempusInfo.srank} Soldier`)}
-> ${inlineCode(`Rank ${tempusInfo.drank} Demo`)}`)
-  return embed
+> ${inlineCode(`Rank ${tempusInfo.drank} Demo`)}`);
+  return embed;
 }
 
 module.exports = {
@@ -27,28 +27,28 @@ module.exports = {
         .setRequired(true),
     ),
   async execute(interaction) {
-    await interaction.deferReply() //thinking...
-    const tempusId = interaction.options.getInteger("tempus_id")
-    const member = interaction.member
-    getPlayer(member.id) ?? createPlayer(member.id, member.displayName)
+    await interaction.deferReply(); //thinking...
+    const tempusId = interaction.options.getInteger("tempus_id");
+    const member = interaction.member;
+    getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
     const response = await (
       await fetch(`https://tempus2.xyz/api/v0/players/id/${tempusId}/stats`)
-    ).json()
+    ).json();
     const tempusInfo = {
       name: response?.player_info.name,
       id: response?.player_info.id,
       steamId: response?.player_info.steamid,
       srank: response?.class_rank_info["3"].rank,
       drank: response?.class_rank_info["4"].rank,
-    }
+    };
 
     if (!tempusInfo.name || !tempusInfo.steamId) {
       await interaction.editReply(
         `❌ Couldn't set your Tempus ID, as the request to Tempus failed.`,
-      )
+      );
     } else {
-      updatePlayerIds(interaction.user.id, tempusId, tempusInfo.steamId)
-      await interaction.editReply({ embeds: [getEmbed(tempusInfo)] })
+      updatePlayerIds(interaction.user.id, tempusId, tempusInfo.steamId);
+      await interaction.editReply({ embeds: [getEmbed(tempusInfo)] });
     }
   },
-}
+};

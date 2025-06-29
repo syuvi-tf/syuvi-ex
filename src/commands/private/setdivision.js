@@ -1,6 +1,6 @@
-import { SlashCommandBuilder, PermissionFlagsBits, roleMention, userMention } from "discord.js"
-import { createPlayer, updatePlayerDivision, getPlayer } from "../../lib/database.js"
-import { divisionRoleIds } from "../../lib/guild-ids.js"
+import { SlashCommandBuilder, PermissionFlagsBits, roleMention, userMention } from "discord.js";
+import { createPlayer, updatePlayerDivision, getPlayer } from "../../lib/database.js";
+import { divisionRoleIds } from "../../lib/guild-ids.js";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -31,48 +31,48 @@ module.exports = {
         ),
     ),
   async execute(interaction) {
-    await interaction.deferReply() // thinking...
-    const member = interaction.options.getMember("player")
+    await interaction.deferReply(); // thinking...
+    const member = interaction.options.getMember("player");
     // first, create a player if they don't exist
-    getPlayer(member.id) ?? createPlayer(member.id, member.displayName)
-    const divisionClass = interaction.options.getString("class")
-    const divisionName = interaction.options.getString("division")
+    getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
+    const divisionClass = interaction.options.getString("class");
+    const divisionName = interaction.options.getString("division");
     const division = {
       class: divisionClass,
       name: divisionName === "None" ? null : divisionName,
-    }
+    };
 
     if (division.name === "Wood" && division.class === "Demo") {
-      await interaction.editReply(`❌ Wood Demo is not a valid role.`)
+      await interaction.editReply(`❌ Wood Demo is not a valid role.`);
     } else {
       const roleToAdd = member.guild.roles.cache.get(
         divisionRoleIds.get(`${division.name} ${division.class}`),
-      )
-      const roleToRemove = member.roles.cache.find((role) => role.name.includes(division.class))
-      let messageContent = ``
+      );
+      const roleToRemove = member.roles.cache.find((role) => role.name.includes(division.class));
+      let messageContent = ``;
       if (roleToRemove) {
         // if an old role exists, remove it
-        await member.roles.remove(roleToRemove)
-        messageContent += `removed ${roleMention(roleToRemove.id)} from ${userMention(member.id)}\n`
+        await member.roles.remove(roleToRemove);
+        messageContent += `removed ${roleMention(roleToRemove.id)} from ${userMention(member.id)}\n`;
       }
       // don't add wood demo role
       if (division.name) {
         // if there is a role to add, add it
-        await member.roles.add(roleToAdd)
-        messageContent += `added ${roleMention(roleToAdd.id)} to ${userMention(member.id)}`
+        await member.roles.add(roleToAdd);
+        messageContent += `added ${roleMention(roleToAdd.id)} to ${userMention(member.id)}`;
       }
-      updatePlayerDivision(member.id, division)
+      updatePlayerDivision(member.id, division);
       if (messageContent !== "") {
         await interaction.editReply({
           content: messageContent,
           allowedMentions: { users: [], roles: [] },
-        })
+        });
       } else {
         await interaction.editReply({
           content: `❌ ${userMention(member.id)} doesn't have a ${division.class} role to remove.`,
           allowedMentions: { users: [], roles: [] },
-        })
+        });
       }
     }
   },
-}
+};
