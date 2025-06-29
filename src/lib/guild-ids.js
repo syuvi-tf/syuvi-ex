@@ -1,5 +1,3 @@
-// live
-
 if (process.env.FLY_APP_NAME) {
   const guildId = "1322534308413444220";
   const clientId = "1364377893802872914";
@@ -77,4 +75,3 @@ if (process.env.FLY_APP_NAME) {
     timesChannelIds
   }
 }
-
