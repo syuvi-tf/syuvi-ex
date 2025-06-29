@@ -32,11 +32,9 @@ export default {
     const isOngoing = getOngoingTourney() ? true : false;
     if (isOngoing) {
       interaction.editReply(`Couldn't change maps, as this tourney has already started.`);
-    }
-    else if (trny.class === 'Demo' && mapDivision === 'Wood') {
+    } else if (trny.class === "Demo" && mapDivision === "Wood") {
       interaction.editReply(`Couldn't change maps, since Demo doesn't have a Wood division.`);
-    }
-    else {
+    } else {
       if (trny) {
         switch (mapDivision) {
           case "PlatGold":
