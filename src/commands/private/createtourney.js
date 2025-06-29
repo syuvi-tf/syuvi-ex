@@ -145,11 +145,11 @@ export default {
     const trny_class = interaction.options.getString("class");
     const month = interaction.options.getString("month");
     const dayOption = interaction.options.getInteger("day");
+    const day = dayOption < 10 ? "0" + dayOption : dayOption;
     const offsetHoursOption = interaction.options.getInteger("offset") ?? 0;
     const offsetHours = offsetHoursOption < 10 ? "0" + offsetHoursOption : offsetHoursOption;
     const now = new Date(new Date().toUTCString());
 
-    const day = dayOption < 10 ? "0" + dayOption : dayOption;
     let year = now.getUTCFullYear();
     // if the current date is ahead of the set tourney date, add a year
     if (now > new Date(`${year}-${month}-${day}T${offsetHours}:00:00Z`)) {

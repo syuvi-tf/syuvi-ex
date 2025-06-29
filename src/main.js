@@ -24,8 +24,8 @@ expressApp.listen(3000, () => console.log("Status API listening on port 3000"));
 
 function updateClientCommands(client) {
   client.commands = new Collection();
-  for (const command in allCommands) {
-    if (!("data" in command && "execute" in command)) {
+  for (const command of allCommands) {
+    if (!command.data || !command.execute) {
       console.log(`[WARNING] Command is missing a required "data" or "execute" property.`);
       continue;
     }
