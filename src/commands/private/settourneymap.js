@@ -3,7 +3,7 @@ import { getActiveTourney, getOngoingTourney, updateTourneyMap } from "../../lib
 
 // option: division, option: map name
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("settourneymap")
     .setDescription("update a map for the upcoming tourney")

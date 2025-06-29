@@ -14,7 +14,7 @@ function getEmbed(tempusInfo) {
   return embed;
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("link")
     .setDescription("link your Tempus ID to verify PR times")

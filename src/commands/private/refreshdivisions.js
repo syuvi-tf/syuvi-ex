@@ -2,7 +2,7 @@ import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { updateAllPlayerDivisions } from "../../lib/database.js";
 import { confirmRow } from "../../lib/components.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("refreshdivisions")
     .setDescription("refresh divisions for every player")

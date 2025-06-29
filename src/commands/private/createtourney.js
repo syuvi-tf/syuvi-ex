@@ -95,7 +95,7 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
   }
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("createtourney")
     .setDescription("create and open signups for a new tournament")

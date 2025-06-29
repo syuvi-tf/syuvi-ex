@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, userMention } from "discord.js";
 import { updatePlayerDisplayName, getPlayer, createPlayer } from "../../lib/database.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("setdisplayname")
     .setDescription("update a player's display name from their discord nickname")

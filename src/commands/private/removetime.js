@@ -3,7 +3,7 @@ import { getPlayerByID, getTourney, removeTourneyTime, getTime } from "../../lib
 import { formatTime } from "../../lib/shared-functions.js";
 import { updateSheetTimes } from "../../lib/sheet.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("removetime")
     .setDescription("remove a player's time")

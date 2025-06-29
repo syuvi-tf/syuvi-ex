@@ -19,7 +19,7 @@ ${subtext(`verified: this time was slower than Tempus PR`)}`);
   return embed;
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("verify")
     .setDescription("verify a player's tourney time")

@@ -36,7 +36,7 @@ function getRandomMapId(maps, tier, rating) {
   }
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("randommap")
     .setDescription("roll for a random map from Tempus!")

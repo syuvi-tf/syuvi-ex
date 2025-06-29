@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from "discord.js";
 import { getPlayer, createPlayer } from "../../lib/database.js";
 import { getPlayerEmbed } from "../../lib/components.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("profile")
     .setDescription("view a player's profile")

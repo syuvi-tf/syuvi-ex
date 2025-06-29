@@ -74,7 +74,7 @@ ${subtext(`unverified: Tempus PR is ${minutes}:${seconds}.${ms}`)}`);
   return embed;
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("submit")
     .setDescription("submit a time for the current tourney")

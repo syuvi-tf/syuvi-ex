@@ -7,7 +7,7 @@ import {
 } from "../../lib/database.js";
 import { getTourneyTopTimesEmbed } from "../../lib/components.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("toptimes")
     .setDescription("display the top 8 times for the current / previous tourney")

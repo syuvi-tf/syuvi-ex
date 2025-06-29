@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("echo")
     .setDescription("echo last message sent to another channel")

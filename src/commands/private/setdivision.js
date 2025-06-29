@@ -2,7 +2,7 @@ import { SlashCommandBuilder, PermissionFlagsBits, roleMention, userMention } fr
 import { createPlayer, updatePlayerDivision, getPlayer } from "../../lib/database.js";
 import { divisionRoleIds } from "../../lib/guild-ids.js";
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("setdivision")
     .setDescription("update a player's division")

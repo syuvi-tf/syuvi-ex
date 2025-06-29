@@ -26,7 +26,7 @@ ${subtext(`force submitted: this time skipped PR checks.`)}`);
   return embed;
 }
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("forcesubmit")
     .setDescription("force submit a time for a player")
