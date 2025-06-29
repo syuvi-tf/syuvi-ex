@@ -1,5 +1,5 @@
 import schedule from "node-schedule";
-import { EmbedBuilder, userMention } from "discord.js";
+import { EmbedBuilder, userMention, TextChannel } from "discord.js";
 import { getActiveTourney, getTourneyPlayers } from "./database.js";
 import { timesChannelIds, signupsChannelId } from "./guild-ids.js";
 import { createTourneySheet, updateSheetTimes } from "./sheet.js";
@@ -103,35 +103,49 @@ function endTourneyJob(datetime, channels, trny) {
   });
 }
 
+/**
+ *
+ * @param {TextChannel} channel
+ */
 async function updateSignupsJob(channel) {
   // message is only needed once
   const signupMessages = await channel.messages.fetch({ limit: 1, cache: false });
   const signupMessage = signupMessages.first();
   const embed = signupMessage ? signupMessage.embeds[0] : null;
 
-  const job = schedule.scheduleJob("*/1 * * * *", async function () {
+  const job = schedule.scheduleJob("* * * * *", async function () {
     const trny = getActiveTourney();
+
     // trny has ended or no #signup message
     if (!trny || !signupMessage || !embed) {
       console.log("updateSignupsJob() finished");
       job.cancel(false);
-    } else {
-      // update #signup embed
-      const players = getTourneyPlayers(trny.id);
-      let newEmbed = EmbedBuilder.from(embed);
-      newEmbed = resetFields(newEmbed, trny.class, players.length);
-      // sort each player into their respective embed division
-      players.forEach((player) => {
-        const foundIndex = embed.fields.findIndex((field) => field.name === player.division);
-        const divFieldIndex = foundIndex !== -1 ? foundIndex : newEmbed.data.fields.length - 1;
-        newEmbed = newEmbed.spliceFields(divFieldIndex, 1, {
-          name: newEmbed.data.fields[divFieldIndex].name,
-          value: (newEmbed.data.fields[divFieldIndex].value +=
-            `${userMention(player.discord_id)} `),
-        });
-      });
-      signupMessage.edit({ embeds: [newEmbed] });
+      return;
     }
+
+    // update #signup embed
+    const players = getTourneyPlayers(trny.id);
+    let newEmbed = EmbedBuilder.from(embed);
+    newEmbed = resetFields(newEmbed, trny.class, players.length);
+
+    // sort each player into their respective embed division
+    const playersByDivision = Object.groupBy(players, ({ division }) => division);
+    for (const division in playersByDivision) {
+      let divisionFieldIdx = embed.fields.findIndex(({ name }) => division === name);
+      if (divisionFieldIdx === -1) {
+        divisionFieldIdx = newEmbed.data.fields.length - 1;
+      }
+
+      for (const player of playersByDivision[division]) {
+        const field = newEmbed.data.fields[divisionFieldIdx];
+        newEmbed = newEmbed.spliceFields(divisionFieldIdx, 1, {
+          name: field.name,
+          value: field.value + `${userMention(player.discord_id)} `,
+        });
+      }
+    }
+
+    signupMessage.edit({ embeds: [newEmbed] });
   });
 }
 
