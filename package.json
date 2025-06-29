@@ -25,6 +25,7 @@
     "@flydotio/dockerfile": "^0.7.10",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-jsdoc": "^51.2.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
     "prettier": "3.6.2"
