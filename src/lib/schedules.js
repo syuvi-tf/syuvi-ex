@@ -23,7 +23,7 @@ function resetFields(newEmbed, tourneyclass, num_players) {
 
 function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
-  const job = schedule.scheduleJob(date, async function () {
+  schedule.scheduleJob(date, async function () {
     console.log('tried to start a tourney!');
     const trny = getActiveTourney();
     createTourneySheet(trny);
@@ -42,15 +42,16 @@ function startTourneyJob(datetime, channels) {
 
 function endTourneyJob(datetime, channels, trny) {
   const date = new Date(datetime); // from sqlite datetime
-  const job = schedule.scheduleJob(date, async function () {
+  schedule.scheduleJob(date, async function () {
     // update sheets one more time
     updateSheetTimes(trny);
     console.log('tried to end a tourney!');
     const signupChannel = await channels.get(signupsChannelId);
     const roles = await signupChannel.guild.roles;
+    // TODO(ash): do we need to do this? signupMessage.delete() was commented out so deleting signups messages never happened.
     // delete signups message
-    const signupMessages = await signupChannel.messages.fetch({ limit: 1, cache: false });
-    const signupMessage = signupMessages.first();
+    // const signupMessages = await signupChannel.messages.fetch({ limit: 1, cache: false });
+    // const signupMessage = signupMessages.first();
     // it's likely better to have an admin delete the message whenever they'd like, if they want to archive the signups
     // signupMessage.delete();
     //

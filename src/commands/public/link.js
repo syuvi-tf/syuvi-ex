@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, inlineCode, EmbedBuilder, hyperlink } = require('discord.js');
+const { SlashCommandBuilder, inlineCode, EmbedBuilder } = require('discord.js');
 const { createPlayer, getPlayer } = require('../../lib/database.js');
 const { updatePlayerIds } = require('../../lib/database.js');
 
