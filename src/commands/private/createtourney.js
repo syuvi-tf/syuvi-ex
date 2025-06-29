@@ -9,8 +9,7 @@ import {
   TimestampStyles,
   ChatInputCommandInteraction,
   InteractionCallbackResponse,
-  MappedInteractionTypes,
-  InGuild,
+  ButtonInteraction,
 } from "discord.js";
 import { createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
@@ -52,7 +51,7 @@ starts ${relative_starts_at}
 
 /**
  *
- * @param {MappedInteractionTypes<InGuild>} confirmResponse
+ * @param {ButtonInteraction} confirmResponse
  * @param {Tournament} submitted_trny
  * @param {ChatInputCommandInteraction} interaction
  * @returns
