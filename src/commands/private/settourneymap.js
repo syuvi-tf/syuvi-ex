@@ -1,32 +1,33 @@
-const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { getActiveTourney, getOngoingTourney, updateTourneyMap } = require('../../lib/database.js');
+import { SlashCommandBuilder, PermissionFlagsBits, inlineCode } from "discord.js";
+import { getActiveTourney, getOngoingTourney, updateTourneyMap } from "../../lib/database.js";
 
 // option: division, option: map name
 
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
-    .setName('settourneymap')
-    .setDescription('update a map for the upcoming tourney')
+    .setName("settourneymap")
+    .setDescription("update a map for the upcoming tourney")
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .addStringOption(option =>
-      option.setName('division')
-        .setDescription('map division')
+    .addStringOption((option) =>
+      option
+        .setName("division")
+        .setDescription("map division")
         .setRequired(true)
         .addChoices(
-          { name: 'PlatGold', value: 'PlatGold' },
-          { name: 'Silver', value: 'Silver' },
-          { name: 'Bronze', value: 'Bronze' },
-          { name: 'Steel', value: 'Steel' },
-          { name: 'Wood', value: 'Wood' },)
+          { name: "PlatGold", value: "PlatGold" },
+          { name: "Silver", value: "Silver" },
+          { name: "Bronze", value: "Bronze" },
+          { name: "Steel", value: "Steel" },
+          { name: "Wood", value: "Wood" },
+        ),
     )
-    .addStringOption(option =>
-      option.setName('map')
-        .setDescription('map name')
-        .setRequired(true)),
+    .addStringOption((option) =>
+      option.setName("map").setDescription("map name").setRequired(true),
+    ),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const mapDivision = interaction.options.getString('division');
-    const mapName = interaction.options.getString('map');
+    const mapDivision = interaction.options.getString("division");
+    const mapName = interaction.options.getString("map");
     const trny = getActiveTourney();
     const isOngoing = getOngoingTourney() ? true : false;
     if (isOngoing) {
@@ -38,19 +39,19 @@ module.exports = {
     else {
       if (trny) {
         switch (mapDivision) {
-          case 'PlatGold':
+          case "PlatGold":
             trny.plat_gold_map = mapName;
             break;
-          case 'Silver':
+          case "Silver":
             trny.silver_map = mapName;
             break;
-          case 'Bronze':
+          case "Bronze":
             trny.bronze_map = mapName;
             break;
-          case 'Steel':
+          case "Steel":
             trny.steel_map = mapName;
             break;
-          case 'Wood':
+          case "Wood":
             trny.wood_map = mapName;
             break;
         }
@@ -61,7 +62,7 @@ Platinum / Gold: ${inlineCode(trny.plat_gold_map)}
 Silver: ${inlineCode(trny.silver_map)}
 Bronze: ${inlineCode(trny.bronze_map)}
 Steel: ${inlineCode(trny.steel_map)}
-${trny.class === 'Soldier' ? `Wood: ${inlineCode(trny.wood_map)}` : ``}`);
+${trny.class === "Soldier" ? `Wood: ${inlineCode(trny.wood_map)}` : ``}`);
       }
     }
   },

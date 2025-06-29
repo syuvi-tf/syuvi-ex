@@ -1,14 +1,12 @@
-const Database = require('better-sqlite3');
-const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
-const db = new Database(dbPath
-  //  , { verbose: console.log }
-);
+import Database from "better-sqlite3";
 
-// const { createStartJob, createEndJob } = require('./schedules.js');
+const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
+const db = new Database(dbPath);
 
 // open connection
 function openDB() {
-  db.prepare(`CREATE TABLE IF NOT EXISTS player (
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS player (
     id               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     discord_id       TEXT NOT NULL UNIQUE,
     display_name     TEXT NOT NULL,
@@ -16,9 +14,11 @@ function openDB() {
     demo_division    TEXT,
     tempus_id        INTEGER,
     steam_id         TEXT,
-    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`).run();
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`,
+  ).run();
 
-  db.prepare(`CREATE TABLE IF NOT EXISTS tournament (
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS tournament (
     id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     class           TEXT NOT NULL,
     plat_gold_map   TEXT NOT NULL,
@@ -28,9 +28,11 @@ function openDB() {
     wood_map        TEXT,
     starts_at       DATETIME NOT NULL,
     ends_at         DATETIME NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`).run();
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`,
+  ).run();
 
-  db.prepare(`CREATE TABLE IF NOT EXISTS tournament_player (
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS tournament_player (
     tournament_id INTEGER NOT NULL,
     player_id     INTEGER NOT NULL,
     division      TEXT,
@@ -38,9 +40,11 @@ function openDB() {
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tournament_id, player_id),
     FOREIGN KEY (tournament_id) REFERENCES tournament (id),
-    FOREIGN KEY (player_id) REFERENCES player (id))`).run();
+    FOREIGN KEY (player_id) REFERENCES player (id))`,
+  ).run();
 
-  db.prepare(`CREATE TABLE IF NOT EXISTS tournament_time (
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS tournament_time (
     id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER NOT NULL,
     player_id     INTEGER NOT NULL,
@@ -48,7 +52,8 @@ function openDB() {
     verified      BOOLEAN NOT NULL,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tournament_id) REFERENCES tournament (id),
-    FOREIGN KEY (player_id) REFERENCES player (id))`).run();
+    FOREIGN KEY (player_id) REFERENCES player (id))`,
+  ).run();
 }
 
 // insert a new player, if they don't exist, and returns them
@@ -84,7 +89,7 @@ function updatePlayerDisplayName(discord_id, display_name) {
 // update a player's division
 function updatePlayerDivision(discord_id, division) {
   const update = db.prepare(`UPDATE player
-    SET ${division.class === 'Soldier' ? 'soldier_division' : 'demo_division'} = ?
+    SET ${division.class === "Soldier" ? "soldier_division" : "demo_division"} = ?
     WHERE discord_id = ?`);
   update.run(division.name, discord_id);
 
@@ -110,10 +115,10 @@ function updateAllPlayerDivisions(members) {
       update.run(partialPlayer);
       const player = getPlayer(partialPlayer.discord_id);
       if (trny && player) {
-        if (trny.class === 'Soldier') {
+        if (trny.class === "Soldier") {
           updateTourneyPlayerDivision(trny.id, player.id, player.soldier_division);
-        }
-        else { // demo tourney
+        } else {
+          // demo tourney
           updateTourneyPlayerDivision(trny.id, player.id, player.demo_division);
         }
       }
@@ -122,10 +127,12 @@ function updateAllPlayerDivisions(members) {
 
   const partialPlayers = new Set();
   members.forEach((member) => {
-    const soldierRole = member.roles.cache.find((role) => role.name.endsWith(' Soldier'));
-    const soldierDivision = !soldierRole ? null : soldierRole.name.substring(0, soldierRole.name.indexOf(' '));
-    const demoRole = member.roles.cache.find((role) => role.name.endsWith(' Demo'));
-    const demoDivision = !demoRole ? null : demoRole.name.substring(0, demoRole.name.indexOf(' '));
+    const soldierRole = member.roles.cache.find((role) => role.name.endsWith(" Soldier"));
+    const soldierDivision = !soldierRole
+      ? null
+      : soldierRole.name.substring(0, soldierRole.name.indexOf(" "));
+    const demoRole = member.roles.cache.find((role) => role.name.endsWith(" Demo"));
+    const demoDivision = !demoRole ? null : demoRole.name.substring(0, demoRole.name.indexOf(" "));
     // if a member has a division role, try inserting them into the database
     if (demoDivision || soldierDivision) {
       createPlayer(member.id, member.displayName);
@@ -136,8 +143,12 @@ function updateAllPlayerDivisions(members) {
       demo_division: demoDivision,
       discord_id: member.id,
     });
-    if (soldierDivision) { numUpdates++; }
-    if (demoDivision) { numUpdates++; }
+    if (soldierDivision) {
+      numUpdates++;
+    }
+    if (demoDivision) {
+      numUpdates++;
+    }
   });
   updateEach(partialPlayers);
   return numUpdates;
@@ -156,9 +167,19 @@ function updatePlayerIds(discord_id, tempus_id, steam_id) {
 function createTourney(trny) {
   const activeTrny = getActiveTourney();
   if (!activeTrny) {
-    const insert = db.prepare(`INSERT OR IGNORE INTO tournament (class, plat_gold_map, silver_map, bronze_map, steel_map, wood_map, starts_at, ends_at)
+    const insert =
+      db.prepare(`INSERT OR IGNORE INTO tournament (class, plat_gold_map, silver_map, bronze_map, steel_map, wood_map, starts_at, ends_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-    insert.run(trny.class, trny.plat_gold, trny.silver, trny.bronze, trny.steel, trny.wood, trny.starts_at, trny.ends_at);
+    insert.run(
+      trny.class,
+      trny.plat_gold,
+      trny.silver,
+      trny.bronze,
+      trny.steel,
+      trny.wood,
+      trny.starts_at,
+      trny.ends_at,
+    );
     return true;
   }
   // already an active tourney
@@ -173,7 +194,14 @@ function updateTourneyMap(trny) {
     steel_map = ?,
     wood_map = ?
     WHERE id = ?`);
-  update.run(trny.plat_gold_map, trny.silver_map, trny.bronze_map, trny.steel_map, trny.wood_map, trny.id);
+  update.run(
+    trny.plat_gold_map,
+    trny.silver_map,
+    trny.bronze_map,
+    trny.steel_map,
+    trny.wood_map,
+    trny.id,
+  );
 }
 
 // get tourney by id
@@ -213,7 +241,8 @@ function getAllTourneys() {
 
 // insert new player in a tourney, update them otherwise
 function createTourneyPlayer(tournament_id, player_id, division_name) {
-  const upsert = db.prepare(`INSERT INTO tournament_player (tournament_id, player_id, division, signed_up)
+  const upsert =
+    db.prepare(`INSERT INTO tournament_player (tournament_id, player_id, division, signed_up)
     VALUES (?, ?, ?, TRUE)
     ON CONFLICT (tournament_id, player_id) DO UPDATE
     SET signed_up = TRUE`);
@@ -252,9 +281,10 @@ function updateTourneyPlayerDivision(tournament_id, player_id, division_name) {
 
 // create a tourney time
 function createTourneyTime(tournament_id, player_id, run_time, verified) {
-  const insert = db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time, verified)
+  const insert =
+    db.prepare(`INSERT OR IGNORE INTO tournament_time (tournament_id, player_id, run_time, verified)
         VALUES (?, ?, ?, ?)`);
-  const info = insert.run(tournament_id, player_id, run_time, verified ? '1' : '0');
+  const info = insert.run(tournament_id, player_id, run_time, verified ? "1" : "0");
   if (info.changes === 1) {
     return info.lastInsertRowid;
   }
@@ -278,7 +308,8 @@ function getPlayerBestTourneyTime(tournament_id, player_id) {
 
 // return every player's best tourney time
 function getBestTourneyTimes(tournament_id) {
-  const select = db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, tournament_time.verified, player.display_name, tournament_player.division FROM tournament_time
+  const select =
+    db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, tournament_time.verified, player.display_name, tournament_player.division FROM tournament_time
     JOIN player ON tournament_time.player_id = player.id
     JOIN tournament_player ON tournament_time.player_id = tournament_player.player_id
     WHERE tournament_time.tournament_id = ?
@@ -287,7 +318,8 @@ function getBestTourneyTimes(tournament_id) {
 }
 
 function getTourneyDivisionTopTimes(tournament_id, division_name) {
-  const select = db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, tournament_time.verified, player.discord_id, tournament_player.division FROM tournament_time
+  const select =
+    db.prepare(`SELECT tournament_time.tournament_id, tournament_time.player_id, min(run_time) AS run_time, tournament_time.verified, player.discord_id, tournament_player.division FROM tournament_time
     JOIN player ON tournament_time.player_id = player.id
     JOIN tournament_player ON tournament_time.player_id = tournament_player.player_id
     WHERE tournament_time.tournament_id = ? AND tournament_player.division = ?
@@ -330,7 +362,7 @@ function forceEndTourney(tournament_id) {
   update.run(tournament_id);
 }
 
-module.exports = {
+export {
   openDB,
   createPlayer,
   getPlayer,
@@ -360,5 +392,5 @@ module.exports = {
   closeDB,
   // test functions
   forceStartTourney,
-  forceEndTourney
+  forceEndTourney,
 };

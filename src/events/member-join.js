@@ -1,5 +1,5 @@
-const { divisionRoleIds } = require('../lib/guild-ids.js');
-const { getPlayer } = require('../lib/database.js');
+import { divisionRoleIds } from "../lib/guild-ids.js";
+import { getPlayer } from "../lib/database.js";
 
 async function memberJoin(member) {
   const player = getPlayer(member.id);
@@ -15,6 +15,5 @@ async function memberJoin(member) {
     }
   }
 }
-module.exports = {
-  memberJoin
-}
+
+export { memberJoin };

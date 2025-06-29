@@ -1,10 +1,16 @@
-const { getPlayer, getActiveTourney, createTourneyPlayer, removeTourneyPlayer, createPlayer } = require("../lib/database.js");
+import {
+  getPlayer,
+  getActiveTourney,
+  createTourneyPlayer,
+  removeTourneyPlayer,
+  createPlayer,
+} from "../lib/database.js";
 
 function signupsReactionAdd(message, user) {
   const trny = getActiveTourney();
   const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
   if (trny && player) {
-    const division_name = trny.class === 'Soldier' ? player.soldier_division : player.demo_division;
+    const division_name = trny.class === "Soldier" ? player.soldier_division : player.demo_division;
     createTourneyPlayer(trny.id, player.id, division_name);
   }
 }
@@ -18,7 +24,4 @@ function signupsReactionRemove(message, user) {
   }
 }
 
-module.exports = {
-  signupsReactionAdd,
-  signupsReactionRemove
-}
+export { signupsReactionAdd, signupsReactionRemove };

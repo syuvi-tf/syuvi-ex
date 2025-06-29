@@ -1,39 +1,36 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const express = require('express');
-const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } = require('discord.js');
-const dotenv = require('dotenv');
-const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
-const { signupsChannelId } = require('./lib/guild-ids.js');
-const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
-const { memberJoin } = require('./events/member-join.js');
-const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = require('./lib/schedules.js');
+import express from "express";
+import dotenv from "dotenv";
+import { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } from "discord.js";
+import { openDB, getActiveTourney, closeDB } from "./lib/database.js";
+import { signupsChannelId } from "./lib/guild-ids.js";
+import { signupsReactionAdd, signupsReactionRemove } from "./events/signup-reaction.js";
+import { memberJoin } from "./events/member-join.js";
+import {
+  startTourneyJob,
+  endTourneyJob,
+  updateSignupsJob,
+  updateSheetsJob,
+} from "./lib/schedules.js";
+import { allCommands } from "./commands/commands.js";
+
 dotenv.config();
 
 const expressApp = express();
-expressApp.get('/', (_, res) => {
-  res.setHeader('Content-Type', 'application/json');
+expressApp.get("/", (_, res) => {
+  res.setHeader("Content-Type", "application/json");
   res.send('{"status":"OK"}');
 });
 expressApp.listen(3000, () => console.log("Status API listening on port 3000"));
 
-function getCommands(client) {
-  const foldersPath = path.join(__dirname, 'commands');
-  const commandFolders = fs.readdirSync(foldersPath);
+function updateClientCommands(client) {
   client.commands = new Collection();
-  for (const folder of commandFolders) {
-    const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-    for (const file of commandFiles) {
-      const filePath = path.join(commandsPath, file);
-      const command = require(filePath);
-      // set a new item in the Collection with the key as the command name and the value as the exported module
-      if ('data' in command && 'execute' in command) {
-        client.commands.set(command.data.name, command);
-      } else {
-        console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-      }
+  for (const command of allCommands) {
+    if (!command.data || !command.execute) {
+      console.log(`[WARNING] Command is missing a required "data" or "execute" property.`);
+      continue;
     }
+
+    client.commands.set(command.data.name, command);
   }
 }
 
@@ -46,40 +43,48 @@ async function runCommand(interaction) {
   }
   try {
     await command.execute(interaction);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
+      await interaction.followUp({
+        content: "encountered an error running this command",
+        flags: MessageFlags.Ephemeral,
+      });
     } else {
-      await interaction.reply({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
+      await interaction.reply({
+        content: "encountered an error running this command",
+        flags: MessageFlags.Ephemeral,
+      });
     }
   }
 }
 
 // create a new client instance
-const client = new Client(
-  {
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
-    partials: [Partials.Message, Partials.Reaction]
-  });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers,
+  ],
+  partials: [Partials.Message, Partials.Reaction],
+});
 
-getCommands(client);
+updateClientCommands(client);
 
 // when the client is ready, run this code (only once)
-client.once(Events.ClientReady, readyClient => {
+client.once(Events.ClientReady, (readyClient) => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
   // if there is an active or upcoming tourney, schedule jobs
   const trny = getActiveTourney();
   const now = new Date(new Date().toUTCString());
   if (trny) {
-    if ((new Date(trny.starts_at) > now)) // tourney hasn't started yet
-    {
+    if (new Date(trny.starts_at) > now) {
+      // tourney hasn't started yet
       startTourneyJob(trny.starts_at, client.channels.cache);
-    }
-    else if ((new Date(trny.starts_at) < now)) // tourney has started, but has not ended yet
-    {
+    } else if (new Date(trny.starts_at) < now) {
+      // tourney has started, but has not ended yet
       updateSheetsJob();
     }
     // tourney hasn't ended yet
@@ -88,20 +93,24 @@ client.once(Events.ClientReady, readyClient => {
   }
 });
 
-client.on(Events.InteractionCreate, async interaction => {
+client.on(Events.InteractionCreate, async (interaction) => {
   runCommand(interaction);
 });
 
 // there should only ever be one signups message in #signups, so checking just the channel id should be fine
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
-  if (!user.bot && reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+  if (
+    !user.bot &&
+    reaction.message.channelId === signupsChannelId &&
+    reaction.emoji.name === "✅"
+  ) {
     signupsReactionAdd(reaction.message, user);
   }
 });
 
 // remove user from tourney on signup reaction
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
-  if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
+  if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === "✅") {
     signupsReactionRemove(reaction.message, user);
   }
 });
@@ -114,6 +123,6 @@ client.on(Events.GuildMemberAdd, async (member) => {
 // log in to discord with client token
 client.login(process.env.DISCORD_TOKEN);
 
-process.on('beforeExit', () => {
+process.on("beforeExit", () => {
   closeDB();
 });
