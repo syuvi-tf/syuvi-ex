@@ -165,6 +165,17 @@ function createTourney(trny) {
   return false;
 }
 
+function updateTourneyMap(trny) {
+  const update = db.prepare(`UPDATE tournament
+    SET plat_gold_map = ?,
+    silver_map = ?,
+    bronze_map = ?,
+    steel_map = ?,
+    wood_map = ?
+    WHERE id = ?`);
+  update.run(trny.plat_gold_map, trny.silver_map, trny.bronze_map, trny.steel_map, trny.wood_map, trny.id);
+}
+
 // get tourney by id
 function getTourney(tournament_id) {
   const select = db.prepare(`SELECT * FROM tournament
@@ -330,6 +341,7 @@ module.exports = {
   updatePlayerIds,
   getTourney,
   createTourney,
+  updateTourneyMap,
   getOngoingTourney,
   getActiveTourney,
   getRecentTourney,
