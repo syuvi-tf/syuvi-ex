@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits, inlineCode } = require('discord.js');
-const { getActiveTourney, getOngoingTourney, updateTourneyMap } = require('../../lib/database.js');
+import { SlashCommandBuilder, PermissionFlagsBits, inlineCode } from "discord.js";
+import { getActiveTourney, getOngoingTourney, updateTourneyMap } from "../../lib/database.js";
 
 // option: division, option: map name
 

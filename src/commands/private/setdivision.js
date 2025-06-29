@@ -1,6 +1,6 @@
-const { SlashCommandBuilder, PermissionFlagsBits, roleMention, userMention } = require('discord.js');
-const { createPlayer, updatePlayerDivision, getPlayer } = require('../../lib/database.js');
-const { divisionRoleIds } = require('../../lib/guild-ids.js');
+import { SlashCommandBuilder, PermissionFlagsBits, roleMention, userMention } from "discord.js";
+import { createPlayer, updatePlayerDivision, getPlayer } from "../../lib/database.js";
+import { divisionRoleIds } from "../../lib/guild-ids.js";
 
 module.exports = {
   data: new SlashCommandBuilder()

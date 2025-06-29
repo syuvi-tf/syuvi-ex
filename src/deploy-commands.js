@@ -1,5 +1,5 @@
-import "node:fs";
-import "node:path";
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
 import { REST, Routes } from 'discord.js';
 import { guildId, clientId } from "./lib/guild-ids.js";

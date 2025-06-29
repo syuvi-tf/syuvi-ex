@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits, userMention } = require('discord.js');
-const { updatePlayerDisplayName, getPlayer, createPlayer } = require('../../lib/database.js');
+import { SlashCommandBuilder, PermissionFlagsBits, userMention } from "discord.js";
+import { updatePlayerDisplayName, getPlayer, createPlayer } from "../../lib/database.js";
 
 module.exports = {
   data: new SlashCommandBuilder()

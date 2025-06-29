@@ -1,8 +1,8 @@
-const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, channelMention, userMention, inlineCode, time, TimestampStyles } = require('discord.js');
-const { createTourney, getActiveTourney } = require('../../lib/database.js');
-const { startTourneyJob, endTourneyJob, updateSignupsJob } = require('../../lib/schedules.js');
-const { signupsChannelId, faqChannelId } = require('../../lib/guild-ids.js');
-const { confirmRow, getMapSelectModal } = require('../../lib/components.js');
+import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, channelMention, userMention, inlineCode, time, TimestampStyles } from "discord.js";
+import { createTourney, getActiveTourney } from "../../lib/database.js";
+import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
+import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
+import { confirmRow, getMapSelectModal } from "../../lib/components.js";
 
 // get the initial signup embed
 function getSignupsEmbed(trny) {

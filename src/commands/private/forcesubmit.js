@@ -1,7 +1,7 @@
-const { SlashCommandBuilder, PermissionFlagsBits, userMention, subtext, EmbedBuilder } = require('discord.js');
-const { getPlayer, createPlayer, getRecentTourney, getTourneyPlayer, createTourneyTime, getOngoingTourney } = require('../../lib/database.js');
-const { getTourneyMap, isValidTime, getTimeSectionsArray } = require('../../lib/shared-functions.js');
-const { updateSheetTimes } = require('../../lib/sheet.js');
+import { SlashCommandBuilder, PermissionFlagsBits, userMention, subtext, EmbedBuilder } from "discord.js";
+import { getPlayer, createPlayer, getRecentTourney, getTourneyPlayer, createTourneyTime, getOngoingTourney } from "../../lib/database.js";
+import { getTourneyMap, isValidTime, getTimeSectionsArray } from "../../lib/shared-functions.js";
+import { updateSheetTimes } from "../../lib/sheet.js";
 
 function getForceSubmitEmbed(player_id, time, time_id, trnyclass, map) {
   const embed = new EmbedBuilder()

@@ -1,6 +1,6 @@
-const { SlashCommandBuilder, inlineCode, EmbedBuilder } = require('discord.js');
-const { createPlayer, getPlayer } = require('../../lib/database.js');
-const { updatePlayerIds } = require('../../lib/database.js');
+import { SlashCommandBuilder, inlineCode, EmbedBuilder } from "discord.js";
+import { createPlayer, getPlayer } from "../../lib/database.js";
+import { updatePlayerIds } from "../../lib/database.js";
 
 function getEmbed(tempusInfo) {
   const embed = new EmbedBuilder()

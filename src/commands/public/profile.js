@@ -1,6 +1,6 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { getPlayer, createPlayer } = require('../../lib/database.js');
-const { getPlayerEmbed } = require('../../lib/components.js');
+import { SlashCommandBuilder } from "discord.js";
+import { getPlayer, createPlayer } from "../../lib/database.js";
+import { getPlayerEmbed } from "../../lib/components.js";
 
 module.exports = {
   data: new SlashCommandBuilder()

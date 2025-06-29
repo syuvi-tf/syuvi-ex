@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { getMapEmbed } = require('../../lib/components.js');
+import { SlashCommandBuilder } from "discord.js";
+import { getMapEmbed } from "../../lib/components.js";
 
 function getRandomMapId(maps, tier, rating) {
   if (!tier && !rating) { // any map
