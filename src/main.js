@@ -1,111 +1,128 @@
-import express from "express";
-import dotenv from "dotenv";
-import { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } from 'discord.js';
-import { openDB, getActiveTourney, closeDB } from './lib/database.js';
-import { signupsChannelId } from './lib/guild-ids.js';
-import { signupsReactionAdd, signupsReactionRemove } from './events/signup-reaction.js';
-import { memberJoin } from './events/member-join.js';
-import { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } from './lib/schedules.js';
-import { allCommands } from "./commands/commands.js";
+import express from "express"
+import dotenv from "dotenv"
+import { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } from "discord.js"
+import { openDB, getActiveTourney, closeDB } from "./lib/database.js"
+import { signupsChannelId } from "./lib/guild-ids.js"
+import { signupsReactionAdd, signupsReactionRemove } from "./events/signup-reaction.js"
+import { memberJoin } from "./events/member-join.js"
+import {
+  startTourneyJob,
+  endTourneyJob,
+  updateSignupsJob,
+  updateSheetsJob,
+} from "./lib/schedules.js"
+import { allCommands } from "./commands/commands.js"
 
-dotenv.config();
+dotenv.config()
 
-const expressApp = express();
-expressApp.get('/', (_, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send('{"status":"OK"}');
-});
-expressApp.listen(3000, () => console.log("Status API listening on port 3000"));
+const expressApp = express()
+expressApp.get("/", (_, res) => {
+  res.setHeader("Content-Type", "application/json")
+  res.send('{"status":"OK"}')
+})
+expressApp.listen(3000, () => console.log("Status API listening on port 3000"))
 
 function updateClientCommands(client) {
-  client.commands = new Collection();
+  client.commands = new Collection()
   for (const command in allCommands) {
     if (!("data" in command && "execute" in command)) {
-      console.log(`[WARNING] Command is missing a required "data" or "execute" property.`);
-      continue;
+      console.log(`[WARNING] Command is missing a required "data" or "execute" property.`)
+      continue
     }
 
-    client.commands.set(command.data.name, command);
+    client.commands.set(command.data.name, command)
   }
 }
 
 async function runCommand(interaction) {
-  if (!interaction.isChatInputCommand()) return;
-  const command = interaction.client.commands.get(interaction.commandName);
+  if (!interaction.isChatInputCommand()) return
+  const command = interaction.client.commands.get(interaction.commandName)
   if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
-    return;
+    console.error(`No command matching ${interaction.commandName} was found.`)
+    return
   }
   try {
-    await command.execute(interaction);
-  }
-  catch (error) {
-    console.error(error);
+    await command.execute(interaction)
+  } catch (error) {
+    console.error(error)
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
+      await interaction.followUp({
+        content: "encountered an error running this command",
+        flags: MessageFlags.Ephemeral,
+      })
     } else {
-      await interaction.reply({ content: 'encountered an error running this command', flags: MessageFlags.Ephemeral });
+      await interaction.reply({
+        content: "encountered an error running this command",
+        flags: MessageFlags.Ephemeral,
+      })
     }
   }
 }
 
 // create a new client instance
-const client = new Client(
-  {
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
-    partials: [Partials.Message, Partials.Reaction]
-  });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers,
+  ],
+  partials: [Partials.Message, Partials.Reaction],
+})
 
-updateClientCommands(client);
+updateClientCommands(client)
 
 // when the client is ready, run this code (only once)
-client.once(Events.ClientReady, readyClient => {
-  console.log(`ready! logged in as ${readyClient.user.tag}`);
-  openDB();
+client.once(Events.ClientReady, (readyClient) => {
+  console.log(`ready! logged in as ${readyClient.user.tag}`)
+  openDB()
   // if there is an active or upcoming tourney, schedule jobs
-  const trny = getActiveTourney();
-  const now = new Date(new Date().toUTCString());
+  const trny = getActiveTourney()
+  const now = new Date(new Date().toUTCString())
   if (trny) {
-    if ((new Date(trny.starts_at) > now)) // tourney hasn't started yet
-    {
-      startTourneyJob(trny.starts_at, client.channels.cache);
-    }
-    else if ((new Date(trny.starts_at) < now)) // tourney has started, but has not ended yet
-    {
-      updateSheetsJob();
+    if (new Date(trny.starts_at) > now) {
+      // tourney hasn't started yet
+      startTourneyJob(trny.starts_at, client.channels.cache)
+    } else if (new Date(trny.starts_at) < now) {
+      // tourney has started, but has not ended yet
+      updateSheetsJob()
     }
     // tourney hasn't ended yet
-    endTourneyJob(trny.ends_at, client.channels.cache, trny);
-    updateSignupsJob(client.channels.cache.get(signupsChannelId));
+    endTourneyJob(trny.ends_at, client.channels.cache, trny)
+    updateSignupsJob(client.channels.cache.get(signupsChannelId))
   }
-});
+})
 
-client.on(Events.InteractionCreate, async interaction => {
-  runCommand(interaction);
-});
+client.on(Events.InteractionCreate, async (interaction) => {
+  runCommand(interaction)
+})
 
 // there should only ever be one signups message in #signups, so checking just the channel id should be fine
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
-  if (!user.bot && reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
-    signupsReactionAdd(reaction.message, user);
+  if (
+    !user.bot &&
+    reaction.message.channelId === signupsChannelId &&
+    reaction.emoji.name === "✅"
+  ) {
+    signupsReactionAdd(reaction.message, user)
   }
-});
+})
 
 // remove user from tourney on signup reaction
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
-  if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === '✅') {
-    signupsReactionRemove(reaction.message, user);
+  if (reaction.message.channelId === signupsChannelId && reaction.emoji.name === "✅") {
+    signupsReactionRemove(reaction.message, user)
   }
-});
+})
 
 // give user division roles back from db, if they had any
 client.on(Events.GuildMemberAdd, async (member) => {
-  memberJoin(member);
-});
+  memberJoin(member)
+})
 
 // log in to discord with client token
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN)
 
-process.on('beforeExit', () => {
-  closeDB();
-});
+process.on("beforeExit", () => {
+  closeDB()
+})
