@@ -28,39 +28,39 @@ export default {
     await interaction.deferReply(); //thinking...
     const mapDivision = interaction.options.getString("division");
     const mapName = interaction.options.getString("map");
-    const trny = getActiveTourney();
+    const tourney = getActiveTourney();
     const isOngoing = getOngoingTourney() ? true : false;
     if (isOngoing) {
       interaction.editReply(`Couldn't change maps, as this tourney has already started.`);
-    } else if (trny.class === "Demo" && mapDivision === "Wood") {
+    } else if (tourney.class === "Demo" && mapDivision === "Wood") {
       interaction.editReply(`Couldn't change maps, since Demo doesn't have a Wood division.`);
     } else {
-      if (trny) {
+      if (tourney) {
         switch (mapDivision) {
           case "PlatGold":
-            trny.plat_gold_map = mapName;
+            tourney.plat_gold_map = mapName;
             break;
           case "Silver":
-            trny.silver_map = mapName;
+            tourney.silver_map = mapName;
             break;
           case "Bronze":
-            trny.bronze_map = mapName;
+            tourney.bronze_map = mapName;
             break;
           case "Steel":
-            trny.steel_map = mapName;
+            tourney.steel_map = mapName;
             break;
           case "Wood":
-            trny.wood_map = mapName;
+            tourney.wood_map = mapName;
             break;
         }
-        updateTourneyMap(trny);
+        updateTourneyMap(tourney);
 
-        interaction.editReply(`${trny.class} tournament maps updated to..
-Platinum / Gold: ${inlineCode(trny.plat_gold_map)}
-Silver: ${inlineCode(trny.silver_map)}
-Bronze: ${inlineCode(trny.bronze_map)}
-Steel: ${inlineCode(trny.steel_map)}
-${trny.class === "Soldier" ? `Wood: ${inlineCode(trny.wood_map)}` : ``}`);
+        interaction.editReply(`${tourney.class} tournament maps updated to..
+Platinum / Gold: ${inlineCode(tourney.plat_gold_map)}
+Silver: ${inlineCode(tourney.silver_map)}
+Bronze: ${inlineCode(tourney.bronze_map)}
+Steel: ${inlineCode(tourney.steel_map)}
+${tourney.class === "Soldier" ? `Wood: ${inlineCode(tourney.wood_map)}` : ``}`);
       }
     }
   },

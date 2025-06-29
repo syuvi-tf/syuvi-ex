@@ -13,9 +13,9 @@ const jwt = new JWT({
 const doc = new GoogleSpreadsheet(process.env.SHEETS_SPREADSHEET_ID, jwt);
 
 // relies on sheets named 'Soldier Template' and 'Demo Template' to exist
-async function getTemplate(trny_class) {
+async function getTemplate(tourney_class) {
   await doc.loadInfo();
-  return doc.sheetsByTitle[`${trny_class} Template`];
+  return doc.sheetsByTitle[`${tourney_class} Template`];
 }
 
 // used to get a 'Month' 'Year' tournament
@@ -77,11 +77,14 @@ async function updateRows(rows, times) {
   }
 }
 
-async function createTourneySheet(trny) {
+async function createTourneySheet(tourney) {
   console.log("trying to create a new tourney sheet..");
-  const templateSheet = await getTemplate(trny.class);
-  const trny_date = new Date(trny.starts_at);
-  const monthAndYear = trny_date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const templateSheet = await getTemplate(tourney.class);
+  const tourney_date = new Date(tourney.starts_at);
+  const monthAndYear = tourney_date.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
   // duplicate sheet from soldier / demo template
   await templateSheet.duplicate({ title: monthAndYear });
 
@@ -92,9 +95,9 @@ async function createTourneySheet(trny) {
   await sheet.loadCells("B1:M1");
   await sheet.loadCells("A57:B57");
   const titleCell = sheet.getCellByA1("B1");
-  const trny_idCell = sheet.getCellByA1("A57");
-  titleCell.value = `${trny.class} Tournament Standings (${trny_date.toLocaleDateString("en-US", { month: "long", year: "numeric" })})`;
-  trny_idCell.value = `Tourney ID: ${trny.id}`;
+  const tourney_idCell = sheet.getCellByA1("A57");
+  titleCell.value = `${tourney.class} Tournament Standings (${tourney_date.toLocaleDateString("en-US", { month: "long", year: "numeric" })})`;
+  tourney_idCell.value = `Tourney ID: ${tourney.id}`;
   const mapCells = {
     platinum: sheet.getCellByA1("B3"),
     gold: sheet.getCellByA1("D3"),
@@ -103,23 +106,26 @@ async function createTourneySheet(trny) {
     steel: sheet.getCellByA1("J3"),
     wood: sheet.getCellByA1("L3"),
   };
-  mapCells.platinum.value = trny.plat_gold_map;
-  mapCells.gold.value = trny.plat_gold_map;
-  mapCells.silver.value = trny.silver_map;
-  mapCells.bronze.value = trny.bronze_map;
-  mapCells.steel.value = trny.steel_map;
-  if (trny.class === "Soldier") {
-    mapCells.wood.value = trny.wood_map;
+  mapCells.platinum.value = tourney.plat_gold_map;
+  mapCells.gold.value = tourney.plat_gold_map;
+  mapCells.silver.value = tourney.silver_map;
+  mapCells.bronze.value = tourney.bronze_map;
+  mapCells.steel.value = tourney.steel_map;
+  if (tourney.class === "Soldier") {
+    mapCells.wood.value = tourney.wood_map;
   }
   await sheet.saveUpdatedCells();
   sheet.loadHeaderRow(6); // header row is always 6
-  updateSheetTimes(trny);
+  updateSheetTimes(tourney);
 }
 
-async function updateSheetTimes(trny) {
-  const dbTimes = getBestTourneyTimes(trny.id);
-  const trny_date = new Date(trny.starts_at);
-  const monthAndYear = trny_date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+async function updateSheetTimes(tourney) {
+  const dbTimes = getBestTourneyTimes(tourney.id);
+  const tourney_date = new Date(tourney.starts_at);
+  const monthAndYear = tourney_date.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
   // get current tourney's sheet
   const sheet = await getSheetByName(monthAndYear);
   sheet.loadHeaderRow(6);

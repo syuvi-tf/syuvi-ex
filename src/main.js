@@ -77,18 +77,18 @@ client.once(Events.ClientReady, (readyClient) => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
   openDB();
   // if there is an active or upcoming tourney, schedule jobs
-  const trny = getActiveTourney();
+  const tourney = getActiveTourney();
   const now = new Date(new Date().toUTCString());
-  if (trny) {
-    if (new Date(trny.starts_at) > now) {
+  if (tourney) {
+    if (new Date(tourney.starts_at) > now) {
       // tourney hasn't started yet
-      startTourneyJob(trny.starts_at, client.channels.cache);
-    } else if (new Date(trny.starts_at) < now) {
+      startTourneyJob(tourney.starts_at, client.channels.cache);
+    } else if (new Date(tourney.starts_at) < now) {
       // tourney has started, but has not ended yet
       updateSheetsJob();
     }
     // tourney hasn't ended yet
-    endTourneyJob(trny.ends_at, client.channels.cache, trny);
+    endTourneyJob(tourney.ends_at, client.channels.cache, tourney);
     updateSignupsJob(client.channels.cache.get(signupsChannelId));
   }
 });

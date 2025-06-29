@@ -16,9 +16,9 @@ import {
 import { getTourneyMap, isValidTime, getTimeSectionsArray } from "../../lib/shared-functions.js";
 import { updateSheetTimes } from "../../lib/sheet.js";
 
-function getForceSubmitEmbed(player_id, time, time_id, trnyclass, map) {
+function getForceSubmitEmbed(player_id, time, time_id, tourneyclass, map) {
   const embed = new EmbedBuilder().setColor("A69ED7")
-    .setDescription(`TF2PJ | (${trnyclass}) Force submitted a ${time} for ${userMention(player_id)}
+    .setDescription(`TF2PJ | (${tourneyclass}) Force submitted a ${time} for ${userMention(player_id)}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}
 
@@ -40,7 +40,7 @@ export default {
     const user = interaction.options.getUser("player");
     const time = interaction.options.getString("time");
     const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
-    const trny = getOngoingTourney() ?? getRecentTourney();
+    const tourney = getOngoingTourney() ?? getRecentTourney();
 
     if (!isValidTime(time)) {
       await interaction.editReply({
@@ -48,16 +48,17 @@ export default {
 ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       });
     } else {
-      if (!trny) {
+      if (!tourney) {
         interaction.editReply(
           `❌ Couldn't manually submit this time, as there's no ongoing or recent tourney.`,
         );
       } else {
-        const division = trny.class === "Soldier" ? player.soldier_division : player.demo_division;
+        const division =
+          tourney.class === "Soldier" ? player.soldier_division : player.demo_division;
         if (
           !division ||
-          !getTourneyPlayer(trny.id, player.id) ||
-          getTourneyPlayer(trny.id, player.id).signed_up === 0
+          !getTourneyPlayer(tourney.id, player.id) ||
+          getTourneyPlayer(tourney.id, player.id).signed_up === 0
         ) {
           interaction.editReply(
             `❌ Couldn't manually submit this time, as this player is missing a division or wasn't signed up.`,
@@ -70,19 +71,19 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
               : parseFloat(
                   `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
                 );
-          const time_id = createTourneyTime(trny.id, player.id, timeSeconds, true);
+          const time_id = createTourneyTime(tourney.id, player.id, timeSeconds, true);
           interaction.editReply({
             embeds: [
               getForceSubmitEmbed(
                 player.discord_id,
                 time,
                 time_id,
-                trny.class,
-                getTourneyMap(trny, division),
+                tourney.class,
+                getTourneyMap(tourney, division),
               ),
             ],
           });
-          updateSheetTimes(trny);
+          updateSheetTimes(tourney);
         }
       }
     }

@@ -25,44 +25,44 @@ function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
   schedule.scheduleJob(date, async function () {
     console.log("tried to start a tourney!");
-    const trny = getActiveTourney();
-    createTourneySheet(trny);
+    const tourney = getActiveTourney();
+    createTourneySheet(tourney);
     updateSheetsJob();
     // send all times channels their division's map embed
     channels.get(timesChannelIds.get("Platinum")).send({
-      content: `🏁 A ${trny.class} tourney has started! The map is..`,
-      embeds: [await getMapEmbedByName(trny.plat_gold_map)],
+      content: `🏁 A ${tourney.class} tourney has started! The map is..`,
+      embeds: [await getMapEmbedByName(tourney.plat_gold_map)],
     });
     channels.get(timesChannelIds.get("Gold")).send({
-      content: `🏁 A ${trny.class} tourney has started! The map is..`,
-      embeds: [await getMapEmbedByName(trny.plat_gold_map)],
+      content: `🏁 A ${tourney.class} tourney has started! The map is..`,
+      embeds: [await getMapEmbedByName(tourney.plat_gold_map)],
     });
     channels.get(timesChannelIds.get("Silver")).send({
-      content: `🏁 A ${trny.class} tourney has started! The map is..`,
-      embeds: [await getMapEmbedByName(trny.silver_map)],
+      content: `🏁 A ${tourney.class} tourney has started! The map is..`,
+      embeds: [await getMapEmbedByName(tourney.silver_map)],
     });
     channels.get(timesChannelIds.get("Bronze")).send({
-      content: `🏁 A ${trny.class} tourney has started! The map is..`,
-      embeds: [await getMapEmbedByName(trny.bronze_map)],
+      content: `🏁 A ${tourney.class} tourney has started! The map is..`,
+      embeds: [await getMapEmbedByName(tourney.bronze_map)],
     });
     channels.get(timesChannelIds.get("Steel")).send({
-      content: `🏁 A ${trny.class} tourney has started! The map is..`,
-      embeds: [await getMapEmbedByName(trny.steel_map)],
+      content: `🏁 A ${tourney.class} tourney has started! The map is..`,
+      embeds: [await getMapEmbedByName(tourney.steel_map)],
     });
-    if (trny.class === "Soldier") {
+    if (tourney.class === "Soldier") {
       channels.get(timesChannelIds.get("Wood")).send({
-        content: `🏁 A ${trny.class} tourney has started! The map is..`,
-        embeds: [await getMapEmbedByName(trny.wood_map)],
+        content: `🏁 A ${tourney.class} tourney has started! The map is..`,
+        embeds: [await getMapEmbedByName(tourney.wood_map)],
       });
     }
   });
 }
 
-function endTourneyJob(datetime, channels, trny) {
+function endTourneyJob(datetime, channels, tourney) {
   const date = new Date(datetime); // from sqlite datetime
   schedule.scheduleJob(date, async function () {
     // update sheets one more time
-    updateSheetTimes(trny);
+    updateSheetTimes(tourney);
     console.log("tried to end a tourney!");
     const signupChannel = await channels.get(signupsChannelId);
     const roles = await signupChannel.guild.roles;
@@ -76,28 +76,28 @@ function endTourneyJob(datetime, channels, trny) {
     // send all times channels an end message and fastest times
     channels.get(timesChannelIds.get("Platinum")).send({
       content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`,
-      embeds: [getTourneyTopTimesEmbed(trny, "Platinum", roles)],
+      embeds: [getTourneyTopTimesEmbed(tourney, "Platinum", roles)],
     });
     channels.get(timesChannelIds.get("Gold")).send({
       content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`,
-      embeds: [getTourneyTopTimesEmbed(trny, "Gold", roles)],
+      embeds: [getTourneyTopTimesEmbed(tourney, "Gold", roles)],
     });
     channels.get(timesChannelIds.get("Silver")).send({
       content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`,
-      embeds: [getTourneyTopTimesEmbed(trny, "Silver", roles)],
+      embeds: [getTourneyTopTimesEmbed(tourney, "Silver", roles)],
     });
     channels.get(timesChannelIds.get("Bronze")).send({
       content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`,
-      embeds: [getTourneyTopTimesEmbed(trny, "Bronze", roles)],
+      embeds: [getTourneyTopTimesEmbed(tourney, "Bronze", roles)],
     });
     channels.get(timesChannelIds.get("Steel")).send({
       content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`,
-      embeds: [getTourneyTopTimesEmbed(trny, "Steel", roles)],
+      embeds: [getTourneyTopTimesEmbed(tourney, "Steel", roles)],
     });
-    if (trny.class === "Soldier") {
+    if (tourney.class === "Soldier") {
       channels.get(timesChannelIds.get("Wood")).send({
         content: `🏁 Tourney has ended! If you have a valid time to submit, please do so manually.`,
-        embeds: [getTourneyTopTimesEmbed(trny, "Wood", roles)],
+        embeds: [getTourneyTopTimesEmbed(tourney, "Wood", roles)],
       });
     }
   });
@@ -114,19 +114,19 @@ async function updateSignupsJob(channel) {
   const embed = signupMessage ? signupMessage.embeds[0] : null;
 
   const job = schedule.scheduleJob("* * * * *", async function () {
-    const trny = getActiveTourney();
+    const tourney = getActiveTourney();
 
-    // trny has ended or no #signup message
-    if (!trny || !signupMessage || !embed) {
+    // tourney has ended or no #signup message
+    if (!tourney || !signupMessage || !embed) {
       console.log("updateSignupsJob() finished");
       job.cancel(false);
       return;
     }
 
     // update #signup embed
-    const players = getTourneyPlayers(trny.id);
+    const players = getTourneyPlayers(tourney.id);
     let newEmbed = EmbedBuilder.from(embed);
-    newEmbed = resetFields(newEmbed, trny.class, players.length);
+    newEmbed = resetFields(newEmbed, tourney.class, players.length);
 
     // sort each player into their respective embed division
     const playersByDivision = Object.groupBy(players, ({ division }) => division);
@@ -151,12 +151,12 @@ async function updateSignupsJob(channel) {
 
 async function updateSheetsJob() {
   const job = schedule.scheduleJob("*/1 * * * *", async function () {
-    const trny = getActiveTourney();
-    if (!trny) {
+    const tourney = getActiveTourney();
+    if (!tourney) {
       console.log("updateSheetsJob() finished");
       job.cancel(false);
     } else {
-      updateSheetTimes(trny);
+      updateSheetTimes(tourney);
     }
   });
 }

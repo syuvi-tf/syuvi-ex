@@ -15,8 +15,8 @@ import {
   getTimeSectionsArray,
 } from "../../lib/shared-functions.js";
 
-async function noTourneyOrPlayer(interaction, trny) {
-  if (!trny) {
+async function noTourneyOrPlayer(interaction, tourney) {
+  if (!tourney) {
     await interaction.editReply({
       content: `There's no ongoing tourney..`,
     });
@@ -42,18 +42,18 @@ async function noTempusIDOrDivision(interaction, player) {
   }
 }
 
-async function getTempusTime(player, map, trnyclass) {
+async function getTempusTime(player, map, tourneyclass) {
   const response = await (
     await fetch(
-      `https://tempus2.xyz/api/v0/maps/name/${map}/zones/typeindex/map/1/records/player/${player.tempus_id}/${trnyclass}`,
+      `https://tempus2.xyz/api/v0/maps/name/${map}/zones/typeindex/map/1/records/player/${player.tempus_id}/${tourneyclass}`,
     )
   ).json();
   return response;
 }
 
-function getVerifiedEmbed(user, time, time_id, tempusPRId, trnyclass, map) {
+function getVerifiedEmbed(user, time, time_id, tempusPRId, tourneyclass, map) {
   const embed = new EmbedBuilder().setColor("A69ED7").setThumbnail(user.avatarURL())
-    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
+    .setDescription(`TF2PJ | (${tourneyclass}) ${userMention(user.id)} submitted ${time}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}
 
@@ -61,12 +61,12 @@ ${hyperlink("run details on Tempus", `https://tempus2.xyz/records/${tempusPRId}`
   return embed;
 }
 
-function getUnverifiedEmbed(user, time, time_id, tempusPRTime, trnyclass, map) {
+function getUnverifiedEmbed(user, time, time_id, tempusPRTime, tourneyclass, map) {
   const minutes = String(Math.floor(tempusPRTime / 60)).padStart(2, "0");
   const seconds = String(Math.floor(tempusPRTime % 60)).padStart(2, "0");
   const ms = String(Math.floor((tempusPRTime % 1) * 100)).padStart(2, "0");
   const embed = new EmbedBuilder().setColor("F97583").setThumbnail(user.avatarURL())
-    .setDescription(`TF2PJ | (${trnyclass}) ${userMention(user.id)} submitted ${time}
+    .setDescription(`TF2PJ | (${tourneyclass}) ${userMention(user.id)} submitted ${time}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}
 
@@ -86,21 +86,21 @@ export default {
     const time = interaction.options.getString("time");
     const member = interaction.member;
     const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
-    const trny = getOngoingTourney();
+    const tourney = getOngoingTourney();
     // const now = new Date(new Date().toUTCString());
 
     // no in-progress tourney, or no signed_up tourney player
     if (
-      !trny ||
-      !getTourneyPlayer(trny.id, player.id) ||
-      getTourneyPlayer(trny.id, player.id).signed_up === 0
+      !tourney ||
+      !getTourneyPlayer(tourney.id, player.id) ||
+      getTourneyPlayer(tourney.id, player.id).signed_up === 0
     ) {
-      noTourneyOrPlayer(interaction, trny);
+      noTourneyOrPlayer(interaction, tourney);
       return;
     }
     // try to submit time now
-    const trny_class = trny.class === "Soldier" ? 3 : 4;
-    const division = trny_class === 3 ? player.soldier_division : player.demo_division;
+    const tourney_class = tourney.class === "Soldier" ? 3 : 4;
+    const division = tourney_class === 3 ? player.soldier_division : player.demo_division;
     // no tempus id or division, show player info
     if (!player.tempus_id || !division) {
       noTempusIDOrDivision(interaction, player);
@@ -114,8 +114,8 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
     }
     // tempus PR wasn't during tourney, time submitted is faster than tempus PR,
     else {
-      const map = getTourneyMap(trny, division);
-      const response = await getTempusTime(player, map, trny_class);
+      const map = getTourneyMap(tourney, division);
+      const response = await getTempusTime(player, map, tourney_class);
       const timeParts = getTimeSectionsArray(time);
       const timeSeconds =
         timeParts.length === 2
@@ -135,35 +135,35 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       }
       // verified
       else if (
-        tempusTime.date > new Date(trny.starts_at) &&
+        tempusTime.date > new Date(tourney.starts_at) &&
         Math.abs(timeSeconds - tempusTime.time) <= 0.02
       ) {
-        const time_id = createTourneyTime(trny.id, player.id, tempusTime.time, true);
+        const time_id = createTourneyTime(tourney.id, player.id, tempusTime.time, true);
         const embed = getVerifiedEmbed(
           interaction.user,
           time,
           time_id,
           tempusTime.id,
-          trny.class,
+          tourney.class,
           map,
         );
         await interaction.editReply({ embeds: [embed] });
       }
       // unverified
       else if (timeSeconds > tempusTime.time) {
-        const previousTime = getPlayerBestTourneyTime(trny.id, player.id);
+        const previousTime = getPlayerBestTourneyTime(tourney.id, player.id);
         // check if time is slower than tourney PR
         if (previousTime && previousTime.run_time < timeSeconds) {
           await interaction.editReply(`Couldn't submit this time, as it's slower than your tourney PR.
 ${subtext(`tourney PR: ${formatTime(previousTime.run_time, true)}`)}`);
         } else {
-          const time_id = createTourneyTime(trny.id, player.id, timeSeconds, false);
+          const time_id = createTourneyTime(tourney.id, player.id, timeSeconds, false);
           const embed = getUnverifiedEmbed(
             interaction.user,
             time,
             time_id,
             tempusTime.time,
-            trny.class,
+            tourney.class,
             map,
           );
           await interaction.editReply({ embeds: [embed] });

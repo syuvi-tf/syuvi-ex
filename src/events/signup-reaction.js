@@ -7,20 +7,21 @@ import {
 } from "../lib/database.js";
 
 function signupsReactionAdd(message, user) {
-  const trny = getActiveTourney();
+  const tourney = getActiveTourney();
   const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
-  if (trny && player) {
-    const division_name = trny.class === "Soldier" ? player.soldier_division : player.demo_division;
-    createTourneyPlayer(trny.id, player.id, division_name);
+  if (tourney && player) {
+    const division_name =
+      tourney.class === "Soldier" ? player.soldier_division : player.demo_division;
+    createTourneyPlayer(tourney.id, player.id, division_name);
   }
 }
 
 function signupsReactionRemove(message, user) {
-  const trny = getActiveTourney();
+  const tourney = getActiveTourney();
   //createPlayer() shouldn't be called here unless syuvi is offline when a player signs up
   const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
-  if (trny && player) {
-    removeTourneyPlayer(trny.id, player.id);
+  if (tourney && player) {
+    removeTourneyPlayer(tourney.id, player.id);
   }
 }
 

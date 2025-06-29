@@ -93,11 +93,11 @@ function updatePlayerDivision(discord_id, division) {
     WHERE discord_id = ?`);
   update.run(division.name, discord_id);
 
-  const trny = getActiveTourney();
+  const tourney = getActiveTourney();
   const player = getPlayer(discord_id);
   // will not update if a player isn't signed up, so this is okay
-  if (trny && player && division.class === trny.class) {
-    updateTourneyPlayerDivision(trny.id, player.id, division.name);
+  if (tourney && player && division.class === tourney.class) {
+    updateTourneyPlayerDivision(tourney.id, player.id, division.name);
   }
 }
 
@@ -105,7 +105,7 @@ function updatePlayerDivision(discord_id, division) {
 // only creates a player if they have a division role
 function updateAllPlayerDivisions(members) {
   let numUpdates = 0;
-  const trny = getActiveTourney();
+  const tourney = getActiveTourney();
   const update = db.prepare(`UPDATE player
       SET soldier_division = :soldier_division,
           demo_division = :demo_division
@@ -114,12 +114,12 @@ function updateAllPlayerDivisions(members) {
     for (const partialPlayer of players) {
       update.run(partialPlayer);
       const player = getPlayer(partialPlayer.discord_id);
-      if (trny && player) {
-        if (trny.class === "Soldier") {
-          updateTourneyPlayerDivision(trny.id, player.id, player.soldier_division);
+      if (tourney && player) {
+        if (tourney.class === "Soldier") {
+          updateTourneyPlayerDivision(tourney.id, player.id, player.soldier_division);
         } else {
           // demo tourney
-          updateTourneyPlayerDivision(trny.id, player.id, player.demo_division);
+          updateTourneyPlayerDivision(tourney.id, player.id, player.demo_division);
         }
       }
     }
@@ -164,21 +164,21 @@ function updatePlayerIds(discord_id, tempus_id, steam_id) {
 }
 
 // only create a tourney if none are upcoming / active
-function createTourney(trny) {
-  const activeTrny = getActiveTourney();
-  if (!activeTrny) {
+function createTourney(tourney) {
+  const activetourney = getActiveTourney();
+  if (!activetourney) {
     const insert =
       db.prepare(`INSERT OR IGNORE INTO tournament (class, plat_gold_map, silver_map, bronze_map, steel_map, wood_map, starts_at, ends_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
     insert.run(
-      trny.class,
-      trny.plat_gold,
-      trny.silver,
-      trny.bronze,
-      trny.steel,
-      trny.wood,
-      trny.starts_at,
-      trny.ends_at,
+      tourney.class,
+      tourney.plat_gold,
+      tourney.silver,
+      tourney.bronze,
+      tourney.steel,
+      tourney.wood,
+      tourney.starts_at,
+      tourney.ends_at,
     );
     return true;
   }
@@ -186,7 +186,7 @@ function createTourney(trny) {
   return false;
 }
 
-function updateTourneyMap(trny) {
+function updateTourneyMap(tourney) {
   const update = db.prepare(`UPDATE tournament
     SET plat_gold_map = ?,
     silver_map = ?,
@@ -195,12 +195,12 @@ function updateTourneyMap(trny) {
     wood_map = ?
     WHERE id = ?`);
   update.run(
-    trny.plat_gold_map,
-    trny.silver_map,
-    trny.bronze_map,
-    trny.steel_map,
-    trny.wood_map,
-    trny.id,
+    tourney.plat_gold_map,
+    tourney.silver_map,
+    tourney.bronze_map,
+    tourney.steel_map,
+    tourney.wood_map,
+    tourney.id,
   );
 }
 

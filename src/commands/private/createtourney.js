@@ -17,14 +17,14 @@ import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
 import { confirmRow, getMapSelectModal } from "../../lib/components.js";
 
 // get the initial signup embed
-function getSignupsEmbed(trny) {
+function getSignupsEmbed(tourney) {
   // get tourney we just wrote to the database
-  const starts_at = time(new Date(trny.starts_at), TimestampStyles.LongDateTime);
-  const ends_at = time(new Date(trny.ends_at), TimestampStyles.ShortDateTime);
-  const relative_starts_at = time(new Date(trny.starts_at), TimestampStyles.RelativeTime);
+  const starts_at = time(new Date(tourney.starts_at), TimestampStyles.LongDateTime);
+  const ends_at = time(new Date(tourney.ends_at), TimestampStyles.ShortDateTime);
+  const relative_starts_at = time(new Date(tourney.starts_at), TimestampStyles.RelativeTime);
   const signupsEmbed = new EmbedBuilder()
     .setColor("A69ED7")
-    .setTitle(`${trny.class} Tournament`)
+    .setTitle(`${tourney.class} Tournament`)
     .setDescription(
       `Signups are open for a tournament! See ${channelMention(faqChannelId)} for more info.
     
@@ -41,7 +41,7 @@ starts ${relative_starts_at}
     )
     .setFooter({ text: "updates every minute" });
 
-  if (trny.class === "Soldier") {
+  if (tourney.class === "Soldier") {
     signupsEmbed.addFields({ name: "Wood", value: "\u200b" });
   }
 
@@ -52,11 +52,11 @@ starts ${relative_starts_at}
 /**
  *
  * @param {ButtonInteraction} confirmResponse
- * @param {Tournament} submitted_trny
+ * @param {Tournament} submitted_tourney
  * @param {ChatInputCommandInteraction} interaction
  * @returns
  */
-async function handleConfirm(confirmResponse, submitted_trny, interaction) {
+async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
   const signupsChannel = await interaction.guild.channels.cache.get(signupsChannelId);
 
   await confirmResponse.update({
@@ -65,7 +65,7 @@ async function handleConfirm(confirmResponse, submitted_trny, interaction) {
   });
 
   // create tourney in the database if there are none active
-  const tourneyCreated = createTourney(submitted_trny);
+  const tourneyCreated = createTourney(submitted_tourney);
   if (!tourneyCreated) {
     await interaction.channel.send(
       `❌ Couldn't create this tournament. Is there already one upcoming / active?`,
@@ -74,14 +74,14 @@ async function handleConfirm(confirmResponse, submitted_trny, interaction) {
   }
 
   // get the tourney that was just created
-  const trny = getActiveTourney();
+  const tourney = getActiveTourney();
 
   // start jobs for it
-  startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
-  endTourneyJob(trny.ends_at, interaction.guild.channels.cache, trny);
+  startTourneyJob(tourney.starts_at, interaction.guild.channels.cache);
+  endTourneyJob(tourney.ends_at, interaction.guild.channels.cache, tourney);
 
   // then send #signup message
-  const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(trny)] });
+  const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(tourney)] });
   await signupsMessage.react(`✅`);
 
   // run this job after #signup message sends
@@ -93,10 +93,10 @@ async function handleConfirm(confirmResponse, submitted_trny, interaction) {
 /**
  *
  * @param {InteractionCallbackResponse} tourneyResponse
- * @param {Tournament} submitted_trny
+ * @param {Tournament} submitted_tourney
  * @param {ChatInputCommandInteraction} interaction
  */
-async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
+async function tryConfirm(tourneyResponse, submitted_tourney, interaction) {
   const filter = (i) => i.user.id === interaction.user.id;
 
   try {
@@ -115,7 +115,7 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
         await interaction.channel.send(`❌ Canceled command.`);
         break;
       case "confirm":
-        await handleConfirm(confirmResponse, submitted_trny, interaction);
+        await handleConfirm(confirmResponse, submitted_tourney, interaction);
         break;
       default:
         console.log(`ERROR: unexpected confirmResponse.customId '${confirmResponse.customId}'`);
@@ -180,7 +180,7 @@ const command = new SlashCommandBuilder()
 class Tournament {
   /**
    *
-   * @param {string} trnyClass
+   * @param {string} tourneyClass
    * @param {string} platGoldMap
    * @param {string} silverMap
    * @param {string} bronzeMap
@@ -189,8 +189,17 @@ class Tournament {
    * @param {string} startsAt
    * @param {string} endsAt
    */
-  constructor(trnyClass, platGoldMap, silverMap, bronzeMap, steelMap, woodMap, startsAt, endsAt) {
-    this.class = trnyClass;
+  constructor(
+    tourneyClass,
+    platGoldMap,
+    silverMap,
+    bronzeMap,
+    steelMap,
+    woodMap,
+    startsAt,
+    endsAt,
+  ) {
+    this.class = tourneyClass;
     this.plat_gold = platGoldMap;
     this.silver = silverMap;
     this.bronze = bronzeMap;
@@ -206,7 +215,7 @@ class Tournament {
  * @param {ChatInputCommandInteraction} interaction
  */
 async function executeCommand(interaction) {
-  const trnyClass = interaction.options.getString("class");
+  const tourneyClass = interaction.options.getString("class");
   const month = interaction.options.getString("month");
   const dayOption = interaction.options.getInteger("day");
   const day = dayOption < 10 ? "0" + dayOption : dayOption;
@@ -230,7 +239,7 @@ async function executeCommand(interaction) {
   const channel = await interaction.channel;
 
   // show map select modal
-  await interaction.showModal(getMapSelectModal(trnyClass));
+  await interaction.showModal(getMapSelectModal(tourneyClass));
 
   // wait for maps to be selected
   const waitMessage = await channel.send({
@@ -247,12 +256,12 @@ async function executeCommand(interaction) {
 
     const submittedMapFields = submittedMapResponse.fields;
     const submittedTourney = new Tournament(
-      trnyClass,
+      tourneyClass,
       submittedMapFields.getTextInputValue("plat_gold_map"),
       submittedMapFields.getTextInputValue("silver_map"),
       submittedMapFields.getTextInputValue("bronze_map"),
       submittedMapFields.getTextInputValue("steel_map"),
-      trnyClass === "Soldier" ? submittedMapFields.getTextInputValue("wood_map") : null,
+      tourneyClass === "Soldier" ? submittedMapFields.getTextInputValue("wood_map") : null,
       datetime,
       endDatetime,
     );
@@ -262,12 +271,12 @@ async function executeCommand(interaction) {
 
     // tourney confirmation message
     const tourneyResponse = await submittedMapResponse.reply({
-      content: `${trnyClass} tournament start date set to ${discordTimestamp}
+      content: `${tourneyClass} tournament start date set to ${discordTimestamp}
 Platinum / Gold Map: ${inlineCode(submittedTourney.plat_gold)}
 Silver Map: ${inlineCode(submittedTourney.silver)}
 Bronze Map: ${inlineCode(submittedTourney.bronze)}
 Steel Map: ${inlineCode(submittedTourney.steel)}
-${trnyClass === "Soldier" ? `Wood Map: ${inlineCode(submittedTourney.wood)}` : ``}`,
+${tourneyClass === "Soldier" ? `Wood Map: ${inlineCode(submittedTourney.wood)}` : ``}`,
       components: [confirmRow],
       withResponse: true,
     });

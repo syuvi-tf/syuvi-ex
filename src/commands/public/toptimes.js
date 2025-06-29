@@ -26,35 +26,37 @@ export default {
     ),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const trny = getOngoingTourney() ?? getRecentTourney();
+    const tourney = getOngoingTourney() ?? getRecentTourney();
     const member = interaction.member;
     const division_name = interaction.options.getString("division") ?? null;
-    if (!trny) {
+    if (!tourney) {
       interaction.editReply(`Couldn't find a tourney to display a leaderboard for..`);
     } else {
       if (!division_name) {
         // no division name, use player's div if they have one
         const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
         const player_division_name =
-          trny.class === "Soldier" ? player.soldier_division : player.demo_division;
+          tourney.class === "Soldier" ? player.soldier_division : player.demo_division;
         if (player_division_name) {
           // embed leaderboard for player's division
           interaction.editReply({
-            embeds: [getTourneyTopTimesEmbed(trny, player_division_name, interaction.guild.roles)],
+            embeds: [
+              getTourneyTopTimesEmbed(tourney, player_division_name, interaction.guild.roles),
+            ],
           });
         } else {
           interaction.editReply(
-            `Couldn't display a leaderboard, as you don't have a ${trny.class} division.`,
+            `Couldn't display a leaderboard, as you don't have a ${tourney.class} division.`,
           );
         }
       } else {
         // run normally
-        if (trny.class === "Demo" && division_name === "Wood") {
+        if (tourney.class === "Demo" && division_name === "Wood") {
           interaction.editReply("There is no Wood Demo leaderboard..");
         } else {
           // embed for selected division
           interaction.editReply({
-            embeds: [getTourneyTopTimesEmbed(trny, division_name, interaction.guild.roles)],
+            embeds: [getTourneyTopTimesEmbed(tourney, division_name, interaction.guild.roles)],
           });
         }
       }

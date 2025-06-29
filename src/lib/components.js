@@ -29,17 +29,17 @@ function getInlineCodeTopTimes(toptimes) {
   return inlines;
 }
 
-function getTourneyTopTimesEmbed(trny, division_name, roles) {
+function getTourneyTopTimesEmbed(tourney, division_name, roles) {
   const division_color = roles.cache.get(
-    divisionRoleIds.get(`${division_name} ${trny.class}`),
+    divisionRoleIds.get(`${division_name} ${tourney.class}`),
   ).color;
-  const db_toptimes = getTourneyDivisionTopTimes(trny.id, division_name);
+  const db_toptimes = getTourneyDivisionTopTimes(tourney.id, division_name);
   const toptimes = db_toptimes.map((time) =>
     Object.assign(time, { run_time: formatTime(time.run_time, time.verified) }),
   );
   const embed = new EmbedBuilder().setColor(division_color)
-    .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${trny.class}`))} Top 8
-> ${getTourneyMap(trny, division_name)}
+    .setDescription(`### ${roleMention(divisionRoleIds.get(`${division_name} ${tourney.class}`))} Top 8
+> ${getTourneyMap(tourney, division_name)}
 ${getInlineCodeTopTimes(toptimes)}`);
   return embed;
 }

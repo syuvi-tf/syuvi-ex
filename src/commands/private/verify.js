@@ -9,9 +9,9 @@ import { getTourney, verifyTourneyTime, getPlayerByID, getTime } from "../../lib
 import { getTourneyMap, formatTime } from "../../lib/shared-functions.js";
 import { updateSheetTimes } from "../../lib/sheet.js";
 
-function getForceVerifiedEmbed(player_id, time, time_id, trnyclass, map) {
+function getForceVerifiedEmbed(player_id, time, time_id, tourneyclass, map) {
   const embed = new EmbedBuilder().setColor("A69ED7")
-    .setDescription(`TF2PJ | (${trnyclass}) Verified a ${time} for ${userMention(player_id)}
+    .setDescription(`TF2PJ | (${tourneyclass}) Verified a ${time} for ${userMention(player_id)}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}
 
@@ -38,8 +38,8 @@ export default {
     const time = getTime(time_id);
     if (time) {
       const player = getPlayerByID(time.player_id);
-      const trny = getTourney(time.tournament_id);
-      const division = trny.class === "Soldier" ? player.soldier_division : player.demo_division;
+      const tourney = getTourney(time.tournament_id);
+      const division = tourney.class === "Soldier" ? player.soldier_division : player.demo_division;
       verifyTourneyTime(time_id);
       interaction.editReply({
         embeds: [
@@ -47,12 +47,12 @@ export default {
             player.id,
             formatTime(time.run_time),
             time_id,
-            trny.class,
-            getTourneyMap(trny, division),
+            tourney.class,
+            getTourneyMap(tourney, division),
           ),
         ],
       });
-      updateSheetTimes(trny);
+      updateSheetTimes(tourney);
     } else {
       interaction.editReply(`❌ Couldn't find a time to verify.`);
     }

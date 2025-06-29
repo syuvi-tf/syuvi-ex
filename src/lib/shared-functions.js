@@ -5,19 +5,19 @@ function formatSteamURL(steam_id32) {
   return steam_url;
 }
 
-function getTourneyMap(trny, division) {
+function getTourneyMap(tourney, division) {
   switch (division) {
     case "Platinum":
     case "Gold":
-      return trny.plat_gold_map;
+      return tourney.plat_gold_map;
     case "Silver":
-      return trny.silver_map;
+      return tourney.silver_map;
     case "Bronze":
-      return trny.bronze_map;
+      return tourney.bronze_map;
     case "Steel":
-      return trny.steel_map;
+      return tourney.steel_map;
     case "Wood":
-      return trny.wood_map;
+      return tourney.wood_map;
     default:
       console.log(`getTourneyMap() error: couldn't find a tourney map..`);
   }
