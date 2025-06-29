@@ -10,43 +10,61 @@ import {
   ChatInputCommandInteraction,
   InteractionCallbackResponse,
   ButtonInteraction,
+  roleMention,
 } from "discord.js";
 import { createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
-import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
+import { signupsChannelId, faqChannelId, divisionRoleIds } from "../../lib/guild-ids.js";
 import { confirmRow, getMapSelectModal } from "../../lib/components.js";
 
-// get the initial signup embed
-function getSignupsEmbed(tourney) {
-  // get tourney we just wrote to the database
+function getSignupEmbed(tourney) {
   const starts_at = time(new Date(tourney.starts_at), TimestampStyles.LongDateTime);
   const ends_at = time(new Date(tourney.ends_at), TimestampStyles.ShortDateTime);
   const relative_starts_at = time(new Date(tourney.starts_at), TimestampStyles.RelativeTime);
+
   const signupsEmbed = new EmbedBuilder()
     .setColor("A69ED7")
     .setTitle(`${tourney.class} Tournament`)
     .setDescription(
       `Signups are open for a tournament! See ${channelMention(faqChannelId)} for more info.
-    
+
 ⌛ ${starts_at} - ${ends_at}
 starts ${relative_starts_at}
 \u200b`,
     )
-    .addFields(
-      { name: "Platinum", value: "\u200b" },
-      { name: "Gold", value: "\u200b" },
-      { name: "Silver", value: "\u200b" },
-      { name: "Bronze", value: "\u200b" },
-      { name: "Steel", value: "\u200b" },
-    )
     .setFooter({ text: "updates every minute" });
 
+  return signupsEmbed;
+}
+
+/**
+ * Creates a series of embeds - an initial announcement embed and an embed per division.
+ * There is a small character limit per embed and embed field, we avoid it by creating
+ * an embed per division
+ * @param {Tournament} tourney
+ * @returns {EmbedBuilder[]} an array of the initial signup embeds for the tournament
+ */
+function getDivisionEmbeds(tourney) {
+  const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
+
   if (tourney.class === "Soldier") {
-    signupsEmbed.addFields({ name: "Wood", value: "\u200b" });
+    divisions.push("Wood");
   }
 
-  signupsEmbed.addFields({ name: "No Division", value: "\u200b" });
-  return signupsEmbed;
+  divisions.push("No Division");
+
+  const embeds = [];
+  for (const division of divisions) {
+    const divisionRoleId = divisionRoleIds.get(`${division} ${tourney.class}`);
+    const embed = new EmbedBuilder()
+      .setColor("A69ED7")
+      .setAuthor({ name: `${roleMention(divisionRoleId)}` })
+      .setDescription("");
+
+    embeds.push(embed);
+  }
+
+  return embeds;
 }
 
 /**
@@ -80,9 +98,14 @@ async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
   startTourneyJob(tourney.starts_at, interaction.guild.channels.cache);
   endTourneyJob(tourney.ends_at, interaction.guild.channels.cache, tourney);
 
-  // then send #signup message
-  const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(tourney)] });
-  await signupsMessage.react(`✅`);
+  // then send #signup initial signup message & division messages
+  const divisionEmbeds = getDivisionEmbeds(tourney);
+  const signupMessage = await signupsChannel.send({ embeds: [getSignupEmbed(tourney)] });
+  await signupMessage.react(`✅`);
+
+  for (const divisionEmbed of divisionEmbeds) {
+    await signupsChannel.send({ embeds: [divisionEmbed] });
+  }
 
   // run this job after #signup message sends
   updateSignupsJob(signupsChannel);
