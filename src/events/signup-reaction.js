@@ -1,4 +1,4 @@
-const { getPlayer, getActiveTourney, createTourneyPlayer, removeTourneyPlayer, createPlayer } = require("../lib/database.js");
+import { getPlayer, getActiveTourney, createTourneyPlayer, removeTourneyPlayer, createPlayer } from "../lib/database.js";
 
 function signupsReactionAdd(message, user) {
   const trny = getActiveTourney();
@@ -18,7 +18,7 @@ function signupsReactionRemove(message, user) {
   }
 }
 
-module.exports = {
+export {
   signupsReactionAdd,
   signupsReactionRemove
 }

@@ -1,10 +1,11 @@
-const { REST, Routes } = require('discord.js');
-const { guildId, clientId } = require("./lib/guild-ids.js");
-const fs = require('node:fs');
-const path = require('node:path');
-const dotenv = require('dotenv');
+import "node:fs";
+import "node:path";
+import dotenv from "dotenv";
+import { REST, Routes } from 'discord.js';
+import { guildId, clientId } from "./lib/guild-ids.js";
 
 dotenv.config();
+
 const token = process.env.DISCORD_TOKEN;
 
 const commands = [];

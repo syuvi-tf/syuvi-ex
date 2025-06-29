@@ -1,13 +1,14 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const express = require('express');
-const { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } = require('discord.js');
-const dotenv = require('dotenv');
-const { openDB, getActiveTourney, closeDB } = require('./lib/database.js');
-const { signupsChannelId } = require('./lib/guild-ids.js');
-const { signupsReactionAdd, signupsReactionRemove } = require('./events/signup-reaction.js');
-const { memberJoin } = require('./events/member-join.js');
-const { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } = require('./lib/schedules.js');
+import fs from "node:fs";
+import path from "node:path";
+import express from "express";
+import dotenv from "dotenv";
+import { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } from 'discord.js';
+import { openDB, getActiveTourney, closeDB } from './lib/database.js';
+import { signupsChannelId } from './lib/guild-ids.js';
+import { signupsReactionAdd, signupsReactionRemove } from './events/signup-reaction.js';
+import { memberJoin } from './events/member-join.js';
+import { startTourneyJob, endTourneyJob, updateSignupsJob, updateSheetsJob } from './lib/schedules.js';
+
 dotenv.config();
 
 const expressApp = express();

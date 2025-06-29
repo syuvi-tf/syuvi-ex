@@ -1,7 +1,7 @@
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } = require('discord.js');
-const { divisionRoleIds } = require('./guild-ids.js');
-const { getTourneyDivisionTopTimes } = require('./database.js');
-const { formatTime, formatSteamURL, getTourneyMap } = require('./shared-functions.js');
+import { ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, userMention, inlineCode, roleMention, EmbedBuilder, hyperlink } from 'discord.js';
+import { divisionRoleIds } from './guild-ids.js';
+import { getTourneyDivisionTopTimes } from './database.js';
+import { formatTime, formatSteamURL, getTourneyMap } from './shared-functions.js';
 
 const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder()
@@ -144,7 +144,7 @@ ${hyperlink('Steam', formatSteamURL(player.steam_id))}`
   return embed;
 }
 
-module.exports = {
+export {
   confirmRow,
   getTourneyTopTimesEmbed,
   getMapSelectModal,

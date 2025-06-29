@@ -1,10 +1,7 @@
-const Database = require('better-sqlite3');
-const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
-const db = new Database(dbPath
-  //  , { verbose: console.log }
-);
+import Database from "better-sqlite3";
 
-// const { createStartJob, createEndJob } = require('./schedules.js');
+const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
+const db = new Database(dbPath);
 
 // open connection
 function openDB() {
@@ -330,7 +327,7 @@ function forceEndTourney(tournament_id) {
   update.run(tournament_id);
 }
 
-module.exports = {
+export {
   openDB,
   createPlayer,
   getPlayer,

@@ -1,9 +1,9 @@
-const schedule = require('node-schedule');
-const { EmbedBuilder, userMention } = require('discord.js');
-const { getActiveTourney, getTourneyPlayers } = require('./database.js');
-const { timesChannelIds, signupsChannelId } = require('./guild-ids.js');
-const { createTourneySheet, updateSheetTimes } = require('./sheet.js');
-const { getMapEmbedByName, getTourneyTopTimesEmbed } = require('./components.js');
+import schedule from 'node-schedule';
+import { EmbedBuilder, userMention } from 'discord.js';
+import { getActiveTourney, getTourneyPlayers } from './database.js';
+import { timesChannelIds, signupsChannelId } from './guild-ids.js';
+import { createTourneySheet, updateSheetTimes } from './sheet.js';
+import { getMapEmbedByName, getTourneyTopTimesEmbed } from './components.js';
 
 function resetFields(newEmbed, tourneyclass, num_players) {
   newEmbed.setFields(
@@ -113,7 +113,7 @@ async function updateSheetsJob() {
   });
 }
 
-module.exports = {
+export {
   startTourneyJob,
   endTourneyJob,
   updateSignupsJob,

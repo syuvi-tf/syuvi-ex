@@ -1,9 +1,10 @@
-const { JWT } = require('google-auth-library');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const dotenv = require('dotenv');
-const { getBestTourneyTimes } = require('./database.js');
+import dotenv from 'dotenv';
+import { JWT } from 'google-auth-library';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { getBestTourneyTimes } from './database.js';
 
 dotenv.config();
+
 const jwt = new JWT({
   email: process.env.SHEETS_CLIENT_EMAIL,
   key: process.env.SHEETS_PRIVATE_KEY.split(String.raw`\n`).join('\n'),
@@ -138,7 +139,7 @@ async function updateSheetTimes(trny) {
   await updateRows(rows, times);
 }
 
-module.exports = {
+export {
   createTourneySheet,
   updateSheetTimes
 };

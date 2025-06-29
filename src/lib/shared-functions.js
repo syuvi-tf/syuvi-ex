@@ -40,7 +40,7 @@ function isValidTime(time) {
   return validRegex.test(time);
 }
 
-module.exports = {
+export {
   formatSteamURL,
   getTourneyMap,
   formatTime,
