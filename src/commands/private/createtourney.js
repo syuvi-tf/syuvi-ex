@@ -8,6 +8,9 @@ import {
   time,
   TimestampStyles,
   ChatInputCommandInteraction,
+  InteractionCallbackResponse,
+  MappedInteractionTypes,
+  InGuild,
 } from "discord.js";
 import { createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
@@ -47,10 +50,54 @@ starts ${relative_starts_at}
   return signupsEmbed;
 }
 
-// wait for tourney confirmation
-async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
-  const channel = interaction.channel;
+/**
+ *
+ * @param {MappedInteractionTypes<InGuild>} confirmResponse
+ * @param {Tournament} submitted_trny
+ * @param {ChatInputCommandInteraction} interaction
+ * @returns
+ */
+async function handleConfirm(confirmResponse, submitted_trny, interaction) {
   const signupsChannel = await interaction.guild.channels.cache.get(signupsChannelId);
+
+  await confirmResponse.update({
+    // remove confirm row
+    components: [],
+  });
+
+  // create tourney in the database if there are none active
+  const tourneyCreated = createTourney(submitted_trny);
+  if (!tourneyCreated) {
+    await interaction.channel.send(
+      `❌ Couldn't create this tournament. Is there already one upcoming / active?`,
+    );
+    return;
+  }
+
+  // get the tourney that was just created
+  const trny = getActiveTourney();
+
+  // start jobs for it
+  startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
+  endTourneyJob(trny.ends_at, interaction.guild.channels.cache, trny);
+
+  // then send #signup message
+  const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(trny)] });
+  await signupsMessage.react(`✅`);
+
+  // run this job after #signup message sends
+  updateSignupsJob(signupsChannel);
+  await interaction.channel.send(`✅ Tournament confirmed.`);
+}
+
+// wait for tourney confirmation
+/**
+ *
+ * @param {InteractionCallbackResponse} tourneyResponse
+ * @param {Tournament} submitted_trny
+ * @param {ChatInputCommandInteraction} interaction
+ */
+async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
   const filter = (i) => i.user.id === interaction.user.id;
 
   try {
@@ -59,41 +106,21 @@ async function tryConfirm(tourneyResponse, submitted_trny, interaction) {
       time: 30_000,
     });
 
-    if (confirmResponse.customId === "confirm") {
-      await confirmResponse.update({
-        // remove confirm row
-        components: [],
-      });
+    switch (confirmResponse.customId) {
+      case "cancel":
+        await confirmResponse.update({
+          // remove confirm row
+          components: [],
+        });
 
-      // create tourney in the database if there are none active
-      const tourneyCreated = createTourney(submitted_trny);
-      if (tourneyCreated) {
-        // get the tourney that was just created
-        const trny = getActiveTourney();
-
-        // start jobs for it
-        startTourneyJob(trny.starts_at, interaction.guild.channels.cache);
-        endTourneyJob(trny.ends_at, interaction.guild.channels.cache, trny);
-
-        // then send #signup message
-        const signupsMessage = await signupsChannel.send({ embeds: [getSignupsEmbed(trny)] });
-        await signupsMessage.react(`✅`);
-
-        // run this job after #signup message sends
-        updateSignupsJob(signupsChannel);
-        await channel.send(`✅ Tournament confirmed.`);
-      } else {
-        await channel.send(
-          `❌ Couldn't create this tournament. Is there already one upcoming / active?`,
-        );
-      }
-    } else if (confirmResponse.customId === "cancel") {
-      await confirmResponse.update({
-        // remove confirm row
-        components: [],
-      });
-
-      await channel.send(`❌ Canceled command.`);
+        await interaction.channel.send(`❌ Canceled command.`);
+        break;
+      case "confirm":
+        await handleConfirm(confirmResponse, submitted_trny, interaction);
+        break;
+      default:
+        console.log(`ERROR: unexpected confirmResponse.customId '${confirmResponse.customId}'`);
+        break;
     }
   } catch {
     console.log("/createtourney tryConfirm() error");
@@ -151,12 +178,36 @@ const command = new SlashCommandBuilder()
       .setMaxValue(23),
   );
 
+class Tournament {
+  /**
+   *
+   * @param {string} trnyClass
+   * @param {string} platGoldMap
+   * @param {string} silverMap
+   * @param {string} bronzeMap
+   * @param {string} steelMap
+   * @param {string} woodMap
+   * @param {string} startsAt
+   * @param {string} endsAt
+   */
+  constructor(trnyClass, platGoldMap, silverMap, bronzeMap, steelMap, woodMap, startsAt, endsAt) {
+    this.class = trnyClass;
+    this.plat_gold = platGoldMap;
+    this.silver = silverMap;
+    this.bronze = bronzeMap;
+    this.steel = steelMap;
+    this.wood = woodMap;
+    this.starts_at = startsAt;
+    this.ends_at = endsAt;
+  }
+}
+
 /**
  *
  * @param {ChatInputCommandInteraction} interaction
  */
 async function executeCommand(interaction) {
-  const trny_class = interaction.options.getString("class");
+  const trnyClass = interaction.options.getString("class");
   const month = interaction.options.getString("month");
   const dayOption = interaction.options.getInteger("day");
   const day = dayOption < 10 ? "0" + dayOption : dayOption;
@@ -180,7 +231,7 @@ async function executeCommand(interaction) {
   const channel = await interaction.channel;
 
   // show map select modal
-  await interaction.showModal(getMapSelectModal(trny_class));
+  await interaction.showModal(getMapSelectModal(trnyClass));
 
   // wait for maps to be selected
   const waitMessage = await channel.send({
@@ -196,28 +247,28 @@ async function executeCommand(interaction) {
     });
 
     const submittedMapFields = submittedMapResponse.fields;
-    const submittedTourney = {
-      class: trny_class,
-      plat_gold: submittedMapFields.getTextInputValue("plat_gold_map"),
-      silver: submittedMapFields.getTextInputValue("silver_map"),
-      bronze: submittedMapFields.getTextInputValue("bronze_map"),
-      steel: submittedMapFields.getTextInputValue("steel_map"),
-      wood: trny_class === "Soldier" ? submittedMapFields.getTextInputValue("wood_map") : null,
-      starts_at: datetime,
-      ends_at: endDatetime,
-    };
+    const submittedTourney = new Tournament(
+      trnyClass,
+      submittedMapFields.getTextInputValue("plat_gold_map"),
+      submittedMapFields.getTextInputValue("silver_map"),
+      submittedMapFields.getTextInputValue("bronze_map"),
+      submittedMapFields.getTextInputValue("steel_map"),
+      trnyClass === "Soldier" ? submittedMapFields.getTextInputValue("wood_map") : null,
+      datetime,
+      endDatetime,
+    );
 
     // delete the "waiting for user" message after receiving the modal submission
     waitMessage.delete();
 
     // tourney confirmation message
     const tourneyResponse = await submittedMapResponse.reply({
-      content: `${trny_class} tournament start date set to ${discordTimestamp}
+      content: `${trnyClass} tournament start date set to ${discordTimestamp}
 Platinum / Gold Map: ${inlineCode(submittedTourney.plat_gold)}
 Silver Map: ${inlineCode(submittedTourney.silver)}
 Bronze Map: ${inlineCode(submittedTourney.bronze)}
 Steel Map: ${inlineCode(submittedTourney.steel)}
-${trny_class === "Soldier" ? `Wood Map: ${inlineCode(submittedTourney.wood)}` : ``}`,
+${trnyClass === "Soldier" ? `Wood Map: ${inlineCode(submittedTourney.wood)}` : ``}`,
       components: [confirmRow],
       withResponse: true,
     });
