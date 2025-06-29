@@ -30,9 +30,9 @@
     "prettier": "3.6.2"
   },
   "lint-staged": {
-    "src/**/*.js": [
-      "eslint",
-      "prettier --write --ignore-unknown"
+    "*.js": [
+      "eslint src/",
+      "prettier --write --ignore-unknown src/"
     ]
   }
 }
