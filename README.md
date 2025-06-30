@@ -170,3 +170,36 @@ Database drivers: stub, sqlite3
 
 > [!NOTE]
 > If you see something like `command not found`, chances are the gopath `go/bin` directory isn't on your `PATH`! This is usually located in your home directory e.g. `C:/Users/YourUserName/go/bin` or `/home/username/go/bin`.
+
+#### Creating a New Migration
+
+Whenever you want to make changes to the database schema, you need to make a migration:
+
+```sh
+migrate create -ext sql -dir migrations a-summary-of-your-changes
+```
+
+This will create two new files in the migrations directory, like this:
+
+```
+migrations/20250630213652_a-summary-of-your-changes.down.sql
+migrations/20250630213652_a-summary-of-your-changes.up.sql
+```
+
+These files are where you should write **idempotent** SQL to make changes to the schema. SQL statements are idempotent if they can be ran multiple times in a row with the same result.
+
+For example, this is NOT idempotent:
+
+```sql
+CREATE TABLE something (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+);
+```
+
+If ran multiple times, the `CREATE TABLE` statement will fail due to a conflict with an existing table. To make it idempotent, use `IF NOT EXISTS`:
+
+```sql
+CREATE TABLE IF NOT EXISTS something (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+);
+```
