@@ -104,7 +104,7 @@ Record: ${map.soldier_runs.length > 0 ? formatTime(map.soldier_runs[0].duration,
       },
       {
         name: "Demo",
-        value: `Tier ${map.rating_info.demoman}, Rating ${map.rating_info.demoman}
+        value: `Tier ${map.tier_info.demoman}, Rating ${map.rating_info.demoman}
 Record: ${map.demoman_runs.length > 0 ? formatTime(map.demoman_runs[0].duration, true) : "No completions."}`,
         inline: true,
       },
@@ -135,7 +135,7 @@ Record: ${map.soldier_runs.length > 0 ? formatTime(map.soldier_runs[0].duration,
       },
       {
         name: "Demo",
-        value: `Tier ${map.rating_info.demoman}, Rating ${map.rating_info.demoman}
+        value: `Tier ${map.tier_info.demoman}, Rating ${map.rating_info.demoman}
 Record: ${map.demoman_runs.length > 0 ? formatTime(map.demoman_runs[0].duration, true) : "No completions."}`,
         inline: true,
       },
