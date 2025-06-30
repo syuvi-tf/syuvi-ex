@@ -44,7 +44,7 @@ export default {
       interaction.editReply({
         embeds: [
           getForceVerifiedEmbed(
-            player.id,
+            player.discord_id,
             formatTime(time.run_time),
             time_id,
             tourney.class,

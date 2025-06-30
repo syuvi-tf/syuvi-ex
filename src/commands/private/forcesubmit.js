@@ -18,7 +18,7 @@ import { updateSheetTimes } from "../../lib/sheet.js";
 
 function getForceSubmitEmbed(player_id, time, time_id, tourneyclass, map) {
   const embed = new EmbedBuilder().setColor("A69ED7")
-    .setDescription(`TF2PJ | (${tourneyclass}) Force submitted a ${time} for ${userMention(player_id)}
+    .setDescription(`TF2PJ | (${tourneyclass}) force submitted a ${time} for ${userMention(player_id)}
 on ${map}
 ${subtext(`time ID: ${time_id}`)}
 
@@ -69,8 +69,8 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
             timeSections.length === 2
               ? parseFloat(time) //SS.ss
               : parseFloat(
-                  `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
-                );
+                `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
+              );
           const time_id = createTourneyTime(tourney.id, player.id, timeSeconds, true);
           interaction.editReply({
             embeds: [

@@ -14,6 +14,8 @@ import setdivision from "./private/setdivision.js";
 import settourneymap from "./private/settourneymap.js";
 import verify from "./private/verify.js";
 
+//import forcetourneystate from "./test/forcetourneystate.js";
+
 export const allCommands = [
   link,
   profile,
@@ -29,4 +31,5 @@ export const allCommands = [
   setdivision,
   settourneymap,
   verify,
+  //  forcetourneystate,
 ];

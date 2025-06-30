@@ -5,22 +5,6 @@ import { timesChannelIds, signupsChannelId } from "./guild-ids.js";
 import { createTourneySheet, updateSheetTimes } from "./sheet.js";
 import { getMapEmbedByName, getTourneyTopTimesEmbed } from "./components.js";
 
-function resetFields(newEmbed, tourneyclass, num_players) {
-  newEmbed.setFields(
-    { name: "Platinum", value: "\u200b" },
-    { name: "Gold", value: "\u200b" },
-    { name: "Silver", value: "\u200b" },
-    { name: "Bronze", value: "\u200b" },
-    { name: "Steel", value: "\u200b" },
-  );
-  if (tourneyclass === "Soldier") {
-    newEmbed.addFields({ name: "Wood", value: "\u200b" });
-  }
-  newEmbed.addFields({ name: "No Division", value: "\u200b" });
-  newEmbed.setFooter({ text: `updates every minute (${num_players} signups)` });
-  return newEmbed;
-}
-
 function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
   schedule.scheduleJob(date, async function () {
@@ -108,44 +92,70 @@ function endTourneyJob(datetime, channels, tourney) {
  * @param {TextChannel} channel
  */
 async function updateSignupsJob(channel) {
-  // message is only needed once
-  const signupMessages = await channel.messages.fetch({ limit: 1, cache: false });
-  const signupMessage = signupMessages.first();
-  const embed = signupMessage ? signupMessage.embeds[0] : null;
+  // messages only needed once (if editing)
 
   const job = schedule.scheduleJob("* * * * *", async function () {
     const tourney = getActiveTourney();
 
-    // tourney has ended or no #signup message
-    if (!tourney || !signupMessage || !embed) {
+    // tourney has ended
+    // TODO(spiritov): what's the .length() check here for? (switched to .length since array)
+    // removed .length check
+    if (!tourney) {
       console.log("updateSignupsJob() finished");
       job.cancel(false);
       return;
     }
 
-    // update #signup embed
-    const players = getTourneyPlayers(tourney.id);
-    let newEmbed = EmbedBuilder.from(embed);
-    newEmbed = resetFields(newEmbed, tourney.class, players.length);
+    // messages needed every time (if deleting and re-sending)
+    const messageLimit = tourney.class === 'Soldier' ? 7 : 6;
+    const signupMessages = (await channel.messages.fetch({ limit: messageLimit, cache: false })).filter((message) => message.author.bot);
 
-    // sort each player into their respective embed division
-    const playersByDivision = Object.groupBy(players, ({ division }) => division);
-    for (const division in playersByDivision) {
-      let divisionFieldIdx = embed.fields.findIndex(({ name }) => division === name);
-      if (divisionFieldIdx === -1) {
-        divisionFieldIdx = newEmbed.data.fields.length - 1;
-      }
+    if (signupMessages.size !== (messageLimit)) { return; }
 
-      for (const player of playersByDivision[division]) {
-        const field = newEmbed.data.fields[divisionFieldIdx];
-        newEmbed = newEmbed.spliceFields(divisionFieldIdx, 1, {
-          name: field.name,
-          value: field.value + `${userMention(player.discord_id)} `,
-        });
-      }
+    signupMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
+    const divisionMessages = Array.from(signupMessages.values());
+    const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
+
+    const expectedEmbedCount = tourney.class === "Soldier" ? 7 : 6;
+    if (divisionEmbeds.length !== expectedEmbedCount) {
+      console.log(
+        `ERROR: updateSignupsJob() expected ${expectedEmbedCount} embeds but got ${divisionEmbeds.length}`,
+      );
+      // TODO: do we cancel the job when this error occurs?
+      return;
     }
 
-    signupMessage.edit({ embeds: [newEmbed] });
+    const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
+
+    if (tourney.class === "Soldier") {
+      divisions.push("Wood");
+    }
+
+    divisions.push("No Division");
+
+    const editPromises = [];
+    const players = getTourneyPlayers(tourney.id);
+    const /** @type {{[x: string]: any[]}} */ playersByDivision = Object.groupBy(
+      players,
+      ({ division }) => (division ? division : "No Division"),
+    );
+    for (const divisionIdx in divisions) {
+      const division = divisions[divisionIdx];
+      const playersInDivision = playersByDivision[division];
+      const playerMentions = playersInDivision
+        ? playersInDivision
+          .map((player) => userMention(player.discord_id))
+          .join(" ")
+        : "\u200b";
+
+      const embed = EmbedBuilder.from(divisionEmbeds[divisionIdx]).setDescription(playerMentions);
+
+      editPromises.push(divisionMessages[divisionIdx].delete());
+      await channel.send({ embeds: [embed] });
+    }
+
+    // TODO: await editPromises & process errors
   });
 }
 
