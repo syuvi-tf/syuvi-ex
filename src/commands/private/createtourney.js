@@ -25,13 +25,13 @@ function getSignupEmbed(tourney) {
     .setColor("A69ED7")
     .setTitle(`${tourney.class} Tournament`)
     .setDescription(
-      `Signups are open for a tournament! See ${channelMention(faqChannelId)} for more info.
+      `Signups are open for a tournament! See ${channelMention(faqChannelId)} for more info, and react below to sign up.
 
 ⌛ ${starts_at} - ${ends_at}
 starts ${relative_starts_at}
 \u200b`,
     )
-    .setFooter({ text: "updates every 5th minute" });
+    .setFooter({ text: "updates every minute" });
 
   return signupsEmbed;
 }

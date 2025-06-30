@@ -94,7 +94,7 @@ function endTourneyJob(datetime, channels, tourney) {
 async function updateSignupsJob(channel) {
   // messages only needed once (if editing)
 
-  const job = schedule.scheduleJob("*/5 * * * *", async function () {
+  const job = schedule.scheduleJob("* * * * *", async function () {
     const tourney = getActiveTourney();
 
     // tourney has ended
