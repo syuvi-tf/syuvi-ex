@@ -15,7 +15,8 @@
 `/randommap (tier) (rating)` - get a random map from the current Tempus map list
 
 <ins>Administrator Commands</ins>\
-`/createtourney [class] [month] [day]` - create and open signups for a new tournament at midnight UTC\
+`/createtourney [class] [month] [day] (offset)` - create and open signups for a new tournament at midnight + `(offset)` UTC\
+`/settourneymap [division] [map] ` - change the upcoming tourney's map before the tourney has started\
 `/refreshdivisions` - update division(s) for every player with at least one division discord role\
 `/removetime [time_id]` - remove a player's time\
 `/echo [#channel]` - echo last message sent (in this channel) to another channel
