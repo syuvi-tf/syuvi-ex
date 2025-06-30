@@ -33,8 +33,8 @@
 
 Install Prerequisites:
 
-- [flyctl](https://fly.io/docs/flyctl/) (optiona, only if you're deploying this to fly.io)
-- nodejs v24
+- [flyctl](https://fly.io/docs/flyctl/) (optional, only if you're deploying this to fly.io)
+- Node.js v24
 - Docker (optional, only needed for local container testing)
 
 Install local dependencies:
@@ -112,3 +112,61 @@ If your code change DOES NOT involve a change to the sql schema then:
 1. test your changes locally!
 1. commit your changes!
 1. `fly deploy` & monitor deployment!
+
+### Creating and Managing Migrations
+
+We use [golang-migrate](https://github.com/golang-migrate/migrate).
+
+#### Installing `golang-migrate`
+
+> [!IMPORTANT]
+> The recommended installation requires the Go toolchain. If you don't want to install Go, follow the [instructions here](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) for other methods of installing `golang-migrate`. If you follow those instructions, make sure you install version `4.18.3`.
+
+Prerequisites:
+
+-  [Go v1.24](https://go.dev/dl/)
+
+Install `golang-migrate` go package:
+
+```sh
+go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+```
+
+If successful, you should see this when running `migrate`:
+
+```sh
+Usage: migrate OPTIONS COMMAND [arg...]
+       migrate [ -version | -help ]
+
+Options:
+  -source          Location of the migrations (driver://url)
+  -path            Shorthand for -source=file://path
+  -database        Run migrations against this database (driver://url)
+  -prefetch N      Number of migrations to load in advance before executing (default 10)
+  -lock-timeout N  Allow N seconds to acquire database lock (default 15)
+  -verbose         Print verbose logging
+  -version         Print version
+  -help            Print usage
+
+Commands:
+  create [-ext E] [-dir D] [-seq] [-digits N] [-format] [-tz] NAME
+           Create a set of timestamped up/down migrations titled NAME, in directory D with extension E.
+           Use -seq option to generate sequential up/down migrations with N digits.
+           Use -format option to specify a Go time format string. Note: migrations with the same time cause "duplicate migration version" error.
+           Use -tz option to specify the timezone that will be used when generating non-sequential migrations (defaults: UTC).
+
+  goto V       Migrate to version V
+  up [N]       Apply all or N up migrations
+  down [N] [-all]    Apply all or N down migrations
+        Use -all to apply all down migrations
+  drop [-f]    Drop everything inside database
+        Use -f to bypass confirmation
+  force V      Set version V but don't run migration (ignores dirty state)
+  version      Print current migration version
+
+Source drivers: file
+Database drivers: stub, sqlite3
+```
+
+> [!NOTE]
+> If you see something like `command not found`, chances are the gopath `go/bin` directory isn't on your `PATH`! This is usually located in your home directory e.g. `C:/Users/YourUserName/go/bin` or `/home/username/go/bin`.
