@@ -99,7 +99,7 @@ async function updateSignupsJob(channel) {
 
     // messages needed every time (if deleting and re-sending)
     const messageLimit = tourney.class === 'Soldier' ? 7 : 6;
-    const signupMessages = await channel.messages.fetch({ limit: messageLimit, cache: false });
+    const signupMessages = (await channel.messages.fetch({ limit: messageLimit, cache: false })).filter((message) => message.author.bot);
 
     if (signupMessages.size !== (messageLimit)) { return; }
 
