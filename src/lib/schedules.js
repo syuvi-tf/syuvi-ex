@@ -103,16 +103,17 @@ async function updateSignupsJob(channel) {
     const tourney = getActiveTourney();
 
     // tourney has ended or no #signup message
-    if (!tourney || divisionEmbeds.length() == 0) {
+    // TODO(spiritov): what's the .length() check here for? (switched to .length since array)
+    if (!tourney || divisionEmbeds.length === 0) {
       console.log("updateSignupsJob() finished");
       job.cancel(false);
       return;
     }
 
     const expectedEmbedCount = tourney.class === "Soldier" ? 7 : 6;
-    if (divisionEmbeds.length() !== expectedEmbedCount) {
+    if (divisionEmbeds.length !== expectedEmbedCount) {
       console.log(
-        `ERROR: updateSignupsJob() expected ${expectedEmbedCount} embeds but got ${divisionEmbeds.length()}`,
+        `ERROR: updateSignupsJob() expected ${expectedEmbedCount} embeds but got ${divisionEmbeds.length}`,
       );
       // TODO: do we cancel the job when this error occurs?
       return;
@@ -127,7 +128,7 @@ async function updateSignupsJob(channel) {
     divisions.push("No Division");
 
     const editPromises = [];
-    const players = getTourneyPlayers(tourney);
+    const players = getTourneyPlayers(tourney.id);
     const /** @type {{[x: string]: any[]}} */ playersByDivision = Object.groupBy(
         players,
         ({ division }) => (division ? division : "No Division"),
@@ -135,6 +136,8 @@ async function updateSignupsJob(channel) {
     for (const divisionIdx in divisions) {
       const division = divisions[divisionIdx];
       const playersInDivision = playersByDivision[division];
+      console.log(`value of playersInDivision:`);
+      console.log(playersInDivision);
       const playerMentions = playersInDivision
         .map((player) => userMention(player.discord_id))
         .join(" ");

@@ -10,11 +10,10 @@ import {
   ChatInputCommandInteraction,
   InteractionCallbackResponse,
   ButtonInteraction,
-  roleMention,
 } from "discord.js";
 import { createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
-import { signupsChannelId, faqChannelId, divisionRoleIds } from "../../lib/guild-ids.js";
+import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
 import { confirmRow, getMapSelectModal } from "../../lib/components.js";
 
 function getSignupEmbed(tourney) {
@@ -55,11 +54,10 @@ function getDivisionEmbeds(tourney) {
 
   const embeds = [];
   for (const division of divisions) {
-    const divisionRoleId = divisionRoleIds.get(`${division} ${tourney.class}`);
     const embed = new EmbedBuilder()
       .setColor("A69ED7")
-      .setAuthor({ name: `${roleMention(divisionRoleId)}` })
-      .setDescription("");
+      .setAuthor({ name: division })
+      .setDescription("\u200b");
 
     embeds.push(embed);
   }
@@ -127,7 +125,6 @@ async function tryConfirm(tourneyResponse, submitted_tourney, interaction) {
       filter,
       time: 30_000,
     });
-
     switch (confirmResponse.customId) {
       case "cancel":
         await confirmResponse.update({
@@ -144,7 +141,8 @@ async function tryConfirm(tourneyResponse, submitted_tourney, interaction) {
         console.log(`ERROR: unexpected confirmResponse.customId '${confirmResponse.customId}'`);
         break;
     }
-  } catch {
+  } catch (error) {
+    console.log(error);
     console.log("/createtourney tryConfirm() error");
 
     await tourneyResponse.resource.message.edit({
