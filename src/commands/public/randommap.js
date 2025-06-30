@@ -87,16 +87,16 @@ export default {
     const tierOption = interaction.options.getString("tier");
     const tier = tierOption
       ? {
-          class: tierOption.includes("Soldier") ? "3" : "4",
-          tier: parseInt(tierOption.match(/\d+/g)[0]),
-        }
+        class: tierOption.includes("Soldier") ? "3" : "4",
+        tier: parseInt(tierOption.match(/\d+/g)[0]),
+      }
       : null;
     const ratingOption = interaction.options.getString("rating");
     const rating = ratingOption
       ? {
-          class: ratingOption.includes("Soldier") ? "3" : "4",
-          rating: parseInt(ratingOption.match(/\d+/g)[0]),
-        }
+        class: ratingOption.includes("Soldier") ? "3" : "4",
+        rating: parseInt(ratingOption.match(/\d+/g)[0]),
+      }
       : null;
     const maps = await (await fetch(`https://tempus2.xyz/api/v0/maps/detailedList`)).json();
 

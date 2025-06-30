@@ -158,12 +158,12 @@ ${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + 
       },
       {
         name: "Profiles",
-        value: `${
-          player.tempus_id
-            ? `${hyperlink("Tempus", `https://tempus2.xyz/players/${player.tempus_id}`)}
+        value: `${player.tempus_id
+          ? `${hyperlink("Tempus Plaza", `https://tempusplaza.xyz/players/${player.tempus_id}`)}
+${hyperlink("Tempus", `https://tempus2.xyz/players/${player.tempus_id}`)}
 ${hyperlink("Steam", formatSteamURL(player.steam_id))}`
-            : `${inlineCode("No Linked Tempus ID")}`
-        }`,
+          : `${inlineCode("No Linked Tempus ID")}`
+          }`,
       },
     );
   return embed;

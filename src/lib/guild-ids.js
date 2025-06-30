@@ -35,7 +35,7 @@ if (process.env.FLY_APP_NAME) {
   ]);
 } else {
   guildId = "1364381421208207482";
-  clientId = "1386902732660805774"; // TODO: UPDATE WITH SYUVI-TEST CLIENT ID!!!!
+  clientId = "1386902732660805774"; // TODO: UPDATE WITH SYUVI-TEST CLIENT ID!!!! (i think i already did this)
   divisionRoleIds = new Map([
     ["Platinum Soldier", "1365102656040734761"],
     ["Gold Soldier", "1365102716283650151"],
