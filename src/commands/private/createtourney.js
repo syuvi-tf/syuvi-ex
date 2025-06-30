@@ -13,7 +13,7 @@ import {
 } from "discord.js";
 import { createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
-import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
+import { signupsChannelId, faqChannelId, divisionRoleIds } from "../../lib/guild-ids.js";
 import { confirmRow, getMapSelectModal } from "../../lib/components.js";
 
 function getSignupEmbed(tourney) {
@@ -43,9 +43,8 @@ starts ${relative_starts_at}
  * @param {Tournament} tourney
  * @returns {EmbedBuilder[]} an array of the initial signup embeds for the tournament
  */
-function getDivisionEmbeds(tourney) {
+function getDivisionEmbeds(tourney, roles) {
   const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
-
   if (tourney.class === "Soldier") {
     divisions.push("Wood");
   }
@@ -54,8 +53,11 @@ function getDivisionEmbeds(tourney) {
 
   const embeds = [];
   for (const division of divisions) {
+    const color = roles.get(
+      divisionRoleIds.get(`${division} ${tourney.class}`),
+    )?.color ?? 'A69ED7';
     const embed = new EmbedBuilder()
-      .setColor("A69ED7")
+      .setColor(color)
       .setAuthor({ name: division })
       .setDescription("\u200b");
 
@@ -97,7 +99,7 @@ async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
   endTourneyJob(tourney.ends_at, interaction.guild.channels.cache, tourney);
 
   // then send #signup initial signup message & division messages
-  const divisionEmbeds = getDivisionEmbeds(tourney);
+  const divisionEmbeds = getDivisionEmbeds(tourney, interaction.guild.roles.cache);
   const signupMessage = await signupsChannel.send({ embeds: [getSignupEmbed(tourney)] });
   await signupMessage.react(`✅`);
 
@@ -107,7 +109,7 @@ async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
 
   // run this job after #signup message sends
   updateSignupsJob(signupsChannel);
-  await interaction.channel.send(`✅ Tournament confirmed.`);
+  await interaction.channel.send(`✅ Tournament confirmed. Please be aware not to send any other messages in the signups channel.`);
 }
 
 // wait for tourney confirmation

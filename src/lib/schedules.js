@@ -92,15 +92,21 @@ function endTourneyJob(datetime, channels, tourney) {
  * @param {TextChannel} channel
  */
 async function updateSignupsJob(channel) {
-  // message is only needed once
-  const signupMessages = await channel.messages.fetch({ limit: 7, cache: false });
-  signupMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
-
-  const divisionMessages = Array.from(signupMessages.values());
-  const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
+  // messages only needed once (if editing)
 
   const job = schedule.scheduleJob("* * * * *", async function () {
     const tourney = getActiveTourney();
+
+    // messages needed every time (if deleting and re-sending)
+    const messageLimit = tourney.class === 'Soldier' ? 7 : 6;
+    const signupMessages = await channel.messages.fetch({ limit: messageLimit, cache: false });
+
+    if (signupMessages.size !== (messageLimit)) { return; }
+
+    signupMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
+    const divisionMessages = Array.from(signupMessages.values());
+    const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
 
     // tourney has ended or no #signup message
     // TODO(spiritov): what's the .length() check here for? (switched to .length since array)
@@ -130,21 +136,22 @@ async function updateSignupsJob(channel) {
     const editPromises = [];
     const players = getTourneyPlayers(tourney.id);
     const /** @type {{[x: string]: any[]}} */ playersByDivision = Object.groupBy(
-        players,
-        ({ division }) => (division ? division : "No Division"),
-      );
+      players,
+      ({ division }) => (division ? division : "No Division"),
+    );
     for (const divisionIdx in divisions) {
       const division = divisions[divisionIdx];
       const playersInDivision = playersByDivision[division];
-      console.log(`value of playersInDivision:`);
-      console.log(playersInDivision);
       const playerMentions = playersInDivision
-        .map((player) => userMention(player.discord_id))
-        .join(" ");
+        ? playersInDivision
+          .map((player) => userMention(player.discord_id))
+          .join(" ")
+        : "\u200b";
 
       const embed = EmbedBuilder.from(divisionEmbeds[divisionIdx]).setDescription(playerMentions);
 
-      editPromises.push(divisionMessages[divisionIdx].edit({ embeds: [embed] }));
+      editPromises.push(divisionMessages[divisionIdx].delete());
+      await channel.send({ embeds: [embed] });
     }
 
     // TODO: await editPromises & process errors
