@@ -151,11 +151,11 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
       }
       // unverified
       else if (timeSeconds > tempusTime.time) {
-        const previousTime = getPlayerBestTourneyTime(tourney.id, player.id);
+        const previousBestTime = getPlayerBestTourneyTime(tourney.id, player.id);
         // check if time is slower than tourney PR
-        if (previousTime && previousTime.run_time < timeSeconds) {
+        if (previousBestTime && previousBestTime.run_time < timeSeconds) {
           await interaction.editReply(`Couldn't submit this time, as it's slower than your tourney PR.
-${subtext(`tourney PR: ${formatTime(previousTime.run_time, true)}`)}`);
+${subtext(`tourney PR: ${formatTime(previousBestTime.run_time, true)}`)}`);
         } else {
           const time_id = createTourneyTime(tourney.id, player.id, timeSeconds, false);
           const embed = getUnverifiedEmbed(

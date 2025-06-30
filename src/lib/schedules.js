@@ -97,6 +97,15 @@ async function updateSignupsJob(channel) {
   const job = schedule.scheduleJob("* * * * *", async function () {
     const tourney = getActiveTourney();
 
+    // tourney has ended
+    // TODO(spiritov): what's the .length() check here for? (switched to .length since array)
+    // removed .length check
+    if (!tourney) {
+      console.log("updateSignupsJob() finished");
+      job.cancel(false);
+      return;
+    }
+
     // messages needed every time (if deleting and re-sending)
     const messageLimit = tourney.class === 'Soldier' ? 7 : 6;
     const signupMessages = (await channel.messages.fetch({ limit: messageLimit, cache: false })).filter((message) => message.author.bot);
@@ -107,14 +116,6 @@ async function updateSignupsJob(channel) {
 
     const divisionMessages = Array.from(signupMessages.values());
     const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
-
-    // tourney has ended or no #signup message
-    // TODO(spiritov): what's the .length() check here for? (switched to .length since array)
-    if (!tourney || divisionEmbeds.length === 0) {
-      console.log("updateSignupsJob() finished");
-      job.cancel(false);
-      return;
-    }
 
     const expectedEmbedCount = tourney.class === "Soldier" ? 7 : 6;
     if (divisionEmbeds.length !== expectedEmbedCount) {

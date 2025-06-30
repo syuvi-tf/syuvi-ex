@@ -1,36 +1,22 @@
-import fs from "node:fs";
-import path from "node:path";
 import dotenv from "dotenv";
 import { REST, Routes } from "discord.js";
 import { guildId, clientId } from "./lib/guild-ids.js";
+import { allCommands } from "./commands/commands.js";
 
 dotenv.config();
 
-const token = process.env.DISCORD_TOKEN;
-
 const commands = [];
-const foldersPath = path.join(__dirname, "commands");
-const commandFolders = fs.readdirSync(foldersPath);
-
-for (const folder of commandFolders) {
-  const commandsPath = path.join(foldersPath, folder);
-  const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".js"));
-  // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
-    if ("data" in command && "execute" in command) {
-      commands.push(command.data.toJSON());
-    } else {
-      console.log(
-        `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
-      );
-    }
+for (const command of allCommands) {
+  if (!command.data || !command.execute) {
+    console.log(`[WARNING] Command is missing a required "data" or "execute" property.`);
+    continue;
   }
+
+  commands.push(command.data.toJSON());
 }
 
 // Construct and prepare an instance of the REST module
-const rest = new REST().setToken(token);
+const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 
 // Deploy commands
 (async () => {
