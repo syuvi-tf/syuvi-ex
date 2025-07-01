@@ -95,7 +95,7 @@ Mount the `litefs` volume to the fly app, in `app-name.fly.toml` (e.g. `test.fly
 Add environment secrets to the app:
 
 ```sh
-fly secrets import <.env
+fly secrets import <.env --config env-name.fly.toml
 ```
 
 Deploy the app!
