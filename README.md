@@ -186,20 +186,51 @@ migrations/20250630213652_a-summary-of-your-changes.down.sql
 migrations/20250630213652_a-summary-of-your-changes.up.sql
 ```
 
-These files are where you should write **idempotent** SQL to make changes to the schema. SQL statements are idempotent if they can be ran multiple times in a row with the same result.
+The `up` migration contains SQL that should move the schema up a version. The `down` migration contains SQL that should move the schema down a version.
 
-For example, this is NOT idempotent:
-
-```sql
-CREATE TABLE something (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-);
-```
-
-If ran multiple times, the `CREATE TABLE` statement will fail due to a conflict with an existing table. To make it idempotent, use `IF NOT EXISTS`:
+For example, if your migration creates a new table and adds a column to another:
 
 ```sql
-CREATE TABLE IF NOT EXISTS something (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+-- migrations/20250630213652_a-summary-of-your-changes.up.sql
+create table something (
+  id integer not null primary key autoincrement,
+  some_value text
 );
+
+alter table other_table add column
+  something integer
+  references something (id);
+
+-- migrations/20250630213652_a-summary-of-your-changes.down.sql
+alter table other_table drop column something;
+
+delete table something;
 ```
+
+#### Running Migrations
+
+Migrations automatically run whenever a node is promoted to the leader. For syuvi, this effectively just means whenever the singleton machine is restarted or replaced (like during a `fly deploy`). This is configured in [litefs.yml](litefs.yml).
+
+> [!NOTE]
+> The following commands assume you're running in a local environment, with the working directory as the root of this repository. You'll need to change some paths if running in a live environment.
+
+> [!NOTE]
+> If the database file doesn't already exist
+
+You can inspect the current migration version of the database:
+
+```sh
+migrate -source file://migrations -database sqlite3://jump.db version
+```
+
+You can move up or down migration versions:
+
+```sh
+# go up all migrations
+migrate -source file://migrations -database sqlite3://jump.db up
+
+# go down 1 migration
+migrate -source file://migrations -database sqlite3://jump.db down 1
+```
+
+See `migrate -help` for more management commands, especially if you need to repair a live database.
