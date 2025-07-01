@@ -20,6 +20,37 @@ const confirmRow = new ActionRowBuilder().addComponents(
   new ButtonBuilder().setCustomId("cancel").setLabel("cancel").setStyle(ButtonStyle.Secondary),
 );
 
+/**
+ * Creates a series of embeds - an initial announcement embed and an embed per division.
+ * There is a small character limit per embed and embed field, we avoid it by creating
+ * an embed per division
+ * @param {String} tourney_class
+ * @returns {EmbedBuilder[]} an array of the initial signup embeds for the tournament
+ */
+function getEmptyDivisionEmbeds(tourney_class, roles) {
+  const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
+  if (tourney_class === "Soldier") {
+    divisions.push("Wood");
+  }
+  divisions.push("No Division");
+
+  const embeds = [];
+  for (const division of divisions) {
+    const color = roles.get(
+      divisionRoleIds.get(`${division} ${tourney_class}`),
+    )?.color ?? 'A69ED7';
+    const embed = new EmbedBuilder()
+      .setColor(color)
+      .setAuthor({ name: division })
+      .setDescription("\u200b");
+
+    embeds.push(embed);
+  }
+
+  return embeds;
+}
+
+
 function getInlineCodeTopTimes(toptimes) {
   let inlines = ``;
   for (let i = 0; i < toptimes.length; i++) {
@@ -171,6 +202,7 @@ ${hyperlink("Steam", formatSteamURL(player.steam_id))}`
 
 export {
   confirmRow,
+  getEmptyDivisionEmbeds,
   getTourneyTopTimesEmbed,
   getMapSelectModal,
   getPlayerEmbed,

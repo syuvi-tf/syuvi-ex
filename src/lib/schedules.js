@@ -1,9 +1,9 @@
 import schedule from "node-schedule";
-import { EmbedBuilder, userMention, TextChannel } from "discord.js";
+import { EmbedBuilder, inlineCode, TextChannel } from "discord.js";
 import { getActiveTourney, getTourneyPlayers } from "./database.js";
 import { timesChannelIds, signupsChannelId } from "./guild-ids.js";
 import { createTourneySheet, updateSheetTimes } from "./sheet.js";
-import { getMapEmbedByName, getTourneyTopTimesEmbed } from "./components.js";
+import { getEmptyDivisionEmbeds, getMapEmbedByName, getTourneyTopTimesEmbed } from "./components.js";
 
 function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
@@ -94,6 +94,9 @@ function endTourneyJob(datetime, channels, tourney) {
 async function updateSignupsJob(channel) {
   // messages only needed once (if editing)
 
+  // roles only needed once
+  const roles = channel.guild.roles.cache;
+  // TODO(spiritov): check if any tourney players have updated_at before updating..
   const job = schedule.scheduleJob("* * * * *", async function () {
     const tourney = getActiveTourney();
 
@@ -108,14 +111,16 @@ async function updateSignupsJob(channel) {
 
     // messages needed every time (if deleting and re-sending)
     const messageLimit = tourney.class === 'Soldier' ? 7 : 6;
-    const signupMessages = (await channel.messages.fetch({ limit: messageLimit, cache: false })).filter((message) => message.author.bot);
+    const signupMessagesRaw = await channel.messages.fetch({ limit: messageLimit, cache: false });
+    const signupMessages = signupMessagesRaw.filter((message) => message.author.bot);
 
     if (signupMessages.size !== (messageLimit)) { return; }
 
     signupMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
     const divisionMessages = Array.from(signupMessages.values());
-    const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
+    const divisionEmbeds = getEmptyDivisionEmbeds(tourney.class, roles);
+    // const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
 
     const expectedEmbedCount = tourney.class === "Soldier" ? 7 : 6;
     if (divisionEmbeds.length !== expectedEmbedCount) {
@@ -127,11 +132,9 @@ async function updateSignupsJob(channel) {
     }
 
     const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
-
     if (tourney.class === "Soldier") {
       divisions.push("Wood");
     }
-
     divisions.push("No Division");
 
     const editPromises = [];
@@ -141,17 +144,18 @@ async function updateSignupsJob(channel) {
       ({ division }) => (division ? division : "No Division"),
     );
     for (const divisionIdx in divisions) {
+      editPromises.push(await divisionMessages[divisionIdx].delete());
+    }
+
+    for (const [divisionIdx, divisionEmbed] of divisionEmbeds.entries()) {
       const division = divisions[divisionIdx];
       const playersInDivision = playersByDivision[division];
       const playerMentions = playersInDivision
-        ? playersInDivision
-          .map((player) => userMention(player.discord_id))
-          .join(" ")
+        ? inlineCode(playersInDivision
+          .map((player) => player.display_name)
+          .join(", "))
         : "\u200b";
-
-      const embed = EmbedBuilder.from(divisionEmbeds[divisionIdx]).setDescription(playerMentions);
-
-      editPromises.push(divisionMessages[divisionIdx].delete());
+      const embed = EmbedBuilder.from(divisionEmbed).setDescription(playerMentions);
       await channel.send({ embeds: [embed] });
     }
 
