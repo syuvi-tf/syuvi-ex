@@ -3,59 +3,6 @@ import Database from "better-sqlite3";
 const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
 const db = new Database(dbPath);
 
-// open connection
-function openDB() {
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS player (
-    id               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    discord_id       TEXT NOT NULL UNIQUE,
-    display_name     TEXT NOT NULL,
-    soldier_division TEXT,
-    demo_division    TEXT,
-    tempus_id        INTEGER,
-    steam_id         TEXT,
-    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`,
-  ).run();
-
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS tournament (
-    id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    class           TEXT NOT NULL,
-    plat_gold_map   TEXT NOT NULL,
-    silver_map      TEXT NOT NULL,
-    bronze_map      TEXT NOT NULL,
-    steel_map       TEXT NOT NULL,
-    wood_map        TEXT,
-    starts_at       DATETIME NOT NULL,
-    ends_at         DATETIME NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)`,
-  ).run();
-
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS tournament_player (
-    tournament_id INTEGER NOT NULL,
-    player_id     INTEGER NOT NULL,
-    division      TEXT,
-    signed_up     BOOLEAN NOT NULL,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (tournament_id, player_id),
-    FOREIGN KEY (tournament_id) REFERENCES tournament (id),
-    FOREIGN KEY (player_id) REFERENCES player (id))`,
-  ).run();
-
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS tournament_time (
-    id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER NOT NULL,
-    player_id     INTEGER NOT NULL,
-    run_time      FLOAT NOT NULL,
-    verified      BOOLEAN NOT NULL,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tournament_id) REFERENCES tournament (id),
-    FOREIGN KEY (player_id) REFERENCES player (id))`,
-  ).run();
-}
-
 // insert a new player, if they don't exist, and returns them
 function createPlayer(discord_id, display_name) {
   const insert = db.prepare(`INSERT OR IGNORE INTO player (discord_id, display_name)
@@ -363,7 +310,6 @@ function forceEndTourney(tournament_id) {
 }
 
 export {
-  openDB,
   createPlayer,
   getPlayer,
   getPlayerByID,
