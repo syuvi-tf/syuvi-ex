@@ -1,5 +1,5 @@
 -- All players tracked by syuvi.
-CREATE TABLE IF NOT EXISTS player (
+CREATE TABLE player (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     discord_id TEXT NOT NULL UNIQUE,
     display_name TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS player (
 );
 
 -- Tournaments created by syuvi admins.
-CREATE TABLE IF NOT EXISTS tournament (
+CREATE TABLE tournament (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     class TEXT NOT NULL,
     plat_gold_map TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS tournament (
 
 -- player-tournament many-to-many relationship. Also includes state such as what division the
 -- player is in, and whether or not the player is still signed up for the related tournament.
-CREATE TABLE IF NOT EXISTS tournament_player (
+CREATE TABLE tournament_player (
     tournament_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
     division TEXT,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS tournament_player (
 );
 
 -- run times submitted by players for a particular tournament.
-CREATE TABLE IF NOT EXISTS tournament_time (
+CREATE TABLE tournament_time (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
