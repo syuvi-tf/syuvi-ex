@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { TournamentSignupMessage, Snowflake } from "./models";
 
 const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
 const db = new Database(dbPath);
@@ -212,7 +213,8 @@ function getTourneyPlayer(tournament_id, player_id) {
 
 // return all tourney players and associated discord ids
 function getTourneyPlayers(tournament_id) {
-  const select = db.prepare(`SELECT tournament_player.*, player.discord_id, player.display_name FROM tournament_player
+  const select =
+    db.prepare(`SELECT tournament_player.*, player.discord_id, player.display_name FROM tournament_player
     JOIN player ON player_id = id
     WHERE tournament_id = ? AND signed_up = TRUE`);
   return select.all(tournament_id);
@@ -289,6 +291,33 @@ function removeTourneyTime(time_id) {
   remove.run(time_id);
 }
 
+/**
+ *
+ * @param {string | number} tournamentId
+ * @returns {TournamentSignupMessage | undefined} undefined if there is no signup message associated with the tournament
+ */
+function getTourneySignupMessage(tournamentId) {
+  const select = db.prepare(`SELECT discord_id
+    FROM tournament_signup_message
+    WHERE tournament_id = ?`);
+
+  return select.get(tournamentId);
+}
+
+/**
+ *
+ * @param {string | number} tournamentId
+ * @param {Snowflake} discordMessageId
+ * @throws if there is an error inserting, its usually because the message ID was already used
+ */
+function addTourneySignupMessage(tournamentId, discordMessageId) {
+  const insert = db.prepare(
+    `INSERT INTO tournament_signup_message (tournament_id, discord_id) values (?, ?)`,
+  );
+
+  insert.run(tournamentId, discordMessageId);
+}
+
 // close connection
 function closeDB() {
   db.close();
@@ -335,6 +364,8 @@ export {
   getBestTourneyTimes,
   verifyTourneyTime,
   removeTourneyTime,
+  getTourneySignupMessage,
+  addTourneySignupMessage,
   closeDB,
   // test functions
   forceStartTourney,
