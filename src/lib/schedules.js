@@ -1,5 +1,5 @@
 import schedule from "node-schedule";
-import { EmbedBuilder, inlineCode, TextChannel, Snowflake } from "discord.js";
+import { EmbedBuilder, inlineCode, TextChannel } from "discord.js";
 import {
   addTourneySignupMessage,
   getActiveTourney,
@@ -100,8 +100,8 @@ function endTourneyJob(datetime, channels, tourney) {
 /**
  *
  * @param {string} tournamentId
- * @param {Snowflake} firstMessageId
- * @returns {Snowflake | undefined}
+ * @param {string} firstMessageId
+ * @returns {string | undefined}
  */
 function getOrInsertTourneySignupMessage(tournamentId, firstMessageId) {
   const tourneySignupMessage = getTourneySignupMessage(tournamentId);
@@ -141,10 +141,14 @@ async function updateSignupsJob(channel) {
       return;
     }
 
-    let allSignupMessages = (await channel.messages.fetch({ limit: 100 })).filter(
-      (message) => message.author.bot,
-    );
-    if (allSignupMessages.length() === 0) {
+    let allSignupMessages = await channel.messages.fetch({ limit: 100 });
+
+    // early return so a message can prevent signup updates
+    if (allSignupMessages.some((message) => !message.author.bot)) {
+      return;
+    }
+
+    if (allSignupMessages.length === 0) {
       console.log(
         "ERROR: couldn't complete updateSignupsJob, there are no bot-authored messages in the signups channel.",
       );

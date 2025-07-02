@@ -1,5 +1,4 @@
 import Database from "better-sqlite3";
-import { TournamentSignupMessage, Snowflake } from "./models";
 
 const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
 const db = new Database(dbPath);
@@ -294,7 +293,7 @@ function removeTourneyTime(time_id) {
 /**
  *
  * @param {string | number} tournamentId
- * @returns {TournamentSignupMessage | undefined} undefined if there is no signup message associated with the tournament
+ * @returns {any | undefined} undefined if there is no signup message associated with the tournament
  */
 function getTourneySignupMessage(tournamentId) {
   const select = db.prepare(`SELECT discord_id
@@ -309,7 +308,7 @@ function getTourneySignupMessage(tournamentId) {
 /**
  *
  * @param {string | number} tournamentId
- * @param {Snowflake} discordMessageId
+ * @param {string} discordMessageId
  * @throws if there is an error inserting, its usually because the message ID was already used
  */
 function addTourneySignupMessage(tournamentId, discordMessageId) {
