@@ -37,9 +37,9 @@ export default {
     ),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const user = interaction.options.getUser("player");
+    const member = interaction.options.getMember("player");
     const time = interaction.options.getString("time");
-    const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
+    const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
     const tourney = getOngoingTourney() ?? getRecentTourney();
 
     if (!isValidTime(time)) {
@@ -69,8 +69,8 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
             timeSections.length === 2
               ? parseFloat(time) //SS.ss
               : parseFloat(
-                  `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
-                );
+                `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
+              );
           const time_id = createTourneyTime(tourney.id, player.id, timeSeconds, true);
           interaction.editReply({
             embeds: [

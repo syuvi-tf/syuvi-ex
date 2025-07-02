@@ -6,6 +6,7 @@ import {
   createPlayer,
 } from "../lib/database.js";
 
+//TODO(spiritov): convert user to member here (by using user.id?), for member.displayName on createPlayer() instead
 function signupsReactionAdd(message, user) {
   const tourney = getActiveTourney();
   const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
@@ -18,7 +19,7 @@ function signupsReactionAdd(message, user) {
 
 function signupsReactionRemove(message, user) {
   const tourney = getActiveTourney();
-  //createPlayer() shouldn't be called here unless syuvi is offline when a player signs up
+  // createPlayer() shouldn't be called here unless syuvi is offline when a player signs up
   const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
   if (tourney && player) {
     removeTourneyPlayer(tourney.id, player.id);

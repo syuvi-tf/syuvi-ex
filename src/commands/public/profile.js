@@ -9,9 +9,9 @@ export default {
     .addUserOption((option) => option.setName("player").setDescription("@user")),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const user = interaction.options.getUser("player") ?? interaction.user;
-    const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
+    const member = interaction.options.getMember("player") ?? interaction.user;
+    const player = getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
 
-    interaction.editReply({ embeds: [getPlayerEmbed(user, player)] });
+    interaction.editReply({ embeds: [getPlayerEmbed(member, player)] });
   },
 };

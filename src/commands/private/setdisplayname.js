@@ -9,11 +9,11 @@ export default {
     .addUserOption((option) => option.setName("player").setDescription("@user").setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const user = interaction.options.getUser("player");
-    getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
-    updatePlayerDisplayName(user.id, user.displayName);
+    const member = interaction.options.getMember('player');
+    getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
+    updatePlayerDisplayName(member.id, member.displayName);
     interaction.editReply({
-      content: `✅ Set ${userMention(user.id)}'s tourney display name`,
+      content: `✅ Set ${userMention(member.id)}'s tourney display name`,
       allowedMentions: { users: [] },
     });
   },
