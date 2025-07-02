@@ -13,8 +13,8 @@ import {
 } from "discord.js";
 import { createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
-import { signupsChannelId, faqChannelId, divisionRoleIds } from "../../lib/guild-ids.js";
-import { confirmRow, getMapSelectModal } from "../../lib/components.js";
+import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
+import { confirmRow, getEmptyDivisionEmbeds, getMapSelectModal } from "../../lib/components.js";
 
 function getSignupEmbed(tourney) {
   const starts_at = time(new Date(tourney.starts_at), TimestampStyles.LongDateTime);
@@ -34,37 +34,6 @@ starts ${relative_starts_at}
     .setFooter({ text: "updates every minute" });
 
   return signupsEmbed;
-}
-
-/**
- * Creates a series of embeds - an initial announcement embed and an embed per division.
- * There is a small character limit per embed and embed field, we avoid it by creating
- * an embed per division
- * @param {Tournament} tourney
- * @returns {EmbedBuilder[]} an array of the initial signup embeds for the tournament
- */
-function getDivisionEmbeds(tourney, roles) {
-  const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
-  if (tourney.class === "Soldier") {
-    divisions.push("Wood");
-  }
-
-  divisions.push("No Division");
-
-  const embeds = [];
-  for (const division of divisions) {
-    const color = roles.get(
-      divisionRoleIds.get(`${division} ${tourney.class}`),
-    )?.color ?? 'A69ED7';
-    const embed = new EmbedBuilder()
-      .setColor(color)
-      .setAuthor({ name: division })
-      .setDescription("\u200b");
-
-    embeds.push(embed);
-  }
-
-  return embeds;
 }
 
 /**
@@ -99,10 +68,10 @@ async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
   endTourneyJob(tourney.ends_at, interaction.guild.channels.cache, tourney);
 
   // then send #signup initial signup message & division messages
-  const divisionEmbeds = getDivisionEmbeds(tourney, interaction.guild.roles.cache);
+  const divisionEmbeds = getEmptyDivisionEmbeds(tourney.class, interaction.guild.roles.cache);
+  console.log(divisionEmbeds);
   const signupMessage = await signupsChannel.send({ embeds: [getSignupEmbed(tourney)] });
   await signupMessage.react(`✅`);
-
   for (const divisionEmbed of divisionEmbeds) {
     await signupsChannel.send({ embeds: [divisionEmbed] });
   }

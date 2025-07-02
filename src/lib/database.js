@@ -212,7 +212,7 @@ function getTourneyPlayer(tournament_id, player_id) {
 
 // return all tourney players and associated discord ids
 function getTourneyPlayers(tournament_id) {
-  const select = db.prepare(`SELECT tournament_player.*, player.discord_id FROM tournament_player
+  const select = db.prepare(`SELECT tournament_player.*, player.discord_id, player.display_name FROM tournament_player
     JOIN player ON player_id = id
     WHERE tournament_id = ? AND signed_up = TRUE`);
   return select.all(tournament_id);
