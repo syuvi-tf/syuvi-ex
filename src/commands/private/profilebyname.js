@@ -2,6 +2,10 @@ import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { getPlayerByDisplayName } from "../../lib/database.js";
 import { getPlayerEmbed } from "../../lib/components.js";
 
+function noPlayer(interaction) {
+  interaction.editReply(`❌ No player exists with this display name.`);
+}
+
 export default {
   data: new SlashCommandBuilder()
     .setName("profilebyname")
@@ -15,10 +19,17 @@ export default {
     const displayName = interaction.options.getString("player");
     const player = getPlayerByDisplayName(displayName);
     if (player) {
-      const member = interaction.guild.members.get(player.discord_id);
-      interaction.editReply({ embeds: [getPlayerEmbed(member, player)] });
+      const member = await interaction.guild.members.fetch({
+        user: player.discord_id,
+        cache: false,
+      });
+      if (member) {
+        interaction.editReply({ embeds: [getPlayerEmbed(member.user, player)] });
+      } else {
+        noPlayer(interaction);
+      }
     } else {
-      interaction.editReply(`❌ No player exists with this display name.`);
+      noPlayer(interaction);
     }
   },
 };

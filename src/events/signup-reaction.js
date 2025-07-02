@@ -6,11 +6,11 @@ import {
   createPlayer,
 } from "../lib/database.js";
 
-function signupsReactionAdd(message, user) {
+async function signupsReactionAdd(message, user) {
   const tourney = getActiveTourney();
   let player = getPlayer(user.id);
   if (!player) {
-    const member = message.guild.members.cache.get(user.id);
+    const member = await message.guild.members.fetch({ user: player.discord_id, cache: false });
 
     // fallback to user id just in case
     player = member
