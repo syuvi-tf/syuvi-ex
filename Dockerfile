@@ -1,9 +1,10 @@
 FROM debian:bookworm as go-builder
 
-RUN apt-get update -y && apt-get install -y curl
+RUN apt-get update -y && apt-get install -y build-essential curl
 
 ENV GOPATH="${HOME}/go"
 ENV PATH="${HOME}/go/bin:${PATH}"
+ENV CGO_ENABLED=1
 RUN curl -L https://go.dev/dl/go1.24.4.linux-amd64.tar.gz | tar --directory /usr/local --extract --gzip
 RUN /usr/local/go/bin/go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
 
