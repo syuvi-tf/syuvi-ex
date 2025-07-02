@@ -299,7 +299,9 @@ function removeTourneyTime(time_id) {
 function getTourneySignupMessage(tournamentId) {
   const select = db.prepare(`SELECT discord_id
     FROM tournament_signup_message
-    WHERE tournament_id = ?`);
+    WHERE tournament_id = ?
+    ORDER BY created_at DESC
+    LIMIT 1`);
 
   return select.get(tournamentId);
 }
