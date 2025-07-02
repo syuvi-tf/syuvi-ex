@@ -25,6 +25,13 @@ function getPlayerByID(player_id) {
   return select.get(player_id);
 }
 
+// return a player
+function getPlayerByDisplayName(display_name) {
+  const select = db.prepare(`SELECT * FROM player
+    WHERE display_name = ?`);
+  return select.get(display_name);
+}
+
 // update a player's display name
 function updatePlayerDisplayName(discord_id, display_name) {
   const update = db.prepare(`UPDATE player
@@ -343,6 +350,7 @@ export {
   createPlayer,
   getPlayer,
   getPlayerByID,
+  getPlayerByDisplayName,
   updatePlayerDisplayName,
   updatePlayerDivision,
   updateAllPlayerDivisions,

@@ -6,10 +6,17 @@ import {
   createPlayer,
 } from "../lib/database.js";
 
-//TODO(spiritov): convert user to member here (by using user.id?), for member.displayName on createPlayer() instead
 function signupsReactionAdd(message, user) {
   const tourney = getActiveTourney();
-  const player = getPlayer(user.id) ?? createPlayer(user.id, user.displayName);
+  let player = getPlayer(user.id);
+  if (!player) {
+    const member = message.guild.members.cache.get(user.id);
+
+    // fallback to user id just in case
+    player = member
+      ? createPlayer(user.id, member.displayName)
+      : createPlayer(user.id, user.displayName);
+  }
   if (tourney && player) {
     const division_name =
       tourney.class === "Soldier" ? player.soldier_division : player.demo_division;

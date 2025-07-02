@@ -9,7 +9,7 @@ export default {
     .addUserOption((option) => option.setName("player").setDescription("@user").setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply(); //thinking...
-    const member = interaction.options.getMember('player');
+    const member = interaction.options.getMember("player");
     getPlayer(member.id) ?? createPlayer(member.id, member.displayName);
     updatePlayerDisplayName(member.id, member.displayName);
     interaction.editReply({
