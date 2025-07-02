@@ -1,9 +1,19 @@
 import schedule from "node-schedule";
-import { EmbedBuilder, inlineCode, TextChannel } from "discord.js";
-import { getActiveTourney, getTourneyPlayers } from "./database.js";
+import { EmbedBuilder, inlineCode, TextChannel, Snowflake } from "discord.js";
+import {
+  addTourneySignupMessage,
+  getActiveTourney,
+  getTourneyPlayers,
+  getTourneySignupMessage,
+} from "./database.js";
 import { timesChannelIds, signupsChannelId } from "./guild-ids.js";
 import { createTourneySheet, updateSheetTimes } from "./sheet.js";
-import { getEmptyDivisionEmbeds, getMapEmbedByName, getTourneyTopTimesEmbed } from "./components.js";
+import {
+  getEmptyDivisionEmbeds,
+  getMapEmbedByName,
+  getTourneyTopTimesEmbed,
+} from "./components.js";
+import { getDivisionNames } from "./shared-functions.js";
 
 function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
@@ -89,6 +99,29 @@ function endTourneyJob(datetime, channels, tourney) {
 
 /**
  *
+ * @param {string} tournamentId
+ * @param {Snowflake} firstMessageId
+ * @returns {Snowflake | undefined}
+ */
+function getOrInsertTourneySignupMessage(tournamentId, firstMessageId) {
+  const tourneySignupMessage = getTourneySignupMessage(tournamentId);
+  if (tourneySignupMessage === undefined) {
+    try {
+      addTourneySignupMessage(tournamentId, firstMessageId);
+    } catch {
+      return undefined;
+    }
+
+    return firstMessageId;
+  }
+
+  return tourneySignupMessage.discord_id;
+}
+
+/**
+ * Deletes every message in the specified channel, except for the signup message associated with the
+ * active tournament. If there aren't any associated, it'll find the earliest message in the channel
+ * and use it as the associated message.
  * @param {TextChannel} channel
  */
 async function updateSignupsJob(channel) {
@@ -96,70 +129,62 @@ async function updateSignupsJob(channel) {
 
   // roles only needed once
   const roles = channel.guild.roles.cache;
+
   // TODO(spiritov): check if any tourney players have updated_at before updating..
   const job = schedule.scheduleJob("* * * * *", async function () {
     const tourney = getActiveTourney();
 
     // tourney has ended
-    // TODO(spiritov): what's the .length() check here for? (switched to .length since array)
-    // removed .length check
     if (!tourney) {
       console.log("updateSignupsJob() finished");
       job.cancel(false);
       return;
     }
 
-    // messages needed every time (if deleting and re-sending)
-    const messageLimit = tourney.class === 'Soldier' ? 7 : 6;
-    const signupMessagesRaw = await channel.messages.fetch({ limit: messageLimit, cache: false });
-    const signupMessages = signupMessagesRaw.filter((message) => message.author.bot);
-
-    if (signupMessages.size !== (messageLimit)) { return; }
-
-    signupMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
-
-    const divisionMessages = Array.from(signupMessages.values());
-    const divisionEmbeds = getEmptyDivisionEmbeds(tourney.class, roles);
-    // const divisionEmbeds = divisionMessages.map((message) => message.embeds[0]);
-
-    const expectedEmbedCount = tourney.class === "Soldier" ? 7 : 6;
-    if (divisionEmbeds.length !== expectedEmbedCount) {
+    let allSignupMessages = (await channel.messages.fetch({ limit: 100 })).filter(
+      (message) => message.author.bot,
+    );
+    if (allSignupMessages.length() === 0) {
       console.log(
-        `ERROR: updateSignupsJob() expected ${expectedEmbedCount} embeds but got ${divisionEmbeds.length}`,
+        "ERROR: couldn't complete updateSignupsJob, there are no bot-authored messages in the signups channel.",
       );
-      // TODO: do we cancel the job when this error occurs?
       return;
     }
 
-    const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
-    if (tourney.class === "Soldier") {
-      divisions.push("Wood");
-    }
-    divisions.push("No Division");
+    allSignupMessages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
-    const editPromises = [];
-    const players = getTourneyPlayers(tourney.id);
-    const /** @type {{[x: string]: any[]}} */ playersByDivision = Object.groupBy(
-      players,
-      ({ division }) => (division ? division : "No Division"),
+    const initialSignupMessageId = getOrInsertTourneySignupMessage(
+      tourney.id,
+      allSignupMessages.first().id,
     );
-    for (const divisionIdx in divisions) {
-      editPromises.push(await divisionMessages[divisionIdx].delete());
+    if (initialSignupMessageId === undefined) {
+      console.log(
+        `ERROR: couldn't complete getOrInsertTourneySignupMessage(${tourney.id}, ${allSignupMessages.first().id}), insert failed`,
+      );
+      return;
     }
 
+    const messagesToDelete = allSignupMessages.filter(
+      (message) => message.id !== initialSignupMessageId,
+    );
+    await channel.bulkDelete(messagesToDelete);
+
+    const players = getTourneyPlayers(tourney.id);
+    /** @type {{[x: string]: any[]}} */
+    const playersByDivision = Object.groupBy(players, ({ division }) =>
+      division ? division : "No Division",
+    );
+    const divisions = getDivisionNames(tourney.class);
+    const divisionEmbeds = getEmptyDivisionEmbeds(tourney.class, roles);
     for (const [divisionIdx, divisionEmbed] of divisionEmbeds.entries()) {
       const division = divisions[divisionIdx];
       const playersInDivision = playersByDivision[division];
       const playerMentions = playersInDivision
-        ? inlineCode(playersInDivision
-          .map((player) => player.display_name)
-          .join(", "))
+        ? inlineCode(playersInDivision.map((player) => player.display_name).join(", "))
         : "\u200b";
       const embed = EmbedBuilder.from(divisionEmbed).setDescription(playerMentions);
       await channel.send({ embeds: [embed] });
     }
-
-    // TODO: await editPromises & process errors
   });
 }
 
