@@ -10,7 +10,7 @@ async function signupsReactionAdd(message, user) {
   const tourney = getActiveTourney();
   let player = getPlayer(user.id);
   if (!player) {
-    const member = await message.guild.members.fetch({ user: player.discord_id, cache: false });
+    const member = await message.guild.members.fetch({ user: user.id, cache: false });
 
     // fallback to user id just in case
     player = member
