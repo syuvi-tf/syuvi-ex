@@ -36,9 +36,7 @@ function getEmptyDivisionEmbeds(tourney_class, roles) {
 
   const embeds = [];
   for (const division of divisions) {
-    const color = roles.get(
-      divisionRoleIds.get(`${division} ${tourney_class}`),
-    )?.color ?? 'A69ED7';
+    const color = roles.get(divisionRoleIds.get(`${division} ${tourney_class}`))?.color ?? "A69ED7";
     const embed = new EmbedBuilder()
       .setColor(color)
       .setAuthor({ name: division })
@@ -49,7 +47,6 @@ function getEmptyDivisionEmbeds(tourney_class, roles) {
 
   return embeds;
 }
-
 
 function getInlineCodeTopTimes(toptimes) {
   let inlines = ``;
@@ -189,12 +186,13 @@ ${player.demo_division ? roleMention(divisionRoleIds.get(player.demo_division + 
       },
       {
         name: "Profiles",
-        value: `${player.tempus_id
-          ? `${hyperlink("Tempus Plaza", `https://tempusplaza.xyz/players/${player.tempus_id}`)}
+        value: `${
+          player.tempus_id
+            ? `${hyperlink("Tempus Plaza", `https://tempusplaza.xyz/players/${player.tempus_id}`)}
 ${hyperlink("Tempus", `https://tempus2.xyz/players/${player.tempus_id}`)}
 ${hyperlink("Steam", formatSteamURL(player.steam_id))}`
-          : `${inlineCode("No Linked Tempus ID")}`
-          }`,
+            : `${inlineCode("No Linked Tempus ID")}`
+        }`,
       },
     );
   return embed;
