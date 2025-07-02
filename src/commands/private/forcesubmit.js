@@ -69,8 +69,8 @@ ${subtext(`format: MM:SS.ss / SS.ss`)}`,
             timeSections.length === 2
               ? parseFloat(time) //SS.ss
               : parseFloat(
-                `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
-              );
+                  `${parseInt(timeSections[0]) * 60 + parseInt(timeSections[1])}.${timeSections[2]}`,
+                );
           const time_id = createTourneyTime(tourney.id, player.id, timeSeconds, true);
           interaction.editReply({
             embeds: [
