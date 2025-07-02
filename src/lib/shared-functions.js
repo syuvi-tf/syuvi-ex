@@ -40,4 +40,23 @@ function isValidTime(time) {
   return validRegex.test(time);
 }
 
-export { formatSteamURL, getTourneyMap, formatTime, getTimeSectionsArray, isValidTime };
+function getDivisionNames(tourneyClass) {
+  const divisions = ["Platinum", "Gold", "Silver", "Bronze", "Steel"];
+
+  if (tourneyClass === "Soldier") {
+    divisions.push("Wood");
+  }
+
+  divisions.push("No Division");
+
+  return divisions;
+}
+
+export {
+  formatSteamURL,
+  getTourneyMap,
+  formatTime,
+  getDivisionNames,
+  getTimeSectionsArray,
+  isValidTime,
+};
