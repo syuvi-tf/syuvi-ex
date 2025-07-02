@@ -10,8 +10,9 @@ import {
   ChatInputCommandInteraction,
   InteractionCallbackResponse,
   ButtonInteraction,
+  TextChannel,
 } from "discord.js";
-import { createTourney, getActiveTourney } from "../../lib/database.js";
+import { addTourneySignupMessage, createTourney, getActiveTourney } from "../../lib/database.js";
 import { startTourneyJob, endTourneyJob, updateSignupsJob } from "../../lib/schedules.js";
 import { signupsChannelId, faqChannelId } from "../../lib/guild-ids.js";
 import { confirmRow, getEmptyDivisionEmbeds, getMapSelectModal } from "../../lib/components.js";
@@ -44,7 +45,8 @@ starts ${relative_starts_at}
  * @returns
  */
 async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
-  const signupsChannel = await interaction.guild.channels.cache.get(signupsChannelId);
+  /** @type {TextChannel} */
+  const signupsChannel = interaction.guild.channels.cache.get(signupsChannelId);
 
   await confirmResponse.update({
     // remove confirm row
@@ -72,13 +74,18 @@ async function handleConfirm(confirmResponse, submitted_tourney, interaction) {
   console.log(divisionEmbeds);
   const signupMessage = await signupsChannel.send({ embeds: [getSignupEmbed(tourney)] });
   await signupMessage.react(`✅`);
+
+  addTourneySignupMessage(tourney.id, signupMessage.id);
+
   for (const divisionEmbed of divisionEmbeds) {
     await signupsChannel.send({ embeds: [divisionEmbed] });
   }
 
   // run this job after #signup message sends
   updateSignupsJob(signupsChannel);
-  await interaction.channel.send(`✅ Tournament confirmed. Please be aware not to send any other messages in the signups channel.`);
+  await interaction.channel.send(
+    `✅ Tournament confirmed. Please be aware not to send any other messages in the signups channel.`,
+  );
 }
 
 // wait for tourney confirmation
