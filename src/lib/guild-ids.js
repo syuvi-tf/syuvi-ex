@@ -5,7 +5,7 @@ let signupsChannelId;
 let faqChannelId;
 let timesChannelIds;
 
-if (process.env.FLY_APP_NAME === "svuyi") {
+if (process.env.FLY_APP_NAME === "syuvi") {
   guildId = "1322534308413444220";
   clientId = "1364377893802872914";
   divisionRoleIds = new Map([
