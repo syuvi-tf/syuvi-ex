@@ -33,8 +33,8 @@
 
 Install Prerequisites:
 
-- [flyctl](https://fly.io/docs/flyctl/) (optiona, only if you're deploying this to fly.io)
-- nodejs v24
+- [flyctl](https://fly.io/docs/flyctl/) (optional, only if you're deploying this to fly.io)
+- Node.js v24
 - Docker (optional, only needed for local container testing)
 
 Install local dependencies:
@@ -95,7 +95,7 @@ Mount the `litefs` volume to the fly app, in `app-name.fly.toml` (e.g. `test.fly
 Add environment secrets to the app:
 
 ```sh
-fly secrets import <.env
+fly secrets import <.env --config env-name.fly.toml
 ```
 
 Deploy the app!
@@ -112,3 +112,125 @@ If your code change DOES NOT involve a change to the sql schema then:
 1. test your changes locally!
 1. commit your changes!
 1. `fly deploy` & monitor deployment!
+
+### Creating and Managing Migrations
+
+We use [golang-migrate](https://github.com/golang-migrate/migrate).
+
+#### Installing `golang-migrate`
+
+> [!IMPORTANT]
+> The recommended installation requires the Go toolchain. If you don't want to install Go, follow the [instructions here](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) for other methods of installing `golang-migrate`. If you follow those instructions, make sure you install version `4.18.3`.
+
+Prerequisites:
+
+-  [Go v1.24](https://go.dev/dl/)
+
+Install `golang-migrate` go package:
+
+```sh
+go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.3
+```
+
+If successful, you should see this when running `migrate`:
+
+```sh
+Usage: migrate OPTIONS COMMAND [arg...]
+       migrate [ -version | -help ]
+
+Options:
+  -source          Location of the migrations (driver://url)
+  -path            Shorthand for -source=file://path
+  -database        Run migrations against this database (driver://url)
+  -prefetch N      Number of migrations to load in advance before executing (default 10)
+  -lock-timeout N  Allow N seconds to acquire database lock (default 15)
+  -verbose         Print verbose logging
+  -version         Print version
+  -help            Print usage
+
+Commands:
+  create [-ext E] [-dir D] [-seq] [-digits N] [-format] [-tz] NAME
+           Create a set of timestamped up/down migrations titled NAME, in directory D with extension E.
+           Use -seq option to generate sequential up/down migrations with N digits.
+           Use -format option to specify a Go time format string. Note: migrations with the same time cause "duplicate migration version" error.
+           Use -tz option to specify the timezone that will be used when generating non-sequential migrations (defaults: UTC).
+
+  goto V       Migrate to version V
+  up [N]       Apply all or N up migrations
+  down [N] [-all]    Apply all or N down migrations
+        Use -all to apply all down migrations
+  drop [-f]    Drop everything inside database
+        Use -f to bypass confirmation
+  force V      Set version V but don't run migration (ignores dirty state)
+  version      Print current migration version
+
+Source drivers: file
+Database drivers: stub, sqlite3
+```
+
+> [!NOTE]
+> If you see something like `command not found`, chances are the gopath `go/bin` directory isn't on your `PATH`! This is usually located in your home directory e.g. `C:/Users/YourUserName/go/bin` or `/home/username/go/bin`.
+
+#### Creating a New Migration
+
+Whenever you want to make changes to the database schema, you need to make a migration:
+
+```sh
+migrate create -ext sql -dir migrations a-summary-of-your-changes
+```
+
+This will create two new files in the migrations directory, like this:
+
+```
+migrations/20250630213652_a-summary-of-your-changes.down.sql
+migrations/20250630213652_a-summary-of-your-changes.up.sql
+```
+
+The `up` migration contains SQL that should move the schema up a version. The `down` migration contains SQL that should move the schema down a version.
+
+For example, if your migration creates a new table and adds a column to another:
+
+```sql
+-- migrations/20250630213652_a-summary-of-your-changes.up.sql
+create table something (
+  id integer not null primary key autoincrement,
+  some_value text
+);
+
+alter table other_table add column
+  something integer
+  references something (id);
+
+-- migrations/20250630213652_a-summary-of-your-changes.down.sql
+alter table other_table drop column something;
+
+delete table something;
+```
+
+#### Running Migrations
+
+Migrations automatically run whenever a node is promoted to the leader. For syuvi, this effectively just means whenever the singleton machine is restarted or replaced (like during a `fly deploy`). This is configured in [litefs.yml](litefs.yml).
+
+> [!NOTE]
+> The following commands assume you're running in a local environment, with the working directory as the root of this repository. You'll need to change some paths if running in a live environment.
+
+> [!NOTE]
+> If the database file doesn't already exist
+
+You can inspect the current migration version of the database:
+
+```sh
+migrate -source file://migrations -database sqlite3://jump.db version
+```
+
+You can move up or down migration versions:
+
+```sh
+# go up all migrations
+migrate -source file://migrations -database sqlite3://jump.db up
+
+# go down 1 migration
+migrate -source file://migrations -database sqlite3://jump.db down 1
+```
+
+See `migrate -help` for more management commands, especially if you need to repair a live database.

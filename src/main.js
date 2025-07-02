@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { Client, Collection, Events, GatewayIntentBits, Partials, MessageFlags } from "discord.js";
-import { openDB, getActiveTourney, closeDB } from "./lib/database.js";
+import { getActiveTourney, closeDB } from "./lib/database.js";
 import { signupsChannelId } from "./lib/guild-ids.js";
 import { signupsReactionAdd, signupsReactionRemove } from "./events/signup-reaction.js";
 import { memberJoin } from "./events/member-join.js";
@@ -75,7 +75,7 @@ updateClientCommands(client);
 // when the client is ready, run this code (only once)
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`ready! logged in as ${readyClient.user.tag}`);
-  openDB();
+
   // if there is an active or upcoming tourney, schedule jobs
   const tourney = getActiveTourney();
   const now = new Date(new Date().toUTCString());
@@ -87,6 +87,7 @@ client.once(Events.ClientReady, (readyClient) => {
       // tourney has started, but has not ended yet
       updateSheetsJob();
     }
+
     // tourney hasn't ended yet
     endTourneyJob(tourney.ends_at, client.channels.cache, tourney);
     updateSignupsJob(client.channels.cache.get(signupsChannelId));

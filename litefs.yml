@@ -29,6 +29,9 @@ proxy:
 # the last command to be long-running (e.g. an application server). When the
 # last command exits, LiteFS is shut down.
 exec:
+  - cmd: "migrate -source file://migrations -database sqlite3:///litefs/db up"
+    if-candidate: true
+
   - cmd: "node ."
 
 lease:

@@ -13,10 +13,9 @@ import setdisplayname from "./private/setdisplayname.js";
 import setdivision from "./private/setdivision.js";
 import settourneymap from "./private/settourneymap.js";
 import verify from "./private/verify.js";
+import forcetourneystate from "./test/forcetourneystate.js";
 
-//import forcetourneystate from "./test/forcetourneystate.js";
-
-export const allCommands = [
+const allCommands = [
   link,
   profile,
   randommap,
@@ -31,5 +30,11 @@ export const allCommands = [
   setdivision,
   settourneymap,
   verify,
-  //  forcetourneystate,
 ];
+
+// only allow forcetourneystate in syuvi-test and local environments
+if (process.env.FLY_APP_NAME !== "syuvi") {
+  allCommands.push(forcetourneystate);
+}
+
+export { allCommands };

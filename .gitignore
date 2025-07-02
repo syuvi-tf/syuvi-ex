@@ -130,6 +130,3 @@ dist
 .yarn/install-state.gz
 .pnp.*
 *.db
-/src_old
-/src/commands/test
-/src/test
