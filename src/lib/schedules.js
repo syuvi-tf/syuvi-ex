@@ -14,6 +14,7 @@ import {
   getTourneyTopTimesEmbed,
 } from "./components.js";
 import { getDivisionNames } from "./shared-functions.js";
+import { isUpdated } from "./shared-variables.js";
 
 function startTourneyJob(datetime, channels) {
   const date = new Date(datetime); // from sqlite datetime
@@ -131,7 +132,7 @@ async function updateSignupsJob(channel) {
   const roles = channel.guild.roles.cache;
 
   // TODO(spiritov): check if any tourney players have updated_at before updating..
-  const job = schedule.scheduleJob("* * * * *", async function () {
+  const job = schedule.scheduleJob("*/30 * * * * *", async function () {
     const tourney = getActiveTourney();
 
     // tourney has ended
@@ -140,6 +141,10 @@ async function updateSignupsJob(channel) {
       job.cancel(false);
       return;
     }
+
+    // early return when nothing about tournament_player has changed
+    if (isUpdated.signups) { return; }
+    isUpdated.signups = true;
 
     let allSignupMessages = await channel.messages.fetch({ limit: 100 });
 

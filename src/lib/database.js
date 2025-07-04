@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { isUpdated } from "./shared-variables.js";
 
 const dbPath = process.env.FLY_APP_NAME ? "/litefs/db" : "jump.db";
 const db = new Database(dbPath);
@@ -201,6 +202,7 @@ function createTourneyPlayer(tournament_id, player_id, division_name) {
     ON CONFLICT (tournament_id, player_id) DO UPDATE
     SET signed_up = TRUE`);
   upsert.run(tournament_id, player_id, division_name);
+  isUpdated.signups = false;
 }
 
 // set signed_up to false, removing a player from the tourney
@@ -209,6 +211,7 @@ function removeTourneyPlayer(tournament_id, player_id) {
     SET signed_up = FALSE
     WHERE tournament_id = ? AND player_id = ?`);
   update.run(tournament_id, player_id);
+  isUpdated.signups = false;
 }
 
 function getTourneyPlayer(tournament_id, player_id) {
@@ -232,6 +235,7 @@ function updateTourneyPlayerDivision(tournament_id, player_id, division_name) {
     SET division = ?
     WHERE tournament_id = ? AND player_id = ?`);
   update.run(division_name, tournament_id, player_id);
+  isUpdated.signups = false;
 }
 
 // create a tourney time
