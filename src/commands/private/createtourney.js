@@ -32,7 +32,7 @@ function getSignupEmbed(tourney) {
 starts ${relative_starts_at}
 \u200b`,
     )
-    .setFooter({ text: "updates every minute" });
+    .setFooter({ text: "updates every 30 seconds" });
 
   return signupsEmbed;
 }
