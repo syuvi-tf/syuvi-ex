@@ -1,0 +1,31 @@
+{
+  "name": "syuvi-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@tsconfig/node24": "^24.0.1",
+    "@types/node": "^24.2.1",
+    "eslint": "^9.33.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0"
+  },
+  "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node-schedule": "^2.1.8",
+    "better-sqlite3": "^12.2.0",
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1",
+    "google-auth-library": "^10.2.1",
+    "google-spreadsheet": "^5.0.2",
+    "node-schedule": "^2.1.1"
+  }
+}
