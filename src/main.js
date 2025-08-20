@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { Client, Collection, GatewayIntentBits, Events, MessageFlags, Partials } from 'discord.js';
 import commands from './discord/commands/commands.ts';
+import database from './sqlite/database.ts';
 import { test } from './schedule/marathon.ts';
 
 dotenv.config();
@@ -22,6 +23,8 @@ updateCommands(client);
 client.once(Events.ClientReady, (client) => {
   console.log(`ready! logged in as ${client.user.tag}`);
 
+  database.createTables();
+
   // schedule routine to run on bot startup
 
   // test routine
@@ -34,7 +37,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 process.on('beforeExit', () => {
   // close sqlite database
-  console.log(`attempted to close sqlite database before exiting.`);
+  database.close();
 });
 
 client.login(process.env.DISCORD_TOKEN);

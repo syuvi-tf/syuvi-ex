@@ -1,10 +1,10 @@
 import Database, { type RunResult, type Statement } from 'better-sqlite3';
-import Dev from '../lib/dev.js';
+import dev from '../lib/dev.js';
 
 const dbPath = process.env.FLY_APP_NAME ? '/litefs/db' : 'jump.db';
 const db = new Database(dbPath);
 
-function createTables() {
+function createTables(): void {
   const runResults: RunResult[] = [];
   const statements: Statement[] = [];
 
@@ -19,11 +19,11 @@ function createTables() {
     create table if not exists player(
       id integer not null primary key autoincrement,
       discord_id text not null unique,
+      steam_id text,
+      tempus_id text,
       display_name text not null,
       soldier_division text,
       demo_division text,
-      tempus_id integer,
-      steam_id text,
       created_at datetime not null default current_timestamp
     )`)
   );
@@ -128,18 +128,44 @@ function createTables() {
     )`)
   );
 
-  console.log('[SQLITE] attempting to create database tables.');
+  console.log('[SQLITE] attempting to create database tables..');
 
   for (const statement of statements) {
     try {
       runResults.push(statement.run());
     } catch (error) {
-      Dev.logError(error);
+      dev.logError(error);
     }
   }
 }
-function close() {
+
+function close(): void {
+  console.log('[SQLITE] attempting to close the database..');
   db.close();
 }
 
-export default { createTables, close };
+export class Player {
+  getPlayer(id: number): Player | undefined {
+    const select = db.prepare(`--sql
+      select * from player
+      where id = ?`);
+    try {
+      return select.get(id) as Player | undefined;
+    } catch (error) {
+      dev.logError(error);
+    }
+  }
+
+  getPlayerByDiscordID(discord_id: string): Player | undefined {
+    const select = db.prepare(`--sql
+      select * from player
+      where discord_id = ?`);
+    try {
+      return select.get(discord_id) as Player | undefined;
+    } catch (error) {
+      dev.logError(error);
+    }
+  }
+}
+
+export default { createTables, close, Player };
