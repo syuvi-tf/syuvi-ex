@@ -34,7 +34,7 @@ declare global {
     id: number;
   }
 
-  // joins with competitions to define their division name(s) / map(s)
+  // join with competitions to define their division name(s) / map(s)
   interface CompetitionDivision {
     id: number;
     competition_id: number;

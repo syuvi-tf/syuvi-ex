@@ -1,11 +1,11 @@
-import * as sqlite3 from 'sqlite3';
+import sqlite3 from 'sqlite3';
 import { Database, open, Statement } from 'sqlite';
 
 const path: string = process.env.FLY_APP_NAME ? '/litefs/db' : 'jump.db';
 const db: Database = await openDB(path);
 
 async function openDB(path: string): Promise<Database> {
-  console.log(`[sqlite] attempting to open ${path}`);
+  console.log(`[sqlite] opening ${path}`);
   return await open({
     filename: path,
     driver: sqlite3.Database,
@@ -13,7 +13,7 @@ async function openDB(path: string): Promise<Database> {
 }
 
 async function createTables(): Promise<void> {
-  console.log('[sqlite] attempting to create database tables..');
+  console.log('[sqlite] creating database tables');
 
   const results: RunResult[] = [];
   const statements: Statement[] = [];
@@ -21,7 +21,7 @@ async function createTables(): Promise<void> {
   statements.push(
     await db.prepare(`--sql
     create table if not exists competition_division(
-      id integer not null primary key autoincrement
+      id integer not null primary key autoincrement,
       competition_id integer not null,
       division text not null,
       map text not null
