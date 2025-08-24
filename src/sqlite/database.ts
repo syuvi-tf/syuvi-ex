@@ -1,21 +1,42 @@
-import Database, { type RunResult, type Statement } from 'better-sqlite3';
-import dev from '../lib/dev.js';
+import * as sqlite3 from 'sqlite3';
+import { Database, open, Statement } from 'sqlite';
 
-const dbPath = process.env.FLY_APP_NAME ? '/litefs/db' : 'jump.db';
-const db = new Database(dbPath);
+const path: string = process.env.FLY_APP_NAME ? '/litefs/db' : 'jump.db';
+const db: Database = await openDB(path);
 
-function createTables(): void {
-  const runResults: RunResult[] = [];
+async function openDB(path: string): Promise<Database> {
+  console.log(`[sqlite] attempting to open ${path}`);
+  return await open({
+    filename: path,
+    driver: sqlite3.Database,
+  });
+}
+
+async function createTables(): Promise<void> {
+  console.log('[sqlite] attempting to create database tables..');
+
+  const results: RunResult[] = [];
   const statements: Statement[] = [];
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
+    create table if not exists competition_division(
+      id integer not null primary key autoincrement
+      competition_id integer not null,
+      division text not null,
+      map text not null
+    )`)
+  );
+
+  statements.push(
+    await db.prepare(`--sql
     create table if not exists competition(
       id integer not null primary key autoincrement
     )`)
   );
+
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists player(
       id integer not null primary key autoincrement,
       discord_id text not null unique,
@@ -29,19 +50,13 @@ function createTables(): void {
   );
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists marathon(
       id integer not null primary key autoincrement,
       competition_id integer not null,
       signup_message_id text,
       phase text not null,
       class text not null,
-      plat_map text not null,
-      gold_map text not null,
-      silver_map text not null,
-      bronze_map text not null,
-      steel_map text not null,
-      wood_map text not null,
       starts_at datetime not null,
       ends_at datetime not null,
       created_at datetime not null default current_timestamp,
@@ -50,18 +65,12 @@ function createTables(): void {
   );
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists minithon(
       id integer not null primary key autoincrement,
       competition_id integer not null,
       phase text not null,
       class text not null,
-      plat_map text not null,
-      gold_map text not null,
-      silver_map text not null,
-      bronze_map text not null,
-      steel_map text not null,
-      wood_map text not null,
       starts_at datetime not null,
       ends_at datetime not null,
       created_at datetime not null default current_timestamp,
@@ -70,15 +79,13 @@ function createTables(): void {
   );
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists bounty(
       id integer not null primary key autoincrement,
       competition_id integer not null,
       phase text not null,
       bounty_type text not null,
       class text not null,
-      division text not null,
-      map text not null,
       starts_at datetime not null,
       ends_at datetime not null,
       created_at datetime not null default current_timestamp,
@@ -87,7 +94,7 @@ function createTables(): void {
   );
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists motw(
       id integer not null primary key autoincrement,
       competition_id integer not null,
@@ -101,7 +108,7 @@ function createTables(): void {
   );
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists marathon_player(
       marathon_id integer not null,
       player_id integer not null,
@@ -115,7 +122,7 @@ function createTables(): void {
   );
 
   statements.push(
-    db.prepare(`--sql
+    await db.prepare(`--sql
     create table if not exists player_time(
       id integer not null primary key autoincrement,
       competition_id integer not null,
@@ -128,43 +135,30 @@ function createTables(): void {
     )`)
   );
 
-  console.log('[SQLITE] attempting to create database tables..');
-
   for (const statement of statements) {
-    try {
-      runResults.push(statement.run());
-    } catch (error) {
-      dev.logError(error);
-    }
+    const result: RunResult = await statement.run();
+    results.push(result);
   }
 }
 
-function close(): void {
-  console.log('[SQLITE] attempting to close the database..');
-  db.close();
+async function close(): Promise<void> {
+  console.log('[sqlite] attempting to close the database..');
+  return await db.close();
 }
 
 export class Player {
-  getPlayer(id: number): Player | undefined {
-    const select = db.prepare(`--sql
+  async getPlayer(id: number): Promise<Player | undefined> {
+    const select = await db.prepare(`--sql
       select * from player
       where id = ?`);
-    try {
-      return select.get(id) as Player | undefined;
-    } catch (error) {
-      dev.logError(error);
-    }
+    return await select.get(id);
   }
 
-  getPlayerByDiscordID(discord_id: string): Player | undefined {
-    const select = db.prepare(`--sql
+  async getPlayerByDiscordID(discord_id: string): Promise<Player | undefined> {
+    const select = await db.prepare(`--sql
       select * from player
       where discord_id = ?`);
-    try {
-      return select.get(discord_id) as Player | undefined;
-    } catch (error) {
-      dev.logError(error);
-    }
+    return await select.get(discord_id);
   }
 }
 
