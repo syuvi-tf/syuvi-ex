@@ -42,6 +42,7 @@ async function createTables(): Promise<void> {
       discord_id text not null unique,
       steam_id text,
       tempus_id text,
+      steam_trade_token text,
       display_name text not null,
       soldier_division text,
       demo_division text,

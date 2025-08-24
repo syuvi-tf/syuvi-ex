@@ -23,6 +23,7 @@ declare global {
     id: number;
     discord_id: string;
     steam_id: string | null;
+    steam_trade_token: string | null;
     tempus_id: string | null;
     display_name: string;
     soldier_division: SoldierDivision | null;
