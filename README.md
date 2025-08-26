@@ -1,5 +1,5 @@
 ## roadmap
-development plans are tracked through this repo's [Projects View](https://github.com/orgs/syuvi-tf/projects)!
+development plans are tracked through this repo's Projects View! general info for each project is available in their respective "Project details" pane.
 
 currently, development will progress through..
 - [automated competitions](https://github.com/orgs/syuvi-tf/projects/6?pane=info)
