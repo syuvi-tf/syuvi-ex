@@ -19,3 +19,9 @@ run locally..
 ```console
 npm run syuvi
 ```
+
+reload commands after adding or removing them..
+
+```console
+npm run commands
+```
