@@ -1,4 +1,4 @@
-function logError(error: unknown) {
+function logError(error: unknown): void {
   if (error instanceof Error) {
     console.error(`[error] ${error.name}: ${error.message}`);
   } else {
