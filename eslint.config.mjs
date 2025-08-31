@@ -7,6 +7,7 @@ export default tseslint.config(
   {
     rules: {
       'no-undef': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'error',
     },
     extends: [eslint.configs.recommended],
   },
