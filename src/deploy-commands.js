@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { REST, Routes } from 'discord.js';
-import { clientID, guildID } from './lib/guild-ids.ts';
+import guild from './lib/guild-constants.ts';
 import commands from './discord/commands/commands.ts';
 
 dotenv.config();
@@ -25,7 +25,7 @@ const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 
     // The put method is used to fully refresh all commands in the guild with the current set
     const data = await rest.put(
-      Routes.applicationGuildCommands(clientID, guildID), //guild-specific
+      Routes.applicationGuildCommands(guild.userID, guild.guildID), //guild-specific
       // Routes.applicationCommands(clientId), //global
       { body: guildCommands }
     );
@@ -40,7 +40,7 @@ const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 const guildCommandsToRemove = [];
 for (const commandID of guildCommandsToRemove) {
   rest
-    .delete(Routes.applicationGuildCommand(clientID, guildID, commandID)) // use Routes.applicationCommand for global
+    .delete(Routes.applicationGuildCommand(guild.userID, guild.guildID, commandID)) // use Routes.applicationCommand for global
     .then(() => console.log('Successfully deleted guild command'))
     .catch(console.error);
 }
