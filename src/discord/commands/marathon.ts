@@ -1,6 +1,4 @@
 import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { MarathonTable } from '../../sqlite/database.js';
-import embed from '../../lib/discord/embeds.js';
 
 const commandData = new SlashCommandBuilder()
   .setName('marathon')
@@ -27,13 +25,23 @@ export default {
     switch (action) {
       case 'create': {
         // creation options
+        // display component for..
+        // month, day, hours offset
+        // select divisions
+        // select placements
+        //
+        // then modal for maps
+
+        // confirm button when finished
         break;
       }
       case 'edit': {
         // show marathons that are 'ready' | 'upcoming', prompt to select one to edit
         // then, edit options (starts_at, class, divisions, maps, placements)
-        const marathons = await MarathonTable.getAllByPhases('ready', 'upcoming');
-        await interaction.editReply({ embeds: [embed.competitionList('marathon', marathons)] });
+        // buttons for each of them
+
+        // const marathons = await MarathonTable.getAllByPhases('ready', 'upcoming');
+        // await interaction.editReply({ embeds: [embed.competitionList('marathon', marathons)] });
         break;
       }
       //

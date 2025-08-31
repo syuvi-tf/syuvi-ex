@@ -16,7 +16,7 @@ async function openDB(path: string): Promise<Database> {
 }
 
 async function createTables(): Promise<void> {
-  console.log('[sqlite] creating database tables');
+  console.log('[sqlite] checking database tables');
 
   const results: RunResult[] = [];
   const statements: Statement[] = [];

@@ -2,6 +2,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
+  ComponentType,
   ContainerBuilder,
   MessageFlags,
   SeparatorBuilder,
@@ -26,27 +27,27 @@ export default {
     .setName('testdisplaycomponent')
     .setDescription('test display components'),
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    await interaction.deferReply();
+    await interaction.deferReply({ withResponse: true });
 
     const textDisplay = new TextDisplayBuilder().setContent('### editable marathons');
 
     const separator = new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small);
 
     const marathonDisplay = new TextDisplayBuilder()
-      .setContent(`\`   phase   |  id  |  class  |        starts at        \`
-\` upcoming  | 1    | soldier |\`<t:1756526940:f>
-\` upcoming  | 2    | soldier |\`<t:1756526940:f>
-\` upcoming  | 3    | soldier |\`<t:1756526940:f>
-\` upcoming  | 4    | soldier |\`<t:1756526940:f>
-\` upcoming  | 5    | soldier |\`<t:1756526940:f>
-\` ready     | 6    | soldier |\`<t:1756526940:f>
-\` ready     | 7    | soldier |\`<t:1756526940:f>
-\` ready     | 8    | soldier |\`<t:1756526940:f>
-\` ready     | 9    | soldier |\`<t:1756526940:f>
-\` ready     | 10   | soldier |\`<t:1756526940:f>`);
+      .setContent(`\`   phase   |  id  |  class  | starts at \`
+\` upcoming  | 1    | soldier |\`<t:1756526940:d>
+\` upcoming  | 2    | soldier |\`<t:1756526940:d>
+\` upcoming  | 3    | soldier |\`<t:1756526940:d>
+\` upcoming  | 4    | soldier |\`<t:1756526940:d>
+\` upcoming  | 5    | soldier |\`<t:1756526940:d>
+\` ready     | 6    | soldier |\`<t:1756526940:d>
+\` ready     | 7    | soldier |\`<t:1756526940:d>
+\` ready     | 8    | soldier |\`<t:1756526940:d>
+\` ready     | 9    | soldier |\`<t:1756526940:d>
+\` ready     | 10   | soldier |\`<t:1756526940:d>`);
 
     const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('competition id')
+      .setCustomId('competition_id')
       .setPlaceholder('id');
 
     for (let i = 1; i <= 10; i++) {
@@ -68,9 +69,38 @@ export default {
       .addSeparatorComponents(separator)
       .addActionRowComponents((ar) => ar.setComponents(selectMenu));
 
-    await interaction.editReply({
+    const responseMessage = await interaction.editReply({
       components: [container],
       flags: MessageFlags.IsComponentsV2,
+    });
+
+    // 5 minute collector
+    const buttonCollector = responseMessage.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 3_000_000,
+    });
+
+    // 5 minute collector
+    const selectCollector = responseMessage.createMessageComponentCollector({
+      componentType: ComponentType.StringSelect,
+      time: 3_000_000,
+    });
+
+    buttonCollector.on('collect', async (collected) => {
+      if (collected.customId === 'cancel') {
+        await interaction.deleteReply();
+        await interaction.followUp({
+          content: 'canceled test',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+    });
+
+    selectCollector.on('collect', async (collected) => {
+      const id = collected.values[0];
+      console.log(`collector [${collected.customId}] collected id [${id}]`);
+      return;
     });
   },
 };
