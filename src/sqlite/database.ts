@@ -1,6 +1,9 @@
 import sqlite3 from 'sqlite3';
 import { Database, open, Statement } from 'sqlite';
+import { type ISqlite } from 'sqlite';
+type RunResult = ISqlite.RunResult<sqlite3.Statement>;
 
+sqlite3.verbose();
 const path: string = process.env.FLY_APP_NAME ? '/litefs/db' : 'jump.db';
 const db: Database = await openDB(path);
 
@@ -20,29 +23,12 @@ async function createTables(): Promise<void> {
 
   statements.push(
     await db.prepare(`--sql
-    create table if not exists competition_division(
-      id integer not null primary key autoincrement,
-      competition_id integer not null,
-      division text not null,
-      map text not null
-    )`)
-  );
-
-  statements.push(
-    await db.prepare(`--sql
-    create table if not exists competition(
-      id integer not null primary key autoincrement
-    )`)
-  );
-
-  statements.push(
-    await db.prepare(`--sql
     create table if not exists player(
       id integer not null primary key autoincrement,
       discord_id text not null unique,
-      steam_id text,
-      tempus_id text,
-      steam_trade_token text,
+      steam_id text unique,
+      tempus_id text unique,
+      steam_trade_token text unique,
       display_name text not null,
       soldier_division text,
       demo_division text,
@@ -52,15 +38,33 @@ async function createTables(): Promise<void> {
 
   statements.push(
     await db.prepare(`--sql
-    create table if not exists marathon(
+    create table if not exists competition(
       id integer not null primary key autoincrement,
-      competition_id integer not null,
-      signup_message_id text,
-      phase text not null,
       class text not null,
       starts_at datetime not null,
       ends_at datetime not null,
-      created_at datetime not null default current_timestamp,
+      created_at datetime not null default current_timestamp
+    )`)
+  );
+
+  statements.push(
+    await db.prepare(`--sql
+    create table if not exists competition_division(
+      id integer not null primary key autoincrement,
+      competition_id integer not null,
+      division text not null,
+      placements integer not null,
+      map text not null
+    )`)
+  );
+
+  statements.push(
+    await db.prepare(`--sql
+    create table if not exists marathon(
+      id integer not null primary key autoincrement,
+      competition_id integer not null,
+      signup_message_id text unique,
+      phase text not null,
       foreign key (competition_id) references competition (id)
     )`)
   );
@@ -71,10 +75,6 @@ async function createTables(): Promise<void> {
       id integer not null primary key autoincrement,
       competition_id integer not null,
       phase text not null,
-      class text not null,
-      starts_at datetime not null,
-      ends_at datetime not null,
-      created_at datetime not null default current_timestamp,
       foreign key (competition_id) references competition (id)
     )`)
   );
@@ -86,10 +86,6 @@ async function createTables(): Promise<void> {
       competition_id integer not null,
       phase text not null,
       bounty_type text not null,
-      class text not null,
-      starts_at datetime not null,
-      ends_at datetime not null,
-      created_at datetime not null default current_timestamp,
       foreign key (competition_id) references competition (id)
     )`)
   );
@@ -100,17 +96,14 @@ async function createTables(): Promise<void> {
       id integer not null primary key autoincrement,
       competition_id integer not null,
       phase text not null,
-      class text not null,
       map text not null,
-      ends_at datetime not null,
-      created_at datetime not null default current_timestamp,
       foreign key (competition_id) references competition (id)
     )`)
   );
 
   statements.push(
     await db.prepare(`--sql
-    create table if not exists marathon_player(
+    create table if not exists competition_player(
       marathon_id integer not null,
       player_id integer not null,
       signed_up boolean not null,
@@ -147,15 +140,15 @@ async function close(): Promise<void> {
   return await db.close();
 }
 
-export class Player {
-  async getPlayer(id: number): Promise<Player | undefined> {
+export class PlayerTable {
+  static async get(id: number): Promise<Player | undefined> {
     const select = await db.prepare(`--sql
       select * from player
       where id = ?`);
-    return await select.get(id);
+    return await select.get<Player>(id);
   }
 
-  async getPlayerByDiscordID(discord_id: string): Promise<Player | undefined> {
+  static async getByDiscordID(discord_id: string): Promise<Player | undefined> {
     const select = await db.prepare(`--sql
       select * from player
       where discord_id = ?`);
