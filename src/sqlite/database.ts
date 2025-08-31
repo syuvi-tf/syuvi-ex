@@ -152,8 +152,25 @@ export class PlayerTable {
     const select = await db.prepare(`--sql
       select * from player
       where discord_id = ?`);
-    return await select.get(discord_id);
+    return await select.get<Player>(discord_id);
   }
 }
 
-export default { createTables, close, Player };
+export class MarathonTable {
+  static async getAllByPhases(...phases: MarathonPhase[]): Promise<Marathon[]> {
+    const select = await db.prepare(`--sql
+      select * from competition 
+      join marathon on competition.id = marathon.competition_id
+      where phase = ?
+      order by competition_id desc`);
+
+    const marathons: Marathon[] = [];
+    for (const phase of phases) {
+      marathons.concat(await select.all<Marathon>(phase));
+    }
+
+    return marathons;
+  }
+}
+
+export default { createTables, close, PlayerTable, MarathonTable };
