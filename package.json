@@ -5,7 +5,8 @@
   "main": "src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "syuvi": "tsx src/main.js"
+    "syuvi": "tsx src/main.js",
+    "commands": "tsx src/deploy-commands.js"
   },
   "keywords": [],
   "author": "",
