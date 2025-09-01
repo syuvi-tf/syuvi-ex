@@ -5,6 +5,7 @@ type Command = {
   execute(interaction: ChatInputCommandInteraction): Promise<void>;
 };
 
+// add commands property to Client
 declare module 'discord.js' {
   interface Client {
     commands: Collection<string, Command>;
