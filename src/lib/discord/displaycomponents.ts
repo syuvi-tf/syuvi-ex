@@ -61,7 +61,7 @@ function placementSelects(
   return selects;
 }
 
-function mapsInputs(
+function mapInputs(
   divisions: SoldierDivision[] | DemoDivision[]
 ): ActionRowBuilder<TextInputBuilder>[] {
   const inputs: ActionRowBuilder<TextInputBuilder>[] = [];
@@ -81,6 +81,46 @@ function mapsInputs(
   return inputs;
 }
 
+export function dateModal(type: CompetitionType): ModalBuilder {
+  const dateModal = new ModalBuilder()
+    .setCustomId('dateModal')
+    .setTitle(`${type} start date (UTC)`)
+    .setComponents(
+      new ActionRowBuilder<TextInputBuilder>().setComponents(
+        new TextInputBuilder()
+          .setCustomId('month')
+          .setLabel('month')
+          .setPlaceholder('1-12')
+          .setMinLength(1)
+          .setMaxLength(2)
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder<TextInputBuilder>().setComponents(
+        new TextInputBuilder()
+          .setCustomId('day')
+          .setLabel('day')
+          .setPlaceholder('1-31')
+          .setMinLength(1)
+          .setMaxLength(2)
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder<TextInputBuilder>().setComponents(
+        new TextInputBuilder()
+          .setCustomId('offset')
+          .setLabel('positive UTC offset, in hours')
+          .setPlaceholder('0-12')
+          .setMinLength(1)
+          .setMaxLength(2)
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+      )
+    );
+
+  return dateModal;
+}
+
 function competitionHeader(action: string, type: CompetitionType): SectionBuilder {
   const text = new TextDisplayBuilder().setContent(`### ${action} ${type}`);
   const cancel = new ButtonBuilder()
@@ -96,83 +136,6 @@ export function competitionCreateContainer(type: CompetitionType): ContainerBuil
   const header: SectionBuilder = competitionHeader('create', type);
   const separator = new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small);
 
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth();
-  const day = now.getUTCDate();
-
-  // const yearSelect = new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
-  //   new StringSelectMenuBuilder()
-  //     .setCustomId('year')
-  //     .setPlaceholder('year')
-  //     .addOptions(
-  //       new StringSelectMenuOptionBuilder().setLabel(`${year}`).setValue(`${year}`),
-  //       new StringSelectMenuOptionBuilder().setLabel(`${year + 1}`).setValue(`${year + 1}`)
-  //     )
-  // );
-  //
-  // const monthSelect = new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
-  //   new StringSelectMenuBuilder()
-  //     .setCustomId('month')
-  //     .setPlaceholder('month')
-  //     .addOptions(numberedOptions(1, 12))
-  //     .setDisabled(true)
-  // );
-  //
-  // const daySelect = new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
-  //   new StringSelectMenuBuilder()
-  //     .setCustomId('day')
-  //     .setPlaceholder('day')
-  //     .addOptions(numberedOptions(1, 31))
-  //     .setDisabled(true)
-  // );
-  //
-  // const offsetSelect = new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
-  //   new StringSelectMenuBuilder()
-  //     .setCustomId('day')
-  //     .setPlaceholder('day')
-  //     .addOptions(numberedOptions(0, 12))
-  //     .setDisabled(true)
-  // );
-
-  const dateModal = new ModalBuilder()
-    .setCustomId('dateModal')
-    .setTitle(`${type} start date (UTC)`)
-    .setComponents(
-      new ActionRowBuilder<TextInputBuilder>().setComponents(
-        new TextInputBuilder()
-          .setCustomId('month')
-          .setLabel('month')
-          .setPlaceholder('0-12')
-          .setMinLength(1)
-          .setMaxLength(2)
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true),
-        new TextInputBuilder()
-          .setCustomId('day')
-          .setLabel('day')
-          .setPlaceholder('0-31')
-          .setMinLength(1)
-          .setMaxLength(2)
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true),
-        new TextInputBuilder()
-          .setCustomId('offset')
-          .setLabel('positive UTC offset, in hours')
-          .setPlaceholder('0-12')
-          .setMinLength(1)
-          .setMaxLength(2)
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-      )
-    );
-
-  function mapsModal(divisions: SoldierDivision[] | DemoDivision[]): ModalBuilder {
-    const mapsModal = new ModalBuilder()
-      .setCustomId('mapsModal')
-      .setTitle(`${type} maps`)
-      .setComponents(mapsInputs(divisions));
-  }
   const dateButton = new ButtonBuilder()
     .setCustomId('dateButton')
     .setLabel('set date')
@@ -181,8 +144,7 @@ export function competitionCreateContainer(type: CompetitionType): ContainerBuil
   const mapsButton = new ButtonBuilder()
     .setCustomId('mapsButton')
     .setLabel('set maps')
-    .setStyle(ButtonStyle.Primary)
-    .setDisabled(true);
+    .setStyle(ButtonStyle.Primary);
 
   const classSelect = new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
     new StringSelectMenuBuilder()
@@ -192,14 +154,12 @@ export function competitionCreateContainer(type: CompetitionType): ContainerBuil
         new StringSelectMenuOptionBuilder().setLabel('Soldier').setValue('Soldier'),
         new StringSelectMenuOptionBuilder().setLabel('Demo').setValue('Demo')
       )
-      .setDisabled(true)
   );
 
   const divisionsSelect = new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
     new StringSelectMenuBuilder()
       .setCustomId('divisions')
       .setPlaceholder('divisions')
-      .setDisabled(true)
       .setOptions(
         new StringSelectMenuOptionBuilder().setLabel('placeholder').setValue('placeholder')
       )
@@ -210,8 +170,6 @@ export function competitionCreateContainer(type: CompetitionType): ContainerBuil
     .addSectionComponents(header)
     .addSeparatorComponents(separator)
     .addActionRowComponents((ar) => ar.setComponents(dateButton, mapsButton))
-    .addActionRowComponents(classSelect)
-    .addActionRowComponents(divisionsSelect);
-
+    .addActionRowComponents(classSelect);
   return container;
 }

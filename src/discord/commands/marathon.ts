@@ -1,10 +1,14 @@
 import {
+  blockQuote,
   ChatInputCommandInteraction,
+  inlineCode,
   MessageFlags,
+  ModalSubmitInteraction,
   PermissionFlagsBits,
   SlashCommandBuilder,
+  time,
 } from 'discord.js';
-import { competitionCreateContainer } from '../../lib/discord/displaycomponents.js';
+import { competitionCreateContainer, dateModal } from '../../lib/discord/displaycomponents.js';
 
 const commandData = new SlashCommandBuilder()
   .setName('marathon')
@@ -30,9 +34,47 @@ export default {
     const action: string = interaction.options.getString('action', true);
     switch (action) {
       case 'create': {
-        await interaction.editReply({
+        const messageResponse = await interaction.editReply({
           components: [competitionCreateContainer('marathon')],
           flags: MessageFlags.IsComponentsV2,
+        });
+
+        const componentCollector = messageResponse.createMessageComponentCollector({
+          time: 300_000,
+          filter: (i) => i.user.id === interaction.user.id,
+        });
+
+        componentCollector.on('collect', async (collected) => {
+          if (collected.customId === 'dateButton') {
+            await collected.showModal(dateModal('marathon'));
+
+            // error handle
+            const modalSubmit: ModalSubmitInteraction = await collected.awaitModalSubmit({
+              time: 180_000,
+            });
+            await modalSubmit.deferReply({ flags: MessageFlags.Ephemeral });
+
+            const month = modalSubmit.fields.getTextInputValue('month').padStart(2, '0');
+            const day = modalSubmit.fields.getTextInputValue('day').padStart(2, '0');
+            const offset = modalSubmit.fields.getTextInputValue('offset').padStart(2, '0');
+
+            const now = new Date();
+            const date = new Date(`${now.getUTCFullYear()}-${month}-${day}T${offset}:00Z`);
+
+            if (now > date) {
+              date.setUTCFullYear(date.getUTCFullYear() + 1);
+            }
+
+            // check for invalid date
+            if (isNaN(date.getTime())) {
+              await modalSubmit.editReply({
+                content: `marathon start date not set
+${blockQuote(`${inlineCode(`${month}/${day} at ${offset}:00 UTC`)} is an invalid date`)}`,
+              });
+            } else {
+              await modalSubmit.editReply({ content: `marathon start date set for ${time(date)}` });
+            }
+          }
         });
         // creation options
         // display component for..
