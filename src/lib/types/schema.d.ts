@@ -1,5 +1,8 @@
-type SoldierDivision = 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Steel' | 'Wood';
-type DemoDivision = 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Steel' | 'Wood';
+const soldierDivisions = ['Platinum', 'Gold', 'Silver', 'Bronze', 'Steel', 'Wood'] as const;
+const demoDivisions = ['Platinum', 'Gold', 'Silver', 'Bronze', 'Steel', 'Wood'] as const;
+
+type SoldierDivision = (typeof soldierDivisions)[number];
+type DemoDivision = (typeof demoDivisions)[number];
 
 // Competition Phases
 // ready     - marathon has yet to be announced
