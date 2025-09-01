@@ -13,7 +13,7 @@ import {
   TextDisplayBuilder,
 } from 'discord.js';
 
-const embedColor = new Map<string, number>([
+const accentColor = new Map<string, number>([
   ['marathon', 0xcba6f7],
   ['minithon', 0xf5c2e7],
   ['bounty', 0xfab387],
@@ -60,7 +60,7 @@ export default {
       .setStyle(ButtonStyle.Secondary);
 
     const container = new ContainerBuilder()
-      .setAccentColor(embedColor.get('marathon'))
+      .setAccentColor(accentColor.get('marathon'))
       .addSectionComponents((section) =>
         section.addTextDisplayComponents(textDisplay).setButtonAccessory(cancelButton)
       )

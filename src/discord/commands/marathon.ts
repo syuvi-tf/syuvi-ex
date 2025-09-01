@@ -1,4 +1,10 @@
-import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import {
+  ChatInputCommandInteraction,
+  MessageFlags,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from 'discord.js';
+import { competitionCreateContainer } from '../../lib/discord/displaycomponents.js';
 
 const commandData = new SlashCommandBuilder()
   .setName('marathon')
@@ -24,6 +30,10 @@ export default {
     const action: string = interaction.options.getString('action', true);
     switch (action) {
       case 'create': {
+        await interaction.editReply({
+          components: [competitionCreateContainer('marathon')],
+          flags: MessageFlags.IsComponentsV2,
+        });
         // creation options
         // display component for..
         // month, day, hours offset
